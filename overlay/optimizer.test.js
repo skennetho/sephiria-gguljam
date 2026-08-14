@@ -275,8 +275,71 @@ function place(ctx) {
   const { p, r } = place(ctx);
   const ev = opt.evaluate(ctx, p, r);
   check('레벨은 10 이지만', ev.level[8], 10);
+  // P=100000 스케일: 주항 3 + even 보너스 (3*10 - 0*2) = 33, 타이브레이크 0
   check('점수는 maxLevel 3 으로 잘린다', opt.score(ctx, ev, { mode: 'even' }),
-    3 + (3 * 10 - (3 - 3) * 2));
+    (3 + (3 * 10 - (3 - 3) * 2)) * 100000);
+}
+
+// ── 타이브레이크: 강화수가 같다면 콤보 우선, 콤보도 같다면 희귀도 우선 ──
+
+{
+  // 석판이 idx8 에만 +3 을 준다. 참 두 개(A=콤보, B=일반)를
+  // A가 강화받는 배치 vs B가 강화받는 배치로 비교한다. 강화 총합은 동일.
+  const patterns = [{ iid: 1, movable: true, rots: { '0': { '7': { e: [[8, opt.OP_INCREASE, 3]], c: [] } } } }];
+  const mk = (aIdx, bIdx) => {
+    const ctx = ctxOf({
+      storage: 24,
+      items: [tablet(7, 0), charm(aIdx, { iid: 1, maxLevel: 5 }), charm(bIdx, { iid: 2, maxLevel: 5 })],
+      patterns,
+    });
+    const { p, r } = place(ctx);
+    return opt.score(ctx, opt.evaluate(ctx, p, r), {
+      mode: 'even',
+      tieOf: it => it.iid === 1 ? { combo: 1, rarity: 0 } : { combo: 0, rarity: 0 },
+    });
+  };
+  ok('강화수 같으면 콤보 아티팩트가 강화받는 배치가 우선', mk(8, 9) > mk(9, 8));
+}
+
+{
+  // 둘 다 콤보 미소속, 희귀도만 다르다 (A=Legend 4, B=Common 0)
+  const patterns = [{ iid: 1, movable: true, rots: { '0': { '7': { e: [[8, opt.OP_INCREASE, 3]], c: [] } } } }];
+  const mk = (aIdx, bIdx) => {
+    const ctx = ctxOf({
+      storage: 24,
+      items: [tablet(7, 0), charm(aIdx, { iid: 1, maxLevel: 5 }), charm(bIdx, { iid: 2, maxLevel: 5 })],
+      patterns,
+    });
+    const { p, r } = place(ctx);
+    return opt.score(ctx, opt.evaluate(ctx, p, r), {
+      mode: 'even',
+      tieOf: it => it.iid === 1 ? { combo: 0, rarity: 4 } : { combo: 0, rarity: 0 },
+    });
+  };
+  ok('콤보도 같으면 희귀도 높은 쪽이 강화받는 배치가 우선', mk(8, 9) > mk(9, 8));
+}
+
+{
+  // 타이브레이크가 주 목적을 뒤집으면 안 된다:
+  // 콤보 아티팩트에 +1 을 주는 배치보다, 일반 아티팩트에 +2 를 주는 배치가 이겨야 한다.
+  const patterns = [
+    { iid: 1, movable: true, rots: { '0': { '7': { e: [[8, opt.OP_INCREASE, 1]], c: [] } } } },
+    { iid: 2, movable: true, rots: { '0': { '9': { e: [[10, opt.OP_INCREASE, 2]], c: [] } } } },
+  ];
+  const mk = (comboIdx, plainIdx) => {
+    const ctx = ctxOf({
+      storage: 24,
+      items: [tablet(7, 0), tablet(9, 1), charm(comboIdx, { iid: 1, maxLevel: 5 }), charm(plainIdx, { iid: 2, maxLevel: 5 })],
+      patterns,
+    });
+    const { p, r } = place(ctx);
+    return opt.score(ctx, opt.evaluate(ctx, p, r), {
+      mode: 'even',
+      tieOf: it => it.iid === 1 ? { combo: 1, rarity: 4 } : { combo: 0, rarity: 0 },
+    });
+  };
+  // 콤보템이 +1 칸(8), 일반템이 +2 칸(10) vs 반대
+  ok('타이브레이크가 강화수 차이를 뒤집지 않는다', mk(10, 8) > mk(8, 10));
 }
 
 {

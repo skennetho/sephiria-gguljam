@@ -83,6 +83,13 @@ let optimizeState = 'idle'; // idle | calculating | done | error
 let optimizeErrorMsg = '';
 let calcSeq = 0;            // 계산 요청 일련번호. 재시작 시 옛 응답을 버리는 데 쓴다
 
+// 반영하기: 마지막 탐색 결과를 보관했다가 게임에 전송한다
+let lastSearch = null;      // { ctx, placement, rotations }
+let applyState = 'idle';    // idle | applying | error
+let applySeq = 0;
+let applyTimer = null;
+let applyErrorMsg = '';
+
 // 새로고침은 '다음 inventory_update 를 기다리는' 비동기 동작이다.
 let pendingRefresh = null;      // { timer }
 let refreshState = 'idle';      // idle | loading | error
@@ -294,6 +301,22 @@ function handleMessage(msg) {
     log.error('optimize', '플러그인 오류', optimizeErrorMsg);
     renderOptimizeStatus();
 
+  } else if (msg.type === 'apply_result') {
+    if (msg.data && msg.data.seq != null && msg.data.seq !== applySeq) return;
+    if (applyTimer) { clearTimeout(applyTimer); applyTimer = null; }
+
+    if (msg.data && msg.data.ok) {
+      log.info('apply', '반영 완료', { 스왑: msg.data.swaps, 회전: msg.data.rotations });
+      applyState = 'idle';
+      // 반영 결과를 현재 배치로 다시 읽어와 확인시켜 준다
+      requestRefresh();
+    } else {
+      applyState = 'error';
+      applyErrorMsg = (msg.data && msg.data.message) || '반영 실패';
+      log.error('apply', '반영 실패', applyErrorMsg);
+      renderOptimizeStatus();
+    }
+
   } else if (msg.type === 'team_update') {
     team = (msg.data && msg.data.members) || [];
     if (teamActive >= team.length) teamActive = 0;
@@ -319,7 +342,17 @@ function runSearch(snap) {
       return (db && db.categories) || [];
     });
 
-    const opts = { mode: enhanceMode, weightOf, iterations: 30000 };
+    // 타이브레이크: 강화수가 같으면 콤보 소속 우선, 그다음 희귀도 순
+    const RARITY_RANK = { Common: 0, Uncommon: 1, Rare: 2, Unique: 3, Epic: 3, Legend: 4 };
+    const tieOf = item => {
+      const db = itemById(item.eid);
+      return {
+        combo: db && db.categories && db.categories.length > 0 ? 1 : 0,
+        rarity: db && RARITY_RANK[db.rarity] != null ? RARITY_RANK[db.rarity] : 0,
+      };
+    };
+
+    const opts = { mode: enhanceMode, weightOf, tieOf, iterations: 30000 };
 
     // 담금질은 초기값에 따라 국소해에 갇힌다. 여러 번 돌려 가장 좋은 것을 쓴다.
     // 실측 30000회에 약 90ms 라 몇 번 반복해도 체감되지 않는다.
@@ -332,6 +365,8 @@ function runSearch(snap) {
 
     displayed = layoutFromSearch(ctx, best);
     displayedKind = 'optimized';
+    lastSearch = { ctx, placement: best.placement, rotations: best.rotations };
+    applyState = 'idle';
 
     lastOptimize = {
       _at: Date.now(),
@@ -587,6 +622,25 @@ function renderOptimizeStatus() {
 
   const CALC_LABEL = '\u25B6 계산 <small>(Ctrl+R)</small>';
   const refreshBtn = document.getElementById('btn-refresh');
+  const applyBtn = document.getElementById('btn-apply');
+
+  // 반영 버튼은 '계산 결과를 보고 있는 상태' 에서만 보인다
+  const canApply = optimizeState === 'done' && lastSearch && displayedKind === 'optimized';
+  applyBtn.classList.toggle('hidden', !(canApply || applyState === 'applying'));
+  if (applyState === 'applying') {
+    applyBtn.innerHTML = '<span class="spinner"></span> 반영 중';
+    applyBtn.disabled = true;
+  } else {
+    applyBtn.innerHTML = '\u2714 반영';
+    applyBtn.disabled = false;
+  }
+
+  if (applyState === 'error') {
+    badge.className = 'status-badge error';
+    badge.textContent = applyErrorMsg || '반영 실패';
+    note.classList.add('hidden');
+    return;
+  }
 
   badge.className = 'status-badge';
   note.classList.add('hidden');
@@ -647,6 +701,47 @@ function formatAgo(ts) {
 
 // 상태 배지의 '몇 분 전' 을 갱신
 setInterval(() => { if (optimizeState === 'done') renderOptimizeStatus(); }, 30000);
+
+/**
+ * 계산된 배치를 게임 인벤토리에 반영한다.
+ * 플러그인은 게임 자체의 네트워크 안전 API(Swap/DoClickAction)로만 이동·회전한다.
+ */
+function requestApply() {
+  if (!lastSearch || displayedKind !== 'optimized') {
+    log.warn('apply', '반영할 계산 결과가 없음');
+    return;
+  }
+  if (applyState === 'applying') return;
+
+  const { ctx, placement, rotations } = lastSearch;
+  const moves = ctx.items.map((it, i) => ({
+    iid: it.iid,
+    idx: placement[i],
+    rot: it.kind === 'tablet' ? rotations[i] : 0,
+  }));
+
+  applySeq++;
+  log.info('apply', '요청', { seq: applySeq, 아이템: moves.length });
+
+  const sent = send({ type: 'apply', seq: applySeq, moves });
+  if (!sent) {
+    applyState = 'error';
+    applyErrorMsg = '게임에 연결되지 않았습니다';
+    renderOptimizeStatus();
+    return;
+  }
+
+  applyState = 'applying';
+  renderOptimizeStatus();
+
+  applyTimer = setTimeout(() => {
+    applyTimer = null;
+    applyState = 'error';
+    applyErrorMsg = '응답이 없습니다 (게임 재시작 후 새 플러그인 필요할 수 있음)';
+    log.error('apply', '타임아웃');
+    renderOptimizeStatus();
+  }, 8000);
+}
 
 function requestOptimize() {
   // 계산 중에 다시 누르면 이전 요청을 버리고 처음부터 다시 시작한다
@@ -1489,7 +1584,15 @@ function setupPanelDragging() {
 // ── 컨트롤 ────────────────────────────────────────────
 
 function setupControls() {
-  document.getElementById('btn-calc').addEventListener('click', requestOptimize);
+  document.getElementById('btn-calc')
+    .addEventListener('click', guard('btn:calc', requestOptimize));
+
+  // 주의: 이 바인딩이 이전 리팩터링에서 유실된 적이 있다 (새로고침 버튼 무반응).
+  document.getElementById('btn-refresh')
+    .addEventListener('click', guard('btn:refresh', requestRefresh));
+
+  document.getElementById('btn-apply')
+    .addEventListener('click', guard('btn:apply', requestApply));
 
   document.getElementById('btn-add-combo').addEventListener('click', () => {
     const picker = document.getElementById('combo-picker');

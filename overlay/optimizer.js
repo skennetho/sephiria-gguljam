@@ -309,6 +309,12 @@ function score(ctx, evalResult, opts) {
   const { items, storage } = ctx;
   const mode = opts.mode || 'combo';
   const weightOf = opts.weightOf || (() => 1);
+  const tieOf = opts.tieOf || (() => ({ combo: 0, rarity: 0 }));
+
+  // 주 목적(강화수)과 타이브레이크를 한 스칼라에 담기 위해 자릿수를 분리한다.
+  // P 가 충분히 커야 타이브레이크 합이 강화수 1 차이를 절대 뒤집지 못한다.
+  // (아이템 ~30개 × eff ≤ 20 × 타이 ≤ 14 = 8,400 << P)
+  const P = 100000;
 
   let total = 0;
   let inactiveCharms = 0;
@@ -327,20 +333,25 @@ function score(ctx, evalResult, opts) {
     effLevels.push(eff);
 
     if (mode === 'combo') {
-      total += eff * weightOf(it);
+      total += eff * weightOf(it) * P;
     } else {
-      total += eff;
+      total += eff * P;
     }
+
+    // 타이브레이크: 강화 총합이 같다면 콤보 소속 아티팩트에게 강화를 몰아주고,
+    // 그것도 같다면 희귀도 높은 쪽을 우선한다. (콤보 10 > 희귀도 최대 4)
+    const tie = tieOf(it);
+    total += eff * ((tie.combo ? 10 : 0) + (tie.rarity || 0));
   }
 
   // 발동 실패는 강하게 벌점 (게임 자체 점수함수도 비활성에 큰 감점을 준다)
-  total -= inactiveCharms * 50;
+  total -= inactiveCharms * 50 * P;
 
   if (mode === 'even' && effLevels.length > 0) {
     // 최소값을 끌어올리는 쪽을 선호한다 (분산이 아니라 최소값 기준이 직관적이다)
     const min = Math.min(...effLevels);
     const avg = effLevels.reduce((a, b) => a + b, 0) / effLevels.length;
-    total += min * 10 - (avg - min) * 2;
+    total += (min * 10 - (avg - min) * 2) * P;
   }
 
   return total;

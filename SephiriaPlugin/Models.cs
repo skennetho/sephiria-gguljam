@@ -116,8 +116,17 @@ namespace SephiriaTools
     [Serializable]
     public class DashboardCommand
     {
-        public string type;  // "optimize", "refresh"
-        public int seq;      // 계산 요청 일련번호 (재시작 시 옛 응답 구분용)
+        public string type;  // "optimize", "refresh", "apply"
+        public int seq;      // 요청 일련번호 (재시작 시 옛 응답 구분용)
+    }
+
+    /// <summary>반영하기: 아이템 하나의 목표 상태 (선형 인덱스 + 석판 회전)</summary>
+    [Serializable]
+    public class ApplyMove
+    {
+        public int iid;   // instanceID
+        public int idx;   // 목표 칸 (y * width + x)
+        public int rot;   // 목표 회전 0..3 (석판만 의미 있음)
     }
 
     // ── Lightweight JSON Helper ────────────────────────────────────
@@ -155,6 +164,31 @@ namespace SephiriaTools
             cmd.type = ExtractStringValue(json, "type");
             cmd.seq = ExtractIntValue(json, "seq");
             return cmd;
+        }
+
+        /// <summary>apply 명령의 moves 배열을 파싱한다.</summary>
+        public static List<ApplyMove> ParseApplyMoves(string json)
+        {
+            var moves = new List<ApplyMove>();
+
+            int arrKey = json.IndexOf("\"moves\"");
+            if (arrKey < 0) return moves;
+            int arrStart = json.IndexOf('[', arrKey);
+            int arrEnd = json.IndexOf(']', arrStart);
+            if (arrStart < 0 || arrEnd < 0) return moves;
+
+            string content = json.Substring(arrStart + 1, arrEnd - arrStart - 1);
+            foreach (var chunk in content.Split(new[] { "},{" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string obj = "{" + chunk.Trim().TrimStart('{').TrimEnd('}') + "}";
+                moves.Add(new ApplyMove
+                {
+                    iid = ExtractIntValue(obj, "iid"),
+                    idx = ExtractIntValue(obj, "idx"),
+                    rot = ExtractIntValue(obj, "rot"),
+                });
+            }
+            return moves;
         }
 
 

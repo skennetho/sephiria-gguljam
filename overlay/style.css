@@ -552,3 +552,12 @@ html, body {
 .filter-chip img { width: 16px; height: 16px; object-fit: contain; image-rendering: pixelated; }
 .filter-chip .chip-x { cursor: pointer; color: #5a8db0; font-weight: normal; margin-left: 2px; }
 .filter-chip .chip-x:hover { color: #ff8a8a; }
+
+
+/* 반영하기 버튼 */
+.calc-btn.apply {
+  margin-left: 0;
+  background: #12301f; color: #5fdc94; border-color: #2b5c40;
+}
+.calc-btn.apply:hover:not(:disabled) { background: #1a4029; }
+.calc-btn.apply .spinner { border-color: #2b5c40; border-top-color: #5fdc94; }
