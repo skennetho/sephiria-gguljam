@@ -12,7 +12,13 @@
 const fs = require('fs');
 const path = require('path');
 
-const LOG_PATH = path.join(__dirname, 'overlay.log');
+// 패키징된 앱에서는 __dirname 이 읽기 전용 asar 내부라 파일을 쓸 수 없다.
+// 그 경우 exe 옆에 로그를 남긴다.
+const LOG_DIR = __dirname.includes('app.asar')
+  ? path.dirname(process.execPath)
+  : __dirname;
+
+const LOG_PATH = path.join(LOG_DIR, 'overlay.log');
 const MAX_BYTES = 2 * 1024 * 1024;
 
 let stream = null;

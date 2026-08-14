@@ -29,13 +29,19 @@ function guard(scope, fn) {
 }
 
 const WS_URL = 'ws://localhost:5827';
-// 이미지 src 용 상대경로
-const ASSETS = '../assets';
-// 파일 읽기용 절대경로. file:// 에서는 fetch 가 막히므로 JSON 은 fs 로 읽는다.
-const ASSETS_DIR = path.join(__dirname, '..', 'assets');
+
+// assets 위치는 실행 환경마다 다르다:
+// 개발(저장소) -> ../assets, 배포판 -> 게임 폴더의 플러그인 덤프 -> 동봉 스냅샷.
+const { locateAssets } = require('./assets-locator');
+const located = locateAssets(__dirname, log);
+const ASSETS_DIR = located.dir;
+// 이미지 src 도 같은 절대경로를 쓴다 (file:// URL)
+const ASSETS = 'file:///' + ASSETS_DIR.split(path.sep).join('/');
+log.info('assets', `위치 결정: ${located.source}`, ASSETS_DIR);
 
 function readJson(relPath) {
-  return JSON.parse(fs.readFileSync(path.join(ASSETS_DIR, relPath), 'utf8'));
+  return JSON.parse(
+    fs.readFileSync(path.join(ASSETS_DIR, relPath), 'utf8').replace(/^﻿/, ''));
 }
 
 // ── 상태 ──────────────────────────────────────────────
@@ -163,6 +169,22 @@ function comboById(id) {
 
 // ── WebSocket ─────────────────────────────────────────
 
+/** WebSocket 전송. 끊겨 있으면 false 를 돌려주고 로그를 남긴다. */
+function send(obj) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    log.warn('ws', '전송 실패 — 연결 안 됨', obj && obj.type);
+    return false;
+  }
+  try {
+    ws.send(JSON.stringify(obj));
+    log.info('ws', '전송', obj && obj.type);
+    return true;
+  } catch (err) {
+    log.exception('ws:send', err);
+    return false;
+  }
+}
+
 function connectWs() {
   if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
 
@@ -187,21 +209,6 @@ function connectWs() {
     catch (err) { log.exception('ws:handle', err); }
   };
 
-/** WebSocket 전송. 끊겨 있으면 false 를 돌려주고 로그를 남긴다. */
-function send(obj) {
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
-    log.warn('ws', '전송 실패 — 연결 안 됨', obj && obj.type);
-    return false;
-  }
-  try {
-    ws.send(JSON.stringify(obj));
-    log.info('ws', '전송', obj && obj.type);
-    return true;
-  } catch (err) {
-    log.exception('ws:send', err);
-    return false;
-  }
-}
 
   ws.onerror = () => { log.warn('ws', '소켓 오류'); setWsStatus(false); };
   ws.onclose = () => { log.warn('ws', '연결 끊김 — 재접속 예약'); setWsStatus(false); scheduleReconnect(); };

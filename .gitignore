@@ -23,3 +23,6 @@ overlay/overlay.log*
 
 # 임시 백업
 *.bak
+
+# 릴리스 산출물
+dist/

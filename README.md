@@ -131,3 +131,22 @@ level(칸) = (기본 + 석판 IncreaseConstLevel 합) × (MultiplyConstLevel 합
   존재**할 수 있고, 발동조건 여럿이 줄이 아니라 **선형 인덱스**를 기준으로 판정한다.
 - 콤보 단계는 **보유 개수**로 정해지므로 배치로 바꿀 수 없다. 배치가 바꾸는 것은
   각 아티팩트의 최종 강화수뿐이다.
+
+## 📦 배포판 만들기
+
+```powershell
+node scripts/build-release.mjs
+```
+
+산출물: `dist/SephiriaTools-v<버전>.zip` (약 107MB). 버전은 `overlay/package.json` 의 `version`.
+
+zip 안에는 더블클릭 설치기(`Install.bat`)와 런처(`Sephiria Tools.bat`),
+동봉 BepInEx, 플러그인 DLL, 초기 assets, 패키징된 오버레이가 들어간다.
+
+배포판의 assets 해석 순서 (`overlay/assets-locator.js`):
+`SEPHIRIA_ASSETS` 환경변수 → 저장소 `assets/`(개발) → 게임 폴더의 플러그인 덤프
+→ exe 옆 동봉 스냅샷(`assets-bundled/`). 설치기가 게임 폴더에 assets 를 시드하므로
+설치 직후부터 아이콘이 뜨고, 이후 게임이 스스로 갱신한다.
+
+GitHub Releases 에 zip 을 올려 배포한다. 코드 서명이 없으므로 SmartScreen 경고
+안내가 README.txt 에 포함돼 있다.
