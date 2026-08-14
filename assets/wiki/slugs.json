@@ -1,9 +1,10 @@
 {
-  "_generatedAt": "2026-08-14T07:15:39.554Z",
+  "_generatedAt": "2026-08-14T09:28:18.716Z",
   "_counts": {
     "artifacts": 267,
     "weapons": 158,
-    "miracle": 21
+    "miracle": 21,
+    "costume": 27
   },
   "artifacts": {
     "reinforced_potion_lid": "강화 포션 뚜껑",
@@ -456,5 +457,34 @@
     "fisher": "낚시꾼",
     "electromancer": "전격술사",
     "meteoric_smith": "운철 대장장이"
+  },
+  "costume": {
+    "pink_rabbit": "분홍 토끼",
+    "rabbit": "갑옷을 입은 토끼",
+    "brown_rabbit": "갈색 토끼",
+    "braid": "땋은 머리 토끼",
+    "orange_rabbit": "주황색 토끼",
+    "red_rabbit": "빨간망토 토끼",
+    "white_rabbit": "흰색 토끼",
+    "wing_ear_rabbit": "날개 귀 토끼",
+    "red_cat": "붉은 옷 고양이",
+    "red_fox": "붉은 여우",
+    "frog": "개구리",
+    "mole": "두더지",
+    "white_wolf": "하얀 늑대",
+    "wizard_rabbit": "마법사 토끼",
+    "skeleton": "스켈레톤",
+    "wings_lost_bat": "날개 잃은 박쥐",
+    "adventurer": "모험가 토끼",
+    "scholar_lizard": "학자 도마뱀",
+    "ghost": "유령",
+    "otter": "수달",
+    "eagle": "독수리",
+    "crocodile": "악어",
+    "deer": "사슴",
+    "lucky_fairy": "행운의 요정",
+    "squirrel": "농부 다람쥐",
+    "turtle": "거북이",
+    "forest_cat": "숲 고양이"
   }
 }

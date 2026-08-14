@@ -1,12 +1,13 @@
 {
   "_source": "https://www.sephiria.wiki (scripts/fetch-wiki-data.mjs)",
-  "_generatedAt": "2026-08-14T07:15:39.550Z",
+  "_generatedAt": "2026-08-14T09:28:49.182Z",
   "_counts": {
     "artifacts": 267,
     "weapons": 158,
-    "miracle": 21
+    "miracle": 21,
+    "costume": 27
   },
-  "_note": "effect.sets = 콤보 소속 슬러그. effect.content 의 \"a/b/c/d\" 는 강화 단계별 수치. label_kor 로 게임 추출 DB(assets/database.json)와 매칭한다.",
+  "_note": "effect.sets = 콤보 소속 슬러그. effect.content 의 \"a/b/c/d\" 는 강화 단계별 수치. label_kor 로 게임 추출 DB(assets/database.json)와 매칭한다. localIcon 은 assets/wiki/icons/ 아래 상대경로.",
   "data": {
     "artifacts": {
       "reinforced_potion_lid": {
@@ -4257,7 +4258,8 @@
             ""
           ]
         },
-        "label_kor": "표준 검과 방패"
+        "label_kor": "표준 검과 방패",
+        "localIcon": "weapons/shield_sword.png"
       },
       "great_sword": {
         "id": 2,
@@ -4270,7 +4272,8 @@
             ""
           ]
         },
-        "label_kor": "강철 대검"
+        "label_kor": "강철 대검",
+        "localIcon": "weapons/great_sword.png"
       },
       "dagger": {
         "id": 3,
@@ -4283,7 +4286,8 @@
             ""
           ]
         },
-        "label_kor": "단검"
+        "label_kor": "단검",
+        "localIcon": "weapons/dagger.png"
       },
       "crossbow": {
         "id": 4,
@@ -4296,7 +4300,8 @@
             ""
           ]
         },
-        "label_kor": "대형 석궁"
+        "label_kor": "대형 석궁",
+        "localIcon": "weapons/crossbow.png"
       },
       "fraudulent": {
         "id": 5,
@@ -4310,7 +4315,8 @@
             "$$i얼음속성 피해$가 5 증가합니다."
           ]
         },
-        "label_kor": "서릿빛 조각"
+        "label_kor": "서릿빛 조각",
+        "localIcon": "weapons/fraudulent.png"
       },
       "magic_wand": {
         "id": 6,
@@ -4324,7 +4330,8 @@
             "$$s무기 공격$이 매직 미사일을 사용하는 형태로 변경됩니다."
           ]
         },
-        "label_kor": "매직 완드"
+        "label_kor": "매직 완드",
+        "localIcon": "weapons/magic_wand.png"
       },
       "one_workshop": {
         "id": 7,
@@ -4338,7 +4345,8 @@
             "$$f공격 속도$가 15% 증가하고, $s일반 공격$ 시 전방을 자동 가드 합니다."
           ]
         },
-        "label_kor": "공방일체"
+        "label_kor": "공방일체",
+        "localIcon": "weapons/one_workshop.png"
       },
       "protection": {
         "id": 8,
@@ -4352,7 +4360,8 @@
             "$$s가드$ 성공 시 $s가드$에 소모되는 $iMP$가 50% 감소합니다."
           ]
         },
-        "label_kor": "솜털의 보호"
+        "label_kor": "솜털의 보호",
+        "localIcon": "weapons/protection.png"
       },
       "rapier": {
         "id": 9,
@@ -4366,7 +4375,8 @@
             "$$d대시 공격$이 비활성화되고, $s일반 공격$이 $d대시 공격$ 판정으로 변경됩니다. $f공격 속도$가 10% 증가합니다."
           ]
         },
-        "label_kor": "레이피어"
+        "label_kor": "레이피어",
+        "localIcon": "weapons/rapier.webp"
       },
       "small_destruction": {
         "id": 10,
@@ -4380,7 +4390,8 @@
             "$$s특수 공격: 휩쓸기$ 피해량이 40% 증가합니다."
           ]
         },
-        "label_kor": "작은 파괴"
+        "label_kor": "작은 파괴",
+        "localIcon": "weapons/small_destruction.png"
       },
       "conductor": {
         "id": 11,
@@ -4394,7 +4405,8 @@
             "$$l번개속성 피해$가 5 증가합니다."
           ]
         },
-        "label_kor": "전도체"
+        "label_kor": "전도체",
+        "localIcon": "weapons/conductor.png"
       },
       "carrot_sword": {
         "id": 12,
@@ -4408,7 +4420,8 @@
             "모든 속성 피해가 3씩 증가합니다."
           ]
         },
-        "label_kor": "당근 검"
+        "label_kor": "당근 검",
+        "localIcon": "weapons/carrot_sword.png"
       },
       "wandering": {
         "id": 13,
@@ -4423,7 +4436,8 @@
             "$$d대시 공격 피해$가 60% 증가합니다. 대시 경로의 적에게 대시 공격의 50% 피해를 입힙니다. ($d대시 횟수$ 소모 시 2배 피해)"
           ]
         },
-        "label_kor": "재의 휘날림"
+        "label_kor": "재의 휘날림",
+        "localIcon": "weapons/wandering.png"
       },
       "amnesty": {
         "id": 14,
@@ -4438,7 +4452,8 @@
             "$$n일반 공격 피해$가 33% 증가하지만, 더 이상 $s특수 공격: 휩쓸기$를 사용할 수 없습니다."
           ]
         },
-        "label_kor": "무고원"
+        "label_kor": "무고원",
+        "localIcon": "weapons/amnesty.png"
       },
       "carrot_caliber": {
         "id": 15,
@@ -4453,7 +4468,8 @@
             "$$s일반 공격$이 $s당근 검법$으로 변경되고, 추가 공격 속도의 효율이 20% 상승합니다."
           ]
         },
-        "label_kor": "당근칼리버"
+        "label_kor": "당근칼리버",
+        "localIcon": "weapons/carrot_caliber.png"
       },
       "green_onion_root_sword": {
         "id": 17,
@@ -4468,7 +4484,8 @@
             "모든 속성 피해가 2씩 증가하고, $m마법 피해량$이 15% 증가합니다."
           ]
         },
-        "label_kor": "파 뿌리 검"
+        "label_kor": "파 뿌리 검",
+        "localIcon": "weapons/green_onion_root_sword.png"
       },
       "flash": {
         "id": 18,
@@ -4483,7 +4500,8 @@
             "찌르기 범위가 더 길어집니다. $f공격 속도$가 20% 증가합니다."
           ]
         },
-        "label_kor": "섬광의 레이피어"
+        "label_kor": "섬광의 레이피어",
+        "localIcon": "weapons/flash.png"
       },
       "flame": {
         "id": 19,
@@ -4498,7 +4516,8 @@
             "공격이 $b화염$ 속성 기반으로 변경됩니다.\n$s일반 공격$의 피해량이 20% 증가합니다."
           ]
         },
-        "label_kor": "화염의 시선"
+        "label_kor": "화염의 시선",
+        "localIcon": "weapons/flame.png"
       },
       "breath_of_ice": {
         "id": 20,
@@ -4513,7 +4532,8 @@
             "공격이 $i얼음$ 속성 기반으로 변경됩니다.\n$s대시 공격$의 피해량이 40% 증가합니다."
           ]
         },
-        "label_kor": "얼음의 숨결"
+        "label_kor": "얼음의 숨결",
+        "localIcon": "weapons/breath_of_ice.png"
       },
       "lightning_wings": {
         "id": 21,
@@ -4528,7 +4548,8 @@
             "공격이 $l번개$ 속성 기반으로 변경됩니다.\n$s특수 공격$의 피해량이 20% 증가합니다."
           ]
         },
-        "label_kor": "번개의 날개짓"
+        "label_kor": "번개의 날개짓",
+        "localIcon": "weapons/lightning_wings.png"
       },
       "glacial_blade": {
         "id": 22,
@@ -4543,7 +4564,8 @@
             "아티팩트 축사의 검집의 투사체가 작아지지만, 50% 빨리 충전됩니다."
           ]
         },
-        "label_kor": "빙하의 칼날"
+        "label_kor": "빙하의 칼날",
+        "localIcon": "weapons/glacial_blade.png"
       },
       "snowstorm": {
         "id": 24,
@@ -4558,7 +4580,8 @@
             "$$d대시 횟수$를 소모할 시 아티팩트 눈보라 망치를 70%의 대미지로 즉시 발동합니다."
           ]
         },
-        "label_kor": "눈보라의 전야"
+        "label_kor": "눈보라의 전야",
+        "localIcon": "weapons/snowstorm.png"
       },
       "twinkle_of_stars": {
         "id": 25,
@@ -4573,7 +4596,8 @@
             "$$s가드$를 성공하면 공격자의 피해량의 300%를 반사합니다. ($s퍼펙트 가드$ 시 400%)"
           ]
         },
-        "label_kor": "별의 반짝임"
+        "label_kor": "별의 반짝임",
+        "localIcon": "weapons/twinkle_of_stars.png"
       },
       "cold_anger": {
         "id": 26,
@@ -4588,7 +4612,8 @@
             "$$s퍼펙트 가드$ 시 14초간 모든 피해량이 20% 증가합니다."
           ]
         },
-        "label_kor": "차가운 분노"
+        "label_kor": "차가운 분노",
+        "localIcon": "weapons/cold_anger.webp"
       },
       "tightening_fear": {
         "id": 27,
@@ -4603,7 +4628,8 @@
             "3초마다 $s공포 고조$ 1스택 획득합니다. (최대 10스택)\n$f공격 속도$에 비례하여 스택 획득 속도가 증가합니다."
           ]
         },
-        "label_kor": "조여오는 공포"
+        "label_kor": "조여오는 공포",
+        "localIcon": "weapons/tightening_fear.png"
       },
       "balista_sword": {
         "id": 28,
@@ -4618,7 +4644,8 @@
             "아티팩트 미니 발리스타의 화살이 벽을 관통하고 적을 향해 유도됩니다. $s가드$ 성공 시 즉시 화살을 발사합니다."
           ]
         },
-        "label_kor": "발리스타 소드"
+        "label_kor": "발리스타 소드",
+        "localIcon": "weapons/balista_sword.png"
       },
       "super_conductor": {
         "id": 29,
@@ -4633,7 +4660,8 @@
             "$$s특수 공격$이 $s번개 창$으로 변경됩니다. $l먹구름$을 4 소모하여 전방으로 $l번개속성 피해$ 165% 피해량의 창을 발사합니다."
           ]
         },
-        "label_kor": "초전도체"
+        "label_kor": "초전도체",
+        "localIcon": "weapons/super_conductor.png"
       },
       "wooden_bat": {
         "id": 30,
@@ -4647,7 +4675,8 @@
             "$$d대시 공격$을 쓸 수 없지만, $n일반 공격 피해$가 20% 증가합니다."
           ]
         },
-        "label_kor": "나무 방망이"
+        "label_kor": "나무 방망이",
+        "localIcon": "weapons/wooden_bat.webp"
       },
       "chilled_sword": {
         "id": 31,
@@ -4661,7 +4690,8 @@
             "$$s무기 공격$ 시 대상에게 $i얼음속성 피해$의 30% 피해만큼 추가 피해를 가합니다."
           ]
         },
-        "label_kor": "한기가 서린 대검"
+        "label_kor": "한기가 서린 대검",
+        "localIcon": "weapons/chilled_sword.png"
       },
       "lightning_sword_E2G": {
         "id": 33,
@@ -4675,7 +4705,8 @@
             "$$s무기 공격$ 시 대상에게 $l번개속성 피해$의 30% 피해만큼 추가 피해를 가합니다."
           ]
         },
-        "label_kor": "전격 대검 \"E2G\""
+        "label_kor": "전격 대검 \"E2G\"",
+        "localIcon": "weapons/lightning_sword_E2G.png"
       },
       "shim_hongs_thorns": {
         "id": 34,
@@ -4689,7 +4720,8 @@
             "대상을 공격하여 $p상처 악화$ 디버프를 부여합니다."
           ]
         },
-        "label_kor": "심홍의 가시"
+        "label_kor": "심홍의 가시",
+        "localIcon": "weapons/shim_hongs_thorns.png"
       },
       "bone": {
         "id": 35,
@@ -4703,7 +4735,8 @@
             "$$s특수 공격: 소울둥이$가 $s특수 공격: 재조립$으로 변경됩니다."
           ]
         },
-        "label_kor": "뼈 장치검"
+        "label_kor": "뼈 장치검",
+        "localIcon": "weapons/bone.webp"
       },
       "uncomfortable_joy": {
         "id": 36,
@@ -4717,7 +4750,8 @@
             "공격이 '레이저'로 변경됩니다."
           ]
         },
-        "label_kor": "불편한 기쁨"
+        "label_kor": "불편한 기쁨",
+        "localIcon": "weapons/uncomfortable_joy.png"
       },
       "shadow": {
         "id": 37,
@@ -4731,7 +4765,8 @@
             "$$s특수 공격: 소용돌이$ 충전 시간이 두배 늘어나지만, $s일반 공격$ 피해가 20% 증가합니다."
           ]
         },
-        "label_kor": "모이는 그림자"
+        "label_kor": "모이는 그림자",
+        "localIcon": "weapons/shadow.webp"
       },
       "hypersensitivity": {
         "id": 38,
@@ -4745,7 +4780,8 @@
             "$$s특수 공격: 소용돌이$의 피해량이 20%, 충전 속도가 50% 증가합니다."
           ]
         },
-        "label_kor": "과민성"
+        "label_kor": "과민성",
+        "localIcon": "weapons/hypersensitivity.webp"
       },
       "love_gaze": {
         "id": 39,
@@ -4760,7 +4796,8 @@
             "$$s특수 공격: 소용돌이$의 $f치명타 확률$이 100% 증가하고, $f특수 공격 속도$가 50% 빨라집니다."
           ]
         },
-        "label_kor": "사랑의 시선"
+        "label_kor": "사랑의 시선",
+        "localIcon": "weapons/love_gaze.png"
       },
       "ignoring": {
         "id": 40,
@@ -4775,7 +4812,8 @@
             "$$n특수 공격 피해$가 15% 증가합니다.\n$s특수 공격: 소용돌이$가 즉시 충전되고, $f특수 공격 속도$가 15% 감소합니다."
           ]
         },
-        "label_kor": "묵살"
+        "label_kor": "묵살",
+        "localIcon": "weapons/ignoring.png"
       },
       "thorn_bat": {
         "id": 41,
@@ -4790,7 +4828,8 @@
             "$$s직접 공격$으로 $f치명타 피해$적중 시 관통 가시를 3개 발사합니다. 공격의 추가 치명타 피해량 20%당 가시가 하나 추가됩니다. (피해량: 물리 피해의 26%)"
           ]
         },
-        "label_kor": "가시 방망이"
+        "label_kor": "가시 방망이",
+        "localIcon": "weapons/thorn_bat.png"
       },
       "bunting": {
         "id": 42,
@@ -4805,7 +4844,8 @@
             "$$s특수 공격$이 $s특수 공격: 잎 폭발$로 변경됩니다. $s특수 공격 피해$에 $n일반 공격 피해$가 합산됩니다."
           ]
         },
-        "label_kor": "짖궂은 장난"
+        "label_kor": "짖궂은 장난",
+        "localIcon": "weapons/bunting.png"
       },
       "short_self_book": {
         "id": 43,
@@ -4820,7 +4860,8 @@
             "$$s일반 공격$의 마지막 공격을 2회 추가로 휘두를 수 있습니다. $s일반 공격$ 피해량이 10% 증가합니다."
           ]
         },
-        "label_kor": "짧은 자책"
+        "label_kor": "짧은 자책",
+        "localIcon": "weapons/short_self_book.png"
       },
       "first_form": {
         "id": 44,
@@ -4835,7 +4876,8 @@
             "$$s일반 공격$, $s대시 공격$의 레이저가 더 커지고 피해량이 25% 증가합니다."
           ]
         },
-        "label_kor": "태초의 형태"
+        "label_kor": "태초의 형태",
+        "localIcon": "weapons/first_form.png"
       },
       "legacy": {
         "id": 45,
@@ -4850,7 +4892,8 @@
             "$$f마법 가속$이 50% 증가합니다."
           ]
         },
-        "label_kor": "환영술사의 유산"
+        "label_kor": "환영술사의 유산",
+        "localIcon": "weapons/legacy.png"
       },
       "rajaron": {
         "id": 46,
@@ -4865,7 +4908,8 @@
             "$$s특수 공격$이 '자수정 소환'으로 변경됩니다. (소모 $iMP$ 24) 공허 피해를 가하는 '자수정' 동료를 소환합니다. 자수정은 공격 시마다 HP를 5 소모합니다. (HP: 80, 대미지: 모든 속성 평균치 120%)"
           ]
         },
-        "label_kor": "라자리온"
+        "label_kor": "라자리온",
+        "localIcon": "weapons/rajaron.png"
       },
       "squeezer": {
         "id": 47,
@@ -4880,7 +4924,8 @@
             "'재조립' 공격의 범위가 상승하며, $f공격 속도$가 최대 35%까지 점점 빨라집니다. (공격을 멈추면 초기화)"
           ]
         },
-        "label_kor": "삐걱이는 척추"
+        "label_kor": "삐걱이는 척추",
+        "localIcon": "weapons/squeezer.png"
       },
       "shim_hong_whirlpool": {
         "id": 48,
@@ -4895,7 +4940,8 @@
             "$$s일반 공격$,$s대시 공격$이 3연타로 변경됩니다. 각 타격의 피해량이 기존 피해량의 40%로 조정됩니다. $p상처 악화$의 최대 중첩이 6 증가합니다."
           ]
         },
-        "label_kor": "심홍의 소용돌이"
+        "label_kor": "심홍의 소용돌이",
+        "localIcon": "weapons/shim_hong_whirlpool.png"
       },
       "heretic_questioner": {
         "id": 49,
@@ -4910,7 +4956,8 @@
             "$$n무기$로 가한 물리 피해가 $c혼돈$ 속성으로 적용됩니다. $s특수 공격$이 $s특수 공격: 상처 폭발$로 변경됩니다."
           ]
         },
-        "label_kor": "이단심문관"
+        "label_kor": "이단심문관",
+        "localIcon": "weapons/heretic_questioner.png"
       },
       "lightning_sword_S3G": {
         "id": 50,
@@ -4925,7 +4972,8 @@
             "$$s직접 공격$ 시, 대상에게 $l감전$을 부여합니다."
           ]
         },
-        "label_kor": "전격 대검 \"S3G\""
+        "label_kor": "전격 대검 \"S3G\"",
+        "localIcon": "weapons/lightning_sword_S3G.png"
       },
       "lightning_sword_E3G": {
         "id": 51,
@@ -4940,7 +4988,8 @@
             "5회 공격마다 $l먹구름$ 수치를 5개 획득합니다. $s특수 공격: 소용돌이$ 사용 시 $l먹구름의 소모 속도$가 10초간 100% 증가하는 버프를 획득합니다. (최대 5스택)"
           ]
         },
-        "label_kor": "전격 대검 \"E3G\""
+        "label_kor": "전격 대검 \"E3G\"",
+        "localIcon": "weapons/lightning_sword_E3G.png"
       },
       "speech_sword": {
         "id": 54,
@@ -4955,7 +5004,8 @@
             "축사의 검집이 80% 빨리 충전됩니다."
           ]
         },
-        "label_kor": "축사의 대검"
+        "label_kor": "축사의 대검",
+        "localIcon": "weapons/speech_sword.png"
       },
       "fence": {
         "id": 55,
@@ -4970,7 +5020,8 @@
             "추가 피해 계수가 25% 증가합니다.\n$s일반 공격$ 범위가 증가하고, 기본 콤보가 15% 더 빨라집니다. (전체 시간 기준)"
           ]
         },
-        "label_kor": "만년한검"
+        "label_kor": "만년한검",
+        "localIcon": "weapons/fence.png"
       },
       "icicle_sword": {
         "id": 56,
@@ -4985,7 +5036,8 @@
             "$$s직접 공격$시 80%의 확률로 $i동상$을 부여합니다. $i빙결$의 피해량이 20% 증가합니다."
           ]
         },
-        "label_kor": "고드름 검"
+        "label_kor": "고드름 검",
+        "localIcon": "weapons/icicle_sword.png"
       },
       "passing_door": {
         "id": 58,
@@ -4999,7 +5051,8 @@
             "$$s대시 공격$ 시, 10초간 $n일반 공격 피해$ +20%, $d대시 공격 피해$ +30% 버프를 획득합니다. $s특수 공격: 퓨리$가 비활성화됩니다."
           ]
         },
-        "label_kor": "문지방 넘기"
+        "label_kor": "문지방 넘기",
+        "localIcon": "weapons/passing_door.png"
       },
       "dry_wind": {
         "id": 59,
@@ -5013,7 +5066,8 @@
             "$$s특수 공격: 퓨리$의 피해량만 20% 증가합니다."
           ]
         },
-        "label_kor": "건조한 바람"
+        "label_kor": "건조한 바람",
+        "localIcon": "weapons/dry_wind.webp"
       },
       "flame_dagger": {
         "id": 60,
@@ -5027,7 +5081,8 @@
             "$$s무기 공격$ 시 대상에게 $b화염속성 피해$의 25% 피해만큼 추가 피해를 가합니다."
           ]
         },
-        "label_kor": "불꽃 단검"
+        "label_kor": "불꽃 단검",
+        "localIcon": "weapons/flame_dagger.png"
       },
       "lightning_dagger": {
         "id": 61,
@@ -5041,7 +5096,8 @@
             "$$s무기 공격$ 시 대상에게 $l번개속성 피해$의 25% 피해만큼 추가 피해를 가합니다."
           ]
         },
-        "label_kor": "번개 단검"
+        "label_kor": "번개 단검",
+        "localIcon": "weapons/lightning_dagger.png"
       },
       "cotton_leg": {
         "id": 62,
@@ -5055,7 +5111,8 @@
             "$$s무기 공격$이 수리검 투척을 사용하는 형태로 변경됩니다."
           ]
         },
-        "label_kor": "솜다리"
+        "label_kor": "솜다리",
+        "localIcon": "weapons/cotton_leg.png"
       },
       "jade": {
         "id": 63,
@@ -5069,7 +5126,8 @@
             "더 이상 $s특수 공격: 패리$를 사용할 수 없지만, 2.8초마다 $s몰입$을 획득합니다. ($e회피$ 1당 충전 속도 1% 증가, 최대 33%)"
           ]
         },
-        "label_kor": "옥빛 잔영"
+        "label_kor": "옥빛 잔영",
+        "localIcon": "weapons/jade.png"
       },
       "blade_without_light": {
         "id": 66,
@@ -5084,7 +5142,8 @@
             "$$d대시$ 소모 시 $s대시 공격$이 $s대시 공격: 검상 감옥$으로 변경됩니다."
           ]
         },
-        "label_kor": "빛없는 칼날"
+        "label_kor": "빛없는 칼날",
+        "localIcon": "weapons/blade_without_light.png"
       },
       "absolute_envy": {
         "id": 67,
@@ -5099,7 +5158,8 @@
             "3,4,5번째 $s일반 공격$ 피해량이 25% 증가하고, 경직 수치가 높아집니다."
           ]
         },
-        "label_kor": "절대 선망"
+        "label_kor": "절대 선망",
+        "localIcon": "weapons/absolute_envy.png"
       },
       "crawling": {
         "id": 68,
@@ -5114,7 +5174,8 @@
             "$$s특수 공격: 퓨리$의 피해량이 10% 추가로 증가합니다.\n$s특수 공격: 패리$ 성공 시 $s몰입$이 2회 충전됩니다."
           ]
         },
-        "label_kor": "기어 오는 절망"
+        "label_kor": "기어 오는 절망",
+        "localIcon": "weapons/crawling.png"
       },
       "difficult_experiments": {
         "id": 71,
@@ -5129,7 +5190,8 @@
             "더 이상 $s특수 공격: 패리$를 사용할 수 없지만 $s무기 공격$ 시 30% 확률로 $s몰입$을 획득합니다. ($s몰입$은 4회까지 충전 가능)"
           ]
         },
-        "label_kor": "어려운 실험"
+        "label_kor": "어려운 실험",
+        "localIcon": "weapons/difficult_experiments.png"
       },
       "heated_blade": {
         "id": 72,
@@ -5144,7 +5206,8 @@
             "투척 단검은 적을 관통합니다."
           ]
         },
-        "label_kor": "달궈진 칼날"
+        "label_kor": "달궈진 칼날",
+        "localIcon": "weapons/heated_blade.png"
       },
       "teeth": {
         "id": 73,
@@ -5159,7 +5222,8 @@
             "투척 단검이 적에게 $b화상$ 디버프를 부여합니다."
           ]
         },
-        "label_kor": "타오르는 이빨"
+        "label_kor": "타오르는 이빨",
+        "localIcon": "weapons/teeth.png"
       },
       "dried_dark": {
         "id": 74,
@@ -5174,7 +5238,8 @@
             "$$l먹구름의 추가 피해량$이 15%, $l번개속성 피해$가 5 증가합니다."
           ]
         },
-        "label_kor": "드리운 암운"
+        "label_kor": "드리운 암운",
+        "localIcon": "weapons/dried_dark.png"
       },
       "lightning_fury": {
         "id": 75,
@@ -5189,7 +5254,8 @@
             "$$s직접 공격$ 시 $l감전$ 디버프를 부여합니다."
           ]
         },
-        "label_kor": "번개의 분노"
+        "label_kor": "번개의 분노",
+        "localIcon": "weapons/lightning_fury.png"
       },
       "ice_bird_flower": {
         "id": 76,
@@ -5204,7 +5270,8 @@
             "$$s무기 공격$으로 입히는 $f치명타 피해$가 30% 증폭됩니다."
           ]
         },
-        "label_kor": "얼음새꽃"
+        "label_kor": "얼음새꽃",
+        "localIcon": "weapons/ice_bird_flower.png"
       },
       "endless_sleep": {
         "id": 77,
@@ -5219,7 +5286,8 @@
             "$$s몰입$의 충전 효율이 25% 증가하고, $e회피$에 따른 충전 속도 보너스 상한이 없어집니다."
           ]
         },
-        "label_kor": "가없는 침잠"
+        "label_kor": "가없는 침잠",
+        "localIcon": "weapons/endless_sleep.png"
       },
       "large_crossbow_reloading_device": {
         "id": 79,
@@ -5233,7 +5301,8 @@
             "$$s일반 공격$의 피해량이 45% 감소합니다. $s특수 공격$이 $s고급 재장전$으로 변경됩니다."
           ]
         },
-        "label_kor": "대형 석궁: 재장전 장치"
+        "label_kor": "대형 석궁: 재장전 장치",
+        "localIcon": "weapons/large_crossbow_reloading_device.png"
       },
       "large_crossbow_shotguns": {
         "id": 80,
@@ -5247,7 +5316,8 @@
             "$$s일반 공격$이 $s일반 공격: 화약탄$으로 변경되고, 피해량이 80% 증가합니다."
           ]
         },
-        "label_kor": "대형 석궁: 산탄 격발기"
+        "label_kor": "대형 석궁: 산탄 격발기",
+        "localIcon": "weapons/large_crossbow_shotguns.png"
       },
       "large_crossbow_special_bolt_enhancement": {
         "id": 82,
@@ -5261,7 +5331,8 @@
             "$$s특수 공격: 강화 화살$의 공격 범위가 더 넓어지고, 피해량이 30% 증가합니다."
           ]
         },
-        "label_kor": "대형 석궁: 특수볼트 강화"
+        "label_kor": "대형 석궁: 특수볼트 강화",
+        "localIcon": "weapons/large_crossbow_special_bolt_enhancement.png"
       },
       "large_crossbow_fireworks_mine": {
         "id": 83,
@@ -5275,7 +5346,8 @@
             "$$s무기 공격$의 피해량이 20% 감소하지만, $b화염속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "대형 석궁: 불꽃 지뢰"
+        "label_kor": "대형 석궁: 불꽃 지뢰",
+        "localIcon": "weapons/large_crossbow_fireworks_mine.png"
       },
       "large_crossbow_lightning_marker_unstable": {
         "id": 84,
@@ -5289,7 +5361,8 @@
             "$$s일반 공격$ 시 40% 확률로 '번개 화살'을 발사합니다."
           ]
         },
-        "label_kor": "대형 석궁: 불안정한 번개 표식"
+        "label_kor": "대형 석궁: 불안정한 번개 표식",
+        "localIcon": "weapons/large_crossbow_lightning_marker_unstable.png"
       },
       "large_crossbow_frost_curtain": {
         "id": 85,
@@ -5303,7 +5376,8 @@
             "$$s특수 공격$이 $s서리 장막$으로 변경됩니다."
           ]
         },
-        "label_kor": "대형 석궁: 서리 장막"
+        "label_kor": "대형 석궁: 서리 장막",
+        "localIcon": "weapons/large_crossbow_frost_curtain.png"
       },
       "large_crossbow_acceleration": {
         "id": 86,
@@ -5318,7 +5392,8 @@
             "공격할수록 $f공격 속도$가 쌓이며, 최대 +60%까지 기존 $f공격 속도$에 더해집니다."
           ]
         },
-        "label_kor": "대형 석궁: 가속 코어"
+        "label_kor": "대형 석궁: 가속 코어",
+        "localIcon": "weapons/large_crossbow_acceleration.png"
       },
       "crossbow_twins": {
         "id": 87,
@@ -5333,7 +5408,8 @@
             "$$s일반 공격$은 두 발의 투사체를 발사하며, 공격 도중 조금 더 자유롭게 이동할 수 있습니다. 추가 $f이동 속도$ 1%당 $f공격 속도$가 1% 증가합니다."
           ]
         },
-        "label_kor": "석궁: 쌍둥이"
+        "label_kor": "석궁: 쌍둥이",
+        "localIcon": "weapons/crossbow_twins.png"
       },
       "large_crossbow_gunpowdercho_softness": {
         "id": 89,
@@ -5348,7 +5424,8 @@
             "$$s무기 공격$의 $f치명타 확률$이 35% 증가하고, 공격이 치명타로 적중하면 탄환이 1개 충전됩니다."
           ]
         },
-        "label_kor": "대형 석궁: 화약초 연성"
+        "label_kor": "대형 석궁: 화약초 연성",
+        "localIcon": "weapons/large_crossbow_gunpowdercho_softness.png"
       },
       "large_crossbow_explosive_device": {
         "id": 92,
@@ -5363,7 +5440,8 @@
             "$$s일반 공격$의 피해량이 10% 증가합니다."
           ]
         },
-        "label_kor": "대형 석궁: 폭발 장치"
+        "label_kor": "대형 석궁: 폭발 장치",
+        "localIcon": "weapons/large_crossbow_explosive_device.png"
       },
       "large_crossbow_speaking_device": {
         "id": 93,
@@ -5378,7 +5456,8 @@
             "$$s특수 공격: 강화 화살$을 연속으로(2초 내) 시전하는 경우 연속 시전 횟수당 10%의 추가 피해를 가합니다. (최대 50%)"
           ]
         },
-        "label_kor": "대형 석궁: 연사 장치"
+        "label_kor": "대형 석궁: 연사 장치",
+        "localIcon": "weapons/large_crossbow_speaking_device.png"
       },
       "large_crossbow_judo_module_mounted": {
         "id": 94,
@@ -5393,7 +5472,8 @@
             "$$s특수 공격$의 비용이 3으로 감소하고, $i추가 MP$ 1당 피해량이 0.9% 증가합니다. $s특수 공격$이 주변 적을 추적합니다."
           ]
         },
-        "label_kor": "대형 석궁: 유도모듈 장착"
+        "label_kor": "대형 석궁: 유도모듈 장착",
+        "localIcon": "weapons/large_crossbow_judo_module_mounted.png"
       },
       "mini_cannon": {
         "id": 95,
@@ -5408,7 +5488,8 @@
             "$$s일반 공격$으로 유탄을 발사합니다. 피해량이 40% 증가하고, $b화염속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "미니 캐논"
+        "label_kor": "미니 캐논",
+        "localIcon": "weapons/mini_cannon.png"
       },
       "large_crossbow_stabilization_marker": {
         "id": 96,
@@ -5423,7 +5504,8 @@
             "'번개 화살' 피해량과 발사 확률이 30% 추가로 증가합니다."
           ]
         },
-        "label_kor": "대형 석궁: 표식 안정화"
+        "label_kor": "대형 석궁: 표식 안정화",
+        "localIcon": "weapons/large_crossbow_stabilization_marker.png"
       },
       "large_crossbow_cloud_report": {
         "id": 97,
@@ -5438,7 +5520,8 @@
             "'번개 화살'이 적에게 적중하면 $l먹구름$ 수치를 3개 획득합니다."
           ]
         },
-        "label_kor": "대형 석궁: 구름 포집기"
+        "label_kor": "대형 석궁: 구름 포집기",
+        "localIcon": "weapons/large_crossbow_cloud_report.png"
       },
       "large_crossbow_required_determination": {
         "id": 98,
@@ -5453,7 +5536,8 @@
             "$$i얼음 무구$의 피해량이 20% 증가합니다."
           ]
         },
-        "label_kor": "대형 석궁: 급랭 결정"
+        "label_kor": "대형 석궁: 급랭 결정",
+        "localIcon": "weapons/large_crossbow_required_determination.png"
       },
       "large_crossbow_expansion_device": {
         "id": 99,
@@ -5468,7 +5552,8 @@
             "$$s서리 장막$이 지속되는 동안 적을 관통하는 $s동상 탄환$을 발사합니다. 탄창 용량이 5발로 고정됩니다."
           ]
         },
-        "label_kor": "대형 석궁: 팽창 장치"
+        "label_kor": "대형 석궁: 팽창 장치",
+        "localIcon": "weapons/large_crossbow_expansion_device.png"
       },
       "katana": {
         "id": 100,
@@ -5481,7 +5566,8 @@
             ""
           ]
         },
-        "label_kor": "도"
+        "label_kor": "도",
+        "localIcon": "weapons/katana.png"
       },
       "tachi_onohara": {
         "id": 101,
@@ -5495,7 +5581,8 @@
             "$$s특수 공격: 강베기$가 $f공격 속도$의 영향을 받습니다. $f공격 속도$가 15% 증가합니다."
           ]
         },
-        "label_kor": "태도 '오노하라'"
+        "label_kor": "태도 '오노하라'",
+        "localIcon": "weapons/tachi_onohara.png"
       },
       "hellbanus": {
         "id": 102,
@@ -5509,7 +5596,8 @@
             "$$s무기 공격$ 시 대상에게 $b화염속성 피해$의 30% 피해만큼 추가 피해를 가합니다."
           ]
         },
-        "label_kor": "헬바누스"
+        "label_kor": "헬바누스",
+        "localIcon": "weapons/hellbanus.png"
       },
       "celestial_light_sword_cheongwangsak": {
         "id": 103,
@@ -5523,7 +5611,8 @@
             "$$s일반 공격$을 통해 검참을 획득합니다. $s특수 공격: 강베기$가 $s일반 공격: 거합베기$로 변경됩니다."
           ]
         },
-        "label_kor": "검참도: 천광삭"
+        "label_kor": "검참도: 천광삭",
+        "localIcon": "weapons/celestial_light_sword_cheongwangsak.png"
       },
       "waiting_blue_radiant_sword": {
         "id": 104,
@@ -5537,7 +5626,8 @@
             "$$s납도$ 시 검참을 지속적으로 획득합니다. 마법 사용 시 검참 10을 소모해 $i마법 피해량$ 20%를 증가시킵니다."
           ]
         },
-        "label_kor": "기다리는 청휘검"
+        "label_kor": "기다리는 청휘검",
+        "localIcon": "weapons/waiting_blue_radiant_sword.png"
       },
       "library_soul_seal_association_type_1": {
         "id": 105,
@@ -5551,7 +5641,8 @@
             "$$d대시 공격 피해$가 40% 증가하고, $d대시 횟수$ 소모 시 혼령이 근처 적에게 $s대시 공격$을 2회 수행합니다. (재사용 대기시간 2.5초)"
           ]
         },
-        "label_kor": "도서관 혼령봉인연구회 제1형"
+        "label_kor": "도서관 혼령봉인연구회 제1형",
+        "localIcon": "weapons/library_soul_seal_association_type_1.png"
       },
       "winter_blacksmiths_draft": {
         "id": 106,
@@ -5565,7 +5656,8 @@
             "$$s납도$는 $s태클$로 변경됩니다. $s무기 공격$ 시 $i얼음속성 피해$의 15%만큼 추가 피해를 가합니다. $i얼음속성 피해$가 3 증가합니다."
           ]
         },
-        "label_kor": "겨울 대장장이의 습작"
+        "label_kor": "겨울 대장장이의 습작",
+        "localIcon": "weapons/winter_blacksmiths_draft.png"
       },
       "renowned_blade_muramasa": {
         "id": 107,
@@ -5580,7 +5672,8 @@
             "상시 $s납도$ 상태가 되고, $s특수 공격: 강베기$가 $s특수 공격: 신속 베기$으로 변경됩니다. $f공격 속도$의 효율이 60% 증가합니다."
           ]
         },
-        "label_kor": "명도 '무라마사'"
+        "label_kor": "명도 '무라마사'",
+        "localIcon": "weapons/renowned_blade_muramasa.png"
       },
       "executioner_blade_hou": {
         "id": 108,
@@ -5595,7 +5688,8 @@
             "$$s특수 공격: 강베기$의 기본 공격 속도가 24% 느려지지만 원거리의 적을 타격하고, $e회피$ 2당 피해량이 1% 증가합니다."
           ]
         },
-        "label_kor": "괵도 '호우'"
+        "label_kor": "괵도 '호우'",
+        "localIcon": "weapons/executioner_blade_hou.png"
       },
       "raging_helbanus": {
         "id": 109,
@@ -5610,7 +5704,8 @@
             "$$b화상 디버프 중첩$이 2 증가하고, $b화염속성 피해$가 4 증가합니다."
           ]
         },
-        "label_kor": "들끓는 헬바누스"
+        "label_kor": "들끓는 헬바누스",
+        "localIcon": "weapons/raging_helbanus.png"
       },
       "heidi": {
         "id": 110,
@@ -5625,7 +5720,8 @@
             "$$d대시 횟수$ 소모 시 '$s오버히트$' 스택을 획득합니다. (기본 1, $s납도$ 시 3 획득, 최대 9회)\n$s일반 공격$ 시 스택을 소모합니다."
           ]
         },
-        "label_kor": "하이디"
+        "label_kor": "하이디",
+        "localIcon": "weapons/heidi.png"
       },
       "slashing_sword_biryuu": {
         "id": 111,
@@ -5640,7 +5736,8 @@
             "$$f치명타 확률$이 30% 증가하고, $s일반 공격: 대거합베기$의 범위가 전체공격으로 변경됩니다."
           ]
         },
-        "label_kor": "검참도: 비류"
+        "label_kor": "검참도: 비류",
+        "localIcon": "weapons/slashing_sword_biryuu.png"
       },
       "slashing_sword_pamu": {
         "id": 112,
@@ -5655,7 +5752,8 @@
             "'$s일반 공격: 대거합베기$'를 사용할 수 없지만, 검참 게이지 100% 시 '난무' 버프를 획득합니다.\n난무 중에는 일반 공격이 4회 연타로 변경되고,\n일반 공격 사이에 물리 피해 75%의 추가 피해를 가합니다."
           ]
         },
-        "label_kor": "검참도: 파무"
+        "label_kor": "검참도: 파무",
+        "localIcon": "weapons/slashing_sword_pamu.png"
       },
       "yuis_short_dagger": {
         "id": 113,
@@ -5670,7 +5768,8 @@
             "$$i마법의 치명타 확률$이 30% 증가합니다."
           ]
         },
-        "label_kor": "유이의 소단검"
+        "label_kor": "유이의 소단검",
+        "localIcon": "weapons/yuis_short_dagger.png"
       },
       "adamahs_vow": {
         "id": 114,
@@ -5685,7 +5784,8 @@
             "마법 사용시 적을 향해 날아가 피해를 입히는 '마력도'를 소환합니다. (피해량: 20 + 비어 있는 $iMP$ 수치의 70%)"
           ]
         },
-        "label_kor": "아다마흐의 서약"
+        "label_kor": "아다마흐의 서약",
+        "localIcon": "weapons/adamahs_vow.png"
       },
       "library_soul_seal_association_type_2": {
         "id": 115,
@@ -5700,7 +5800,8 @@
             "혼령의 $s대시 공격$ 재사용 대기시간이 1초로 변경되며, $d대시 횟수$ 1당 10%씩 감소합니다.\n$s납도$ 무적 판정 시간이 50% 증가하며, 공격을 막아낼 경우 혼령이 $s대시 공격$을 $d대시 횟수$만큼 수행합니다."
           ]
         },
-        "label_kor": "도서관 혼령봉인연구회 제2형"
+        "label_kor": "도서관 혼령봉인연구회 제2형",
+        "localIcon": "weapons/library_soul_seal_association_type_2.png"
       },
       "eternal_snow_silence": {
         "id": 116,
@@ -5715,7 +5816,8 @@
             "$$s태클$이 $s특수 공격: 아이스 슬라이딩$으로 변경됩니다. 무적 시간 동안 적의 공격을 막으면 아티팩트 빙하의 메아리가 즉시 발동됩니다. 발동 될 때 주변 적에게 $i얼음속성 피해$ 120%의 피해를 입힙니다."
           ]
         },
-        "label_kor": "만년설의 침묵"
+        "label_kor": "만년설의 침묵",
+        "localIcon": "weapons/eternal_snow_silence.png"
       },
       "nastronds_shard": {
         "id": 117,
@@ -5730,7 +5832,8 @@
             "$$s태클$ 직후 공격 시 $i얼음 무구: 스카디$를 발동합니다."
           ]
         },
-        "label_kor": "나스트론드의 조각"
+        "label_kor": "나스트론드의 조각",
+        "localIcon": "weapons/nastronds_shard.png"
       },
       "forged_sword_finish": {
         "id": 118,
@@ -5744,7 +5847,8 @@
             "$$s무기 공격$ 시 대상에게 $b화염속성 피해$의 30% 피해만큼 추가 피해를 가합니다."
           ]
         },
-        "label_kor": "잔불 단조검"
+        "label_kor": "잔불 단조검",
+        "localIcon": "weapons/forged_sword_finish.png"
       },
       "crushing_red_snake": {
         "id": 119,
@@ -5759,7 +5863,8 @@
             "아티팩트 붉은 뱀의 눈의 피해량이 33% 증가하고, $s일반 공격$시 재사용 대기시간이 2.5초 감소합니다."
           ]
         },
-        "label_kor": "붉은 뱀의 분쇄"
+        "label_kor": "붉은 뱀의 분쇄",
+        "localIcon": "weapons/crushing_red_snake.png"
       },
       "solis_kineris": {
         "id": 120,
@@ -5774,7 +5879,8 @@
             "$$s무기 공격$ 시 $b태양검$이 2회 추가 발동합니다. $b태양검$의 $f치명타 피해$가 36% 증가합니다."
           ]
         },
-        "label_kor": "솔리스 키네리스"
+        "label_kor": "솔리스 키네리스",
+        "localIcon": "weapons/solis_kineris.png"
       },
       "mastermind": {
         "id": 121,
@@ -5789,7 +5895,8 @@
             "$$s무기 공격$ 시, 지배 버프를 획득합니다."
           ]
         },
-        "label_kor": "흑막"
+        "label_kor": "흑막",
+        "localIcon": "weapons/mastermind.png"
       },
       "lightning_bronte": {
         "id": 122,
@@ -5803,7 +5910,8 @@
             "$$s무기 공격$의 피해량이 20% 감소하지만, $l번개속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "전격도 브론테"
+        "label_kor": "전격도 브론테",
+        "localIcon": "weapons/lightning_bronte.png"
       },
       "jeon_gwang": {
         "id": 123,
@@ -5818,7 +5926,8 @@
             "$$l감전$으로 피해를 입힐 시 '축전' 1스택을 얻습니다. (최대 10)\n$s특수 공격: 강베기$시 '축전'을 2스택 소모하여 $s특수 공격: 일섬$을 시전합니다."
           ]
         },
-        "label_kor": "전광일각"
+        "label_kor": "전광일각",
+        "localIcon": "weapons/jeon_gwang.png"
       },
       "kagumede": {
         "id": 124,
@@ -5832,7 +5941,8 @@
             "대상을 공격하여 $c중독$ 디버프를 부여합니다."
           ]
         },
-        "label_kor": "카구메데"
+        "label_kor": "카구메데",
+        "localIcon": "weapons/kagumede.png"
       },
       "karim_shape": {
         "id": 125,
@@ -5847,7 +5957,8 @@
             "헤이타의 영혼 가루, 테로의 영혼 가루, 아마드의 영혼 가루가 두 번 공격하고, 주는 피해량이 25% 증가합니다."
           ]
         },
-        "label_kor": "카림의 형상"
+        "label_kor": "카림의 형상",
+        "localIcon": "weapons/karim_shape.png"
       },
       "academy_magic_sword": {
         "id": 126,
@@ -5861,7 +5972,8 @@
             "$$s특수 공격: 패리$의 소모 $iMP$가 0이 되고, $s특수 공격: 패리$ 성공 시 $iMP$를 30% 회복합니다."
           ]
         },
-        "label_kor": "아카데미 마법검"
+        "label_kor": "아카데미 마법검",
+        "localIcon": "weapons/academy_magic_sword.png"
       },
       "book_of_lmitation": {
         "id": 127,
@@ -5876,7 +5988,8 @@
             "$$s특수 공격: 퓨리$가 $s마법서: 복제$로 변경됩니다."
           ]
         },
-        "label_kor": "모방의 서"
+        "label_kor": "모방의 서",
+        "localIcon": "weapons/book_of_lmitation.png"
       },
       "academy_magic_sword_liberation": {
         "id": 128,
@@ -5891,7 +6004,8 @@
             "$$s특수 공격: 퓨리$가 $s특수 공격: 해방$으로 변경됩니다."
           ]
         },
-        "label_kor": "아카데미 마법검 - 해방"
+        "label_kor": "아카데미 마법검 - 해방",
+        "localIcon": "weapons/academy_magic_sword_liberation.png"
       },
       "stone_sword": {
         "id": 130,
@@ -5906,7 +6020,8 @@
             "$$s특수 공격: 휩쓸기$가 $s특수 공격: 방패치기$로 변경되고, 소모되는 MP가 50% 감소합니다."
           ]
         },
-        "label_kor": "바위검"
+        "label_kor": "바위검",
+        "localIcon": "weapons/stone_sword.png"
       },
       "m_9199": {
         "id": 131,
@@ -5920,7 +6035,8 @@
             "$$s일반 공격$이 적을 관통하고, 피해량이 15% 증가합니다. $s특수 공격$이 $s특수 공격: 탄환 응축$으로 변경됩니다."
           ]
         },
-        "label_kor": "M-9199"
+        "label_kor": "M-9199",
+        "localIcon": "weapons/m_9199.png"
       },
       "xra_9": {
         "id": 132,
@@ -5935,7 +6051,8 @@
             "일반 공격으로 마지막 탄환을 사용할 때, 모든 $i마법서$와 $s발동형 아티팩트$의 현재 쿨다운이 25% 감소합니다."
           ]
         },
-        "label_kor": "XRA-9"
+        "label_kor": "XRA-9",
+        "localIcon": "weapons/xra_9.png"
       },
       "pallet_bee_palace": {
         "id": 133,
@@ -5950,7 +6067,8 @@
             "$$c중독$ 중첩이 3 증가합니다."
           ]
         },
-        "label_kor": "자갑벌궁"
+        "label_kor": "자갑벌궁",
+        "localIcon": "weapons/pallet_bee_palace.png"
       },
       "staff": {
         "id": 134,
@@ -5963,7 +6081,8 @@
             ""
           ]
         },
-        "label_kor": "봉"
+        "label_kor": "봉",
+        "localIcon": "weapons/staff.png"
       },
       "flame_staff": {
         "id": 135,
@@ -5977,7 +6096,8 @@
             "$$s일반 공격$이 $s일반 공격: 화곤$으로 변경됩니다."
           ]
         },
-        "label_kor": "화곤봉"
+        "label_kor": "화곤봉",
+        "localIcon": "weapons/flame_staff.png"
       },
       "mighty_strength_staff": {
         "id": 136,
@@ -5992,7 +6112,8 @@
             "$$n일반 공격 피해$가 30% 증가하고, 공격 도중에는 $a방어력$의 5% 만큼 보호막을 얻습니다. (20초마다 갱신)"
           ]
         },
-        "label_kor": "대력곤"
+        "label_kor": "대력곤",
+        "localIcon": "weapons/mighty_strength_staff.png"
       },
       "all_element_staff_ilonica": {
         "id": 137,
@@ -6007,7 +6128,8 @@
             "모든 $i마법서$ 직접 시전이 불가능해집니다. $s일반 공격: 화곤$이 $s마법서: 볼트 난사$로 변경됩니다."
           ]
         },
-        "label_kor": "정령융합봉 일로니카"
+        "label_kor": "정령융합봉 일로니카",
+        "localIcon": "weapons/all_element_staff_ilonica.png"
       },
       "shinjin_iron_staff": {
         "id": 138,
@@ -6021,7 +6143,8 @@
             "$$s무기 공격$ 시, $s봉 늘리기$ 버프를 획득합니다."
           ]
         },
-        "label_kor": "신진철곤"
+        "label_kor": "신진철곤",
+        "localIcon": "weapons/shinjin_iron_staff.png"
       },
       "distant_starlight": {
         "id": 140,
@@ -6035,7 +6158,8 @@
             "$$s특수 공격: 되받아치기$의 피해량이 20% 증가합니다. $i최대 MP$가 100 이상인 경우, $s특수 공격: 되받아치기$ 사용 중 모든 방향을 $s가드$합니다."
           ]
         },
-        "label_kor": "먼 곳의 별빛"
+        "label_kor": "먼 곳의 별빛",
+        "localIcon": "weapons/distant_starlight.png"
       },
       "assault_spear_gioroid": {
         "id": 141,
@@ -6049,7 +6173,8 @@
             "$$s일반 공격: 창격$과 $s대시 공격: 창격$을 사용할 수 있습니다."
           ]
         },
-        "label_kor": "돌격창 기오로이드"
+        "label_kor": "돌격창 기오로이드",
+        "localIcon": "weapons/assault_spear_gioroid.png"
       },
       "ember_staff": {
         "id": 142,
@@ -6063,7 +6188,8 @@
             "$$s무기 공격$의 피해량이 15% 감소하지만, $b화염속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "잿불의 봉"
+        "label_kor": "잿불의 봉",
+        "localIcon": "weapons/ember_staff.png"
       },
       "white_elephant_staff": {
         "id": 143,
@@ -6077,7 +6203,8 @@
             "$$s무기 공격$의 피해량이 15% 감소하지만, $i얼음속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "백상의 봉"
+        "label_kor": "백상의 봉",
+        "localIcon": "weapons/white_elephant_staff.png"
       },
       "thunderclap_staff": {
         "id": 144,
@@ -6091,7 +6218,8 @@
             "$$s무기 공격$의 피해량이 15% 감소하지만, $l번개속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "뇌정의 봉"
+        "label_kor": "뇌정의 봉",
+        "localIcon": "weapons/thunderclap_staff.png"
       },
       "ocean_weight_staff": {
         "id": 145,
@@ -6106,7 +6234,8 @@
             "$$s가드$ 성공 시, $s무거운 봉$ 버프를 획득합니다."
           ]
         },
-        "label_kor": "바다의 추"
+        "label_kor": "바다의 추",
+        "localIcon": "weapons/ocean_weight_staff.png"
       },
       "khakkhara_of_no_sorrows": {
         "id": 146,
@@ -6121,7 +6250,8 @@
             "$$f치명타 확률$ 능력치가 30% 이하인 경우, 주는 피해가 20% 증가합니다."
           ]
         },
-        "label_kor": "무환석장"
+        "label_kor": "무환석장",
+        "localIcon": "weapons/khakkhara_of_no_sorrows.png"
       },
       "fragment_of_star_sea": {
         "id": 147,
@@ -6136,7 +6266,8 @@
             "$$s가드$ 성공 후, $s일반 공격$ 시 '$s수정 폭발$'을 사용합니다."
           ]
         },
-        "label_kor": "성해의 편린"
+        "label_kor": "성해의 편린",
+        "localIcon": "weapons/fragment_of_star_sea.png"
       },
       "assault_spear_ruashulea": {
         "id": 148,
@@ -6151,7 +6282,8 @@
             "$$f공격 속도$가 10% 증가합니다. 무기 공격 시 $d대시 횟수$ 능력치 1당 피해량이 5% 증가합니다."
           ]
         },
-        "label_kor": "돌격창 루아슐레아"
+        "label_kor": "돌격창 루아슐레아",
+        "localIcon": "weapons/assault_spear_ruashulea.png"
       },
       "assault_spear_puarsuka": {
         "id": 149,
@@ -6166,7 +6298,8 @@
             "$$s대시 공격: 창격$ 시전 시 $s가드$가 부여되고 직전에 사용한 $d대시$ 1당 피해량이 30% 증가합니다. (최대 6회)"
           ]
         },
-        "label_kor": "돌격창 푸아르스카"
+        "label_kor": "돌격창 푸아르스카",
+        "localIcon": "weapons/assault_spear_puarsuka.png"
       },
       "gavel_piaolla": {
         "id": 150,
@@ -6181,7 +6314,8 @@
             "$$b화상$ 부여 시 불의 고리를 만들어 10초간 5칸 내 적들을 공격합니다. (피해량: 0.5당 $b화염속성 피해$ 40%, $b화상 디버프 추가 피해량$에 따라 피해량이 증가)"
           ]
         },
-        "label_kor": "피아올라 의사봉"
+        "label_kor": "피아올라 의사봉",
+        "localIcon": "weapons/gavel_piaolla.png"
       },
       "solis_bracca": {
         "id": 151,
@@ -6196,7 +6330,8 @@
             "$$b태양검$ 회수 시 1개가 추가로 회수됩니다. $s특수 공격$이 $n특수 공격: 태양창 단조$로 변경됩니다."
           ]
         },
-        "label_kor": "솔리스 브라카"
+        "label_kor": "솔리스 브라카",
+        "localIcon": "weapons/solis_bracca.png"
       },
       "prophecy_of_shaman": {
         "id": 152,
@@ -6211,7 +6346,8 @@
             "$$s무기 공격$을 3회 적중시키면 조준 방향으로 아티팩트 볼루스파를 발동시킵니다."
           ]
         },
-        "label_kor": "무녀의 예언"
+        "label_kor": "무녀의 예언",
+        "localIcon": "weapons/prophecy_of_shaman.png"
       },
       "malaspina_staff": {
         "id": 153,
@@ -6226,7 +6362,8 @@
             "$$s무기 공격$ 시 30% 확률로 $i동상$을 부여합니다. $i얼음속성 피해$가 5 증가합니다."
           ]
         },
-        "label_kor": "말라스피나"
+        "label_kor": "말라스피나",
+        "localIcon": "weapons/malaspina_staff.png"
       },
       "viduka_staff": {
         "id": 154,
@@ -6241,7 +6378,8 @@
             "전격 차크람이 주는 피해가 20% 증가하고, 조준점까지 확장합니다."
           ]
         },
-        "label_kor": "비듀카"
+        "label_kor": "비듀카",
+        "localIcon": "weapons/viduka_staff.png"
       },
       "neporax_staff": {
         "id": 155,
@@ -6256,7 +6394,8 @@
             "$$s대시 공격$이 $s구름 병 던지기$로 변경됩니다. $s대시 공격$ 적중 시 대상에게 $l먹구름$이 70%의 피해로 즉시 발동됩니다."
           ]
         },
-        "label_kor": "네포락스"
+        "label_kor": "네포락스",
+        "localIcon": "weapons/neporax_staff.png"
       },
       "incendium": {
         "id": 156,
@@ -6270,7 +6409,8 @@
             "$$s무기 공격$의 피해량이 15% 감소하지만, $b화염속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "인센디움"
+        "label_kor": "인센디움",
+        "localIcon": "weapons/incendium.png"
       },
       "solis_mission": {
         "id": 157,
@@ -6285,7 +6425,8 @@
             "'$s재점화$' 효과를 획득합니다. $s가드$ 중 $f이동 속도$가 90% 감소합니다."
           ]
         },
-        "label_kor": "솔리스 미시온"
+        "label_kor": "솔리스 미시온",
+        "localIcon": "weapons/solis_mission.png"
       },
       "fire_eating_haetae": {
         "id": 158,
@@ -6300,7 +6441,8 @@
             "$$s특수 공격: 휩쓸기$가 $s일반 공격: 화염 강타$로 변경됩니다."
           ]
         },
-        "label_kor": "불먹는 해태"
+        "label_kor": "불먹는 해태",
+        "localIcon": "weapons/fire_eating_haetae.png"
       },
       "solis_eclipse": {
         "id": 159,
@@ -6315,7 +6457,8 @@
             "$$s납도$가 $s일식$으로 변경됩니다."
           ]
         },
-        "label_kor": "솔리스 에클리"
+        "label_kor": "솔리스 에클리",
+        "localIcon": "weapons/solis_eclipse.png"
       },
       "broken_armor_blade": {
         "id": 160,
@@ -6329,7 +6472,8 @@
             "$$s일반 공격$이 $a방어력$ 수치 2당 피해량이 1% 증가합니다."
           ]
         },
-        "label_kor": "절갑도"
+        "label_kor": "절갑도",
+        "localIcon": "weapons/broken_armor_blade.png"
       },
       "armor_piercing_blade": {
         "id": 161,
@@ -6344,7 +6488,8 @@
             "$$s납도$하지 않는 동안 0.8초 마다 $b경화$ 1스택을 얻습니다."
           ]
         },
-        "label_kor": "파갑도"
+        "label_kor": "파갑도",
+        "localIcon": "weapons/armor_piercing_blade.png"
       },
       "returning_guardian": {
         "id": 162,
@@ -6359,7 +6504,8 @@
             "$$s특수 공격: 휩쓸기$가 $s특수 공격: 방패 던지기$로 변경됩니다."
           ]
         },
-        "label_kor": "회귀하는 수호"
+        "label_kor": "회귀하는 수호",
+        "localIcon": "weapons/returning_guardian.png"
       },
       "black_iron_halberd": {
         "id": 163,
@@ -6374,7 +6520,8 @@
             "$$s특수 공격: 소용돌이$ 범위가 넓어집니다. 외곽에 피해를 줄 시 추가 50%의 피해를 가하고, 외곽 피해의 0.7%만큼 HP를 회복합니다."
           ]
         },
-        "label_kor": "흑철 할버드"
+        "label_kor": "흑철 할버드",
+        "localIcon": "weapons/black_iron_halberd.png"
       },
       "sleeping_frost": {
         "id": 164,
@@ -6388,7 +6535,8 @@
             "$$s무기 공격$의 피해량이 20% 감소하지만, $i얼음속성 피해$ 기반으로 변경됩니다."
           ]
         },
-        "label_kor": "잠든 서리"
+        "label_kor": "잠든 서리",
+        "localIcon": "weapons/sleeping_frost.png"
       },
       "frozen_smelt": {
         "id": 165,
@@ -6403,7 +6551,8 @@
             "$$i얼음속성 피해$가 5 증가하고, $s특수 공격$ 적중 시 $i동상$을 2회 부여합니다."
           ]
         },
-        "label_kor": "냉동 빙어"
+        "label_kor": "냉동 빙어",
+        "localIcon": "weapons/frozen_smelt.png"
       },
       "dripa": {
         "id": 166,
@@ -6418,7 +6567,8 @@
             "아티팩트 눈보라 망치가 '눈보라 난'으로 변경됩니다. 피해량이 50% 감소하지만, 조준 지점으로 날아가 적들을 지속 타격합니다."
           ]
         },
-        "label_kor": "드리파"
+        "label_kor": "드리파",
+        "localIcon": "weapons/dripa.png"
       },
       "solis_ember": {
         "id": 167,
@@ -6433,7 +6583,8 @@
             "$$s특수 공격: 퓨리$ 적중 시 $b태양검$을 전부 발동합니다."
           ]
         },
-        "label_kor": "솔리스 임베르"
+        "label_kor": "솔리스 임베르",
+        "localIcon": "weapons/solis_ember.png"
       },
       "bounty_hunter": {
         "id": 168,
@@ -6448,7 +6599,8 @@
             "탄창이 6발로 고정되고, $d대시$ 시 즉시 재장전합니다.\n대시 공격이 비활성화되고, $d대시 횟수$ 1당 피해량이 7% 증가합니다."
           ]
         },
-        "label_kor": "현상금 사냥꾼"
+        "label_kor": "현상금 사냥꾼",
+        "localIcon": "weapons/bounty_hunter.png"
       },
       "barnacle": {
         "id": 169,
@@ -6463,7 +6615,8 @@
             "$$s일반 공격$, $d대시 공격$ 시 점착 포탑을 부착합니다. $s특수 공격$이 $s특수 공격: 폭발$로 변경됩니다."
           ]
         },
-        "label_kor": "따개비"
+        "label_kor": "따개비",
+        "localIcon": "weapons/barnacle.png"
       },
       "solis_yuvar": {
         "id": 170,
@@ -6478,7 +6631,8 @@
             "$$n무기 피해량$이 15% 감소하지만, $b태양검 피해량$이 35% 증가합니다."
           ]
         },
-        "label_kor": "솔리스 유바르"
+        "label_kor": "솔리스 유바르",
+        "localIcon": "weapons/solis_yuvar.png"
       },
       "minigun": {
         "id": 171,
@@ -6493,7 +6647,8 @@
             "번개 화살 발사 확률이 10% 증가합니다. $s특수 공격$이 $s특수 공격: 포화$로 변경됩니다."
           ]
         },
-        "label_kor": "미니건"
+        "label_kor": "미니건",
+        "localIcon": "weapons/minigun.png"
       },
       "throwing_spear": {
         "id": 172,
@@ -6507,7 +6662,8 @@
             "$$s일반 공격$이 $s일반 공격: 투창$으로 변경되고, $n무기 피해량$이 10 증가합니다."
           ]
         },
-        "label_kor": "투창"
+        "label_kor": "투창",
+        "localIcon": "weapons/throwing_spear.png"
       },
       "holy_jar": {
         "id": 173,
@@ -6522,7 +6678,8 @@
             "$$s일반 공격$에는 $f동료가 입히는 피해량$ 능력치가 합산됩니다."
           ]
         },
-        "label_kor": "신성한 항아리"
+        "label_kor": "신성한 항아리",
+        "localIcon": "weapons/holy_jar.png"
       },
       "formless_dance": {
         "id": 174,
@@ -6537,7 +6694,8 @@
             "$$s일반 공격$이 적을 유도하고, 일정 확률로 두 번 발사됩니다. ($e회피$ 1당 1% 증가)"
           ]
         },
-        "label_kor": "무형의 춤"
+        "label_kor": "무형의 춤",
+        "localIcon": "weapons/formless_dance.png"
       },
       "successor": {
         "id": 175,
@@ -6552,7 +6710,8 @@
             "$$i마법서 피해량$이 30% 증가합니다."
           ]
         },
-        "label_kor": "계승자"
+        "label_kor": "계승자",
+        "localIcon": "weapons/successor.png"
       }
     },
     "miracle": {
@@ -6566,7 +6725,8 @@
             "+24% 공격 속도"
           ]
         },
-        "label_kor": "결투가"
+        "label_kor": "결투가",
+        "localIcon": "miracle/duelist.png"
       },
       "guard": {
         "id": 2,
@@ -6578,7 +6738,8 @@
             "+35% 최종 HP"
           ]
         },
-        "label_kor": "경비병"
+        "label_kor": "경비병",
+        "localIcon": "miracle/guard.png"
       },
       "berserker": {
         "id": 4,
@@ -6593,7 +6754,8 @@
             "-15 방어력"
           ]
         },
-        "label_kor": "광전사"
+        "label_kor": "광전사",
+        "localIcon": "miracle/berserker.png"
       },
       "meteorologist": {
         "id": 5,
@@ -6607,7 +6769,8 @@
             "+4 번개속성 피해"
           ]
         },
-        "label_kor": "기상학자"
+        "label_kor": "기상학자",
+        "localIcon": "miracle/meteorologist.png"
       },
       "gambler": {
         "id": 6,
@@ -6623,7 +6786,8 @@
             "획득 아이템 없음"
           ]
         },
-        "label_kor": "도박사"
+        "label_kor": "도박사",
+        "localIcon": "miracle/gambler.png"
       },
       "log": {
         "id": 7,
@@ -6636,7 +6800,8 @@
             "+10 회피"
           ]
         },
-        "label_kor": "로그"
+        "label_kor": "로그",
+        "localIcon": "miracle/log.png"
       },
       "hunter": {
         "id": 8,
@@ -6648,7 +6813,8 @@
             "+40% 치명타 피해"
           ]
         },
-        "label_kor": "사냥꾼"
+        "label_kor": "사냥꾼",
+        "localIcon": "miracle/hunter.png"
       },
       "snowfaller": {
         "id": 9,
@@ -6661,7 +6827,8 @@
             "+10% 이동 속도"
           ]
         },
-        "label_kor": "설원 경비병"
+        "label_kor": "설원 경비병",
+        "localIcon": "miracle/snowfaller.png"
       },
       "valet": {
         "id": 10,
@@ -6673,7 +6840,8 @@
             "+15 방어력"
           ]
         },
-        "label_kor": "시종"
+        "label_kor": "시종",
+        "localIcon": "miracle/valet.png"
       },
       "assassin": {
         "id": 11,
@@ -6686,7 +6854,8 @@
             "+5% 치명타 확률"
           ]
         },
-        "label_kor": "어쌔신"
+        "label_kor": "어쌔신",
+        "localIcon": "miracle/assassin.png"
       },
       "iceBlacksmith": {
         "id": 12,
@@ -6699,7 +6868,8 @@
             "+10% 얼음무구의 피해량"
           ]
         },
-        "label_kor": "얼음 대장장이"
+        "label_kor": "얼음 대장장이",
+        "localIcon": "miracle/iceBlacksmith.png"
       },
       "chef": {
         "id": 13,
@@ -6712,7 +6882,8 @@
             "+25% 화상 디버프 추가 피해량"
           ]
         },
-        "label_kor": "요리사"
+        "label_kor": "요리사",
+        "localIcon": "miracle/chef.png"
       },
       "elementalist": {
         "id": 14,
@@ -6726,7 +6897,8 @@
             "+7 번개 속성 피해"
           ]
         },
-        "label_kor": "원소술사"
+        "label_kor": "원소술사",
+        "localIcon": "miracle/elementalist.png"
       },
       "general": {
         "id": 15,
@@ -6738,7 +6910,8 @@
             "+35% 동료가 입히는 피해량"
           ]
         },
-        "label_kor": "장군"
+        "label_kor": "장군",
+        "localIcon": "miracle/general.png"
       },
       "informant": {
         "id": 16,
@@ -6751,7 +6924,8 @@
             "+15% 대시 회복 속도"
           ]
         },
-        "label_kor": "정보원"
+        "label_kor": "정보원",
+        "localIcon": "miracle/informant.png"
       },
       "astronomer": {
         "id": 17,
@@ -6764,7 +6938,8 @@
             "+5% 공격 속도"
           ]
         },
-        "label_kor": "천문학자"
+        "label_kor": "천문학자",
+        "localIcon": "miracle/astronomer.png"
       },
       "explorer": {
         "id": 18,
@@ -6779,7 +6954,8 @@
             "획득 아이템 없음"
           ]
         },
-        "label_kor": "탐험가"
+        "label_kor": "탐험가",
+        "localIcon": "miracle/explorer.png"
       },
       "scholar": {
         "id": 19,
@@ -6791,7 +6967,8 @@
             "+15 MP 재생"
           ]
         },
-        "label_kor": "학자"
+        "label_kor": "학자",
+        "localIcon": "miracle/scholar.png"
       },
       "fisher": {
         "id": 20,
@@ -6804,7 +6981,8 @@
             "+15 최대 MP"
           ]
         },
-        "label_kor": "낚시꾼"
+        "label_kor": "낚시꾼",
+        "localIcon": "miracle/fisher.png"
       },
       "electromancer": {
         "id": 21,
@@ -6817,7 +6995,8 @@
             "+18% 감전 피해량"
           ]
         },
-        "label_kor": "전격술사"
+        "label_kor": "전격술사",
+        "localIcon": "miracle/electromancer.png"
       },
       "meteoric_smith": {
         "id": 22,
@@ -6830,7 +7009,172 @@
             "+10% 태양검 피해량"
           ]
         },
-        "label_kor": "운철 대장장이"
+        "label_kor": "운철 대장장이",
+        "localIcon": "miracle/meteoric_smith.png"
+      }
+    },
+    "costume": {
+      "pink_rabbit": {
+        "value": "pink_rabbit",
+        "label_kor": "분홍 토끼",
+        "image": "https://img.sephiria.wiki/costume/pink_rabbit.png",
+        "localIcon": "costume/pink_rabbit.png"
+      },
+      "rabbit": {
+        "value": "rabbit",
+        "label_kor": "갑옷을 입은 토끼",
+        "image": "https://img.sephiria.wiki/costume/rabbit.png",
+        "localIcon": "costume/rabbit.png"
+      },
+      "brown_rabbit": {
+        "value": "brown_rabbit",
+        "label_kor": "갈색 토끼",
+        "image": "https://img.sephiria.wiki/costume/brown_rabbit.png",
+        "localIcon": "costume/brown_rabbit.png"
+      },
+      "braid": {
+        "value": "braid",
+        "label_kor": "땋은 머리 토끼",
+        "image": "https://img.sephiria.wiki/costume/braid.png",
+        "localIcon": "costume/braid.png"
+      },
+      "orange_rabbit": {
+        "value": "orange_rabbit",
+        "label_kor": "주황색 토끼",
+        "image": "https://img.sephiria.wiki/costume/orange_rabbit.png",
+        "localIcon": "costume/orange_rabbit.png"
+      },
+      "red_rabbit": {
+        "value": "red_rabbit",
+        "label_kor": "빨간망토 토끼",
+        "image": "https://img.sephiria.wiki/costume/red_rabbit.png",
+        "localIcon": "costume/red_rabbit.png"
+      },
+      "white_rabbit": {
+        "value": "white_rabbit",
+        "label_kor": "흰색 토끼",
+        "image": "https://img.sephiria.wiki/costume/white_rabbit.png",
+        "localIcon": "costume/white_rabbit.png"
+      },
+      "wing_ear_rabbit": {
+        "value": "wing_ear_rabbit",
+        "label_kor": "날개 귀 토끼",
+        "image": "https://img.sephiria.wiki/costume/wing_ear_rabbit.png",
+        "localIcon": "costume/wing_ear_rabbit.png"
+      },
+      "red_cat": {
+        "value": "red_cat",
+        "label_kor": "붉은 옷 고양이",
+        "image": "https://img.sephiria.wiki/costume/red_cat.png",
+        "localIcon": "costume/red_cat.png"
+      },
+      "red_fox": {
+        "value": "red_fox",
+        "label_kor": "붉은 여우",
+        "image": "https://img.sephiria.wiki/costume/red_fox.png",
+        "localIcon": "costume/red_fox.png"
+      },
+      "frog": {
+        "value": "frog",
+        "label_kor": "개구리",
+        "image": "https://img.sephiria.wiki/costume/frog.png",
+        "localIcon": "costume/frog.png"
+      },
+      "mole": {
+        "value": "mole",
+        "label_kor": "두더지",
+        "image": "https://img.sephiria.wiki/costume/mole.png",
+        "localIcon": "costume/mole.png"
+      },
+      "white_wolf": {
+        "value": "white_wolf",
+        "label_kor": "하얀 늑대",
+        "image": "https://img.sephiria.wiki/costume/white_wolf.png",
+        "localIcon": "costume/white_wolf.png"
+      },
+      "wizard_rabbit": {
+        "value": "wizard_rabbit",
+        "label_kor": "마법사 토끼",
+        "image": "https://img.sephiria.wiki/costume/wizard_rabbit.png",
+        "localIcon": "costume/wizard_rabbit.png"
+      },
+      "skeleton": {
+        "value": "skeleton",
+        "label_kor": "스켈레톤",
+        "image": "https://img.sephiria.wiki/costume/skeleton.png",
+        "localIcon": "costume/skeleton.png"
+      },
+      "wings_lost_bat": {
+        "value": "wings_lost_bat",
+        "label_kor": "날개 잃은 박쥐",
+        "image": "https://img.sephiria.wiki/costume/wings_lost_bat.png",
+        "localIcon": "costume/wings_lost_bat.png"
+      },
+      "adventurer": {
+        "value": "adventurer",
+        "label_kor": "모험가 토끼",
+        "image": "https://img.sephiria.wiki/costume/adventurer.png",
+        "localIcon": "costume/adventurer.png"
+      },
+      "scholar_lizard": {
+        "value": "scholar_lizard",
+        "label_kor": "학자 도마뱀",
+        "image": "https://img.sephiria.wiki/costume/scholar_lizard.png",
+        "localIcon": "costume/scholar_lizard.png"
+      },
+      "ghost": {
+        "value": "ghost",
+        "label_kor": "유령",
+        "image": "https://img.sephiria.wiki/costume/ghost.png",
+        "localIcon": "costume/ghost.png"
+      },
+      "otter": {
+        "value": "otter",
+        "label_kor": "수달",
+        "image": "https://img.sephiria.wiki/costume/otter.png",
+        "localIcon": "costume/otter.png"
+      },
+      "eagle": {
+        "value": "eagle",
+        "label_kor": "독수리",
+        "image": "https://img.sephiria.wiki/costume/eagle.png",
+        "localIcon": "costume/eagle.png"
+      },
+      "crocodile": {
+        "value": "crocodile",
+        "label_kor": "악어",
+        "image": "https://img.sephiria.wiki/costume/crocodile.png",
+        "localIcon": "costume/crocodile.png"
+      },
+      "deer": {
+        "value": "deer",
+        "label_kor": "사슴",
+        "image": "https://img.sephiria.wiki/costume/deer.png",
+        "localIcon": "costume/deer.png"
+      },
+      "lucky_fairy": {
+        "value": "lucky_fairy",
+        "label_kor": "행운의 요정",
+        "image": "https://img.sephiria.wiki/costume/lucky_fairy.png",
+        "localIcon": "costume/lucky_fairy.png"
+      },
+      "squirrel": {
+        "value": "squirrel",
+        "label_kor": "농부 다람쥐",
+        "image": "https://img.sephiria.wiki/costume/squirrel.png",
+        "localIcon": "costume/squirrel.png"
+      },
+      "turtle": {
+        "value": "turtle",
+        "label_kor": "거북이",
+        "image": "https://img.sephiria.wiki/costume/turtle.png",
+        "localIcon": "costume/turtle.png"
+      },
+      "forest_cat": {
+        "value": "forest_cat",
+        "label_kor": "숲 고양이",
+        "image": "https://img.sephiria.wiki/costume/forest_cat.png",
+        "localIcon": "costume/forest_cat.png"
       }
     }
   }

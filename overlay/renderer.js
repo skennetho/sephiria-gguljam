@@ -71,6 +71,59 @@ let enhanceMode = 'combo';  // combo | even
 
 let builds = [];
 let buildDetail = null;
+let buildTab = 'all';           // all | fav
+
+// 즐겨찾기는 편의 기능이라 잃어버려도 상관없다. localStorage 로 충분하다.
+const FAV_KEY = 'sephiria.favBuilds';
+let favorites = loadFavorites();
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem(FAV_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Map(arr.map(b => [b.postUuid || String(b.id), b]));
+  } catch (err) {
+    log.warn('fav', '즐겨찾기 로드 실패 — 비우고 시작', err.message);
+    return new Map();
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites.values()]));
+    log.info('fav', '저장', { 개수: favorites.size });
+  } catch (err) {
+    log.warn('fav', '저장 실패', err.message);
+  }
+}
+
+function buildKey(b) {
+  return b.postUuid || String(b.id);
+}
+
+function isFav(b) {
+  return favorites.has(buildKey(b));
+}
+
+function toggleFav(b) {
+  const k = buildKey(b);
+  if (favorites.has(k)) {
+    favorites.delete(k);
+    log.info('fav', '해제', b.title);
+  } else {
+    // 목록이 사라져도 즐겨찾기 탭에서 볼 수 있도록 빌드 전체를 저장한다
+    favorites.set(k, b);
+    log.info('fav', '추가', b.title);
+  }
+  saveFavorites();
+  updateFavCount();
+  renderBuildList();
+}
+
+function updateFavCount() {
+  const el = document.getElementById('fav-count');
+  if (el) el.textContent = String(favorites.size);
+}
 
 // ── 부팅 ──────────────────────────────────────────────
 
@@ -681,34 +734,90 @@ function renderBuildList() {
   const list = document.getElementById('build-list');
   const q = document.getElementById('build-search').value.trim().toLowerCase();
 
-  const shown = builds.filter(b => !q || (b.title || '').toLowerCase().includes(q));
+  const source = buildTab === 'fav' ? [...favorites.values()] : builds;
+  const shown = source.filter(b => !q || (b.title || '').toLowerCase().includes(q));
 
   if (shown.length === 0) {
-    list.innerHTML = '<div class="empty">결과가 없습니다</div>';
+    list.innerHTML = buildTab === 'fav'
+      ? '<div class="empty">즐겨찾기한 빌드가 없습니다<br><small>카드의 ☆ 를 눌러 추가하세요</small></div>'
+      : '<div class="empty">결과가 없습니다</div>';
     return;
   }
 
   list.innerHTML = '';
   for (const b of shown) {
-    const card = document.createElement('div');
-    card.className = 'build-card';
-    card.innerHTML =
-      `<div class="bc-title">${esc(b.title)}</div>` +
-      `<div class="bc-meta">` +
-      `<span>${esc(b.writer?.nickname || '')}</span>` +
-      `<span class="bc-chip">${esc(slugName('weapons', b.weapon))}</span>` +
-      `<span class="bc-chip">${esc(slugName('miracle', b.miracle))}</span>` +
-      `<span class="bc-like">♥ ${b.postLike ?? 0}</span>` +
-      `<span>v${esc(b.version || '')}</span>` +
-      `</div>`;
-    card.addEventListener('click', () => {
-      buildDetail = b;
-      document.getElementById('build-list-view').classList.add('hidden');
-      document.getElementById('build-detail-view').classList.remove('hidden');
-      renderBuildDetail(b);
-    });
-    list.appendChild(card);
+    list.appendChild(buildCard(b));
   }
+}
+
+/**
+ * 빌드 카드.
+ * 텍스트만으로는 빌드가 구분되지 않으므로 코스튬·무기·기적을 아이콘으로 보여준다.
+ * 이름은 툴팁으로 충분하다.
+ */
+function buildCard(b) {
+  const card = document.createElement('div');
+  card.className = 'build-card';
+
+  const fav = document.createElement('span');
+  fav.className = 'fav-btn' + (isFav(b) ? ' on' : '');
+  fav.textContent = isFav(b) ? '★' : '☆';
+  fav.title = isFav(b) ? '즐겨찾기 해제' : '즐겨찾기 추가';
+  fav.addEventListener('click', guard('fav', e => { e.stopPropagation(); toggleFav(b); }));
+
+  const iconRow = document.createElement('div');
+  iconRow.className = 'bc-icons';
+  for (const [cat, slug, label] of [
+    ['costume', b.costume, '코스튬'],
+    ['weapons', b.weapon, '무기'],
+    ['miracle', b.miracle, '기적'],
+  ]) {
+    if (!slug) continue;
+    const box = document.createElement('span');
+    box.className = 'bc-icon ' + cat;
+    box.title = `${label}: ${slugName(cat, slug)}`;
+    const img = document.createElement('img');
+    img.src = slugIcon(cat, slug);
+    img.onerror = () => { box.classList.add('missing'); img.remove(); };
+    box.appendChild(img);
+    iconRow.appendChild(box);
+  }
+
+  // 목표 콤보도 아이콘으로
+  const comboRow = document.createElement('span');
+  comboRow.className = 'bc-combos';
+  for (const c of (b.combo || [])) {
+    const key = comboKeyFromWikiSlug(c);
+    const img = document.createElement('img');
+    img.src = `${ASSETS}/combos/${key}.png`;
+    img.title = (comboById(key) || {}).name || c;
+    img.onerror = () => img.remove();
+    comboRow.appendChild(img);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'bc-body';
+  body.innerHTML =
+    `<div class="bc-title">${esc(b.title)}</div>` +
+    `<div class="bc-meta">` +
+    `<span>${esc((b.writer && b.writer.nickname) || '')}</span>` +
+    `<span class="bc-like">♥ ${b.postLike != null ? b.postLike : 0}</span>` +
+    `<span>v${esc(b.version || '')}</span>` +
+    `</div>`;
+  body.querySelector('.bc-meta').appendChild(comboRow);
+
+  card.appendChild(fav);
+  card.appendChild(iconRow);
+  card.appendChild(body);
+
+  card.addEventListener('click', guard('card', () => {
+    buildDetail = b;
+    document.getElementById('build-list-view').classList.add('hidden');
+    document.getElementById('build-detail-view').classList.remove('hidden');
+    renderBuildDetail(b);
+  }));
+
+  return card;
 }
 
 const ABILITY_LABELS = {
@@ -778,7 +887,13 @@ function renderBuildDetail(b) {
     buildDetail = null;
     document.getElementById('build-detail-view').classList.add('hidden');
     document.getElementById('build-list-view').classList.remove('hidden');
+    renderBuildList();
   });
+
+  view.querySelector('.fav-btn').addEventListener('click', guard('fav:detail', () => {
+    toggleFav(b);
+    renderBuildDetail(b);   // 별 모양 갱신
+  }));
 }
 
 // 위키 콤보 슬러그 -> 로컬 아이콘 키
@@ -793,6 +908,29 @@ const WIKI_COMBO_KEY = {
 };
 function comboKeyFromWikiSlug(slug) {
   return WIKI_COMBO_KEY[slug] || String(slug || '').toUpperCase();
+}
+
+// 슬러그 -> 로컬 아이콘 경로 (assets/wiki/icons/<카테고리>/<슬러그>.png)
+let wikiIcons = null;
+try {
+  const wd = readJson(path.join('wiki', 'wikidata.json')).data;
+  wikiIcons = {};
+  for (const [cat, items] of Object.entries(wd)) {
+    wikiIcons[cat] = {};
+    for (const rec of Object.values(items)) {
+      if (rec.localIcon) wikiIcons[cat][rec.value] = `${ASSETS}/wiki/icons/${rec.localIcon}`;
+    }
+  }
+} catch (err) {
+  wikiIcons = null;
+}
+
+/** 위키 카테고리 아이콘. 로컬에 없으면 CDN 으로 폴백한다. */
+function slugIcon(category, slug) {
+  if (!slug) return null;
+  const local = wikiIcons && wikiIcons[category] && wikiIcons[category][slug];
+  if (local) return local;
+  return `https://img.sephiria.wiki/${category}/${slug}.png`;
 }
 
 // 슬러그 -> 한글명 (assets/wiki/slugs.json)
@@ -956,6 +1094,17 @@ function setupControls() {
       enhanceMode = seg.dataset.mode;
     });
   });
+
+  document.querySelectorAll('.build-tab').forEach(tab => {
+    tab.addEventListener('click', guard('tab', () => {
+      document.querySelectorAll('.build-tab').forEach(t => t.classList.remove('on'));
+      tab.classList.add('on');
+      buildTab = tab.dataset.tab;
+      log.info('builds', '탭 전환', buildTab);
+      renderBuildList();
+    }));
+  });
+  updateFavCount();
 
   document.getElementById('build-search').addEventListener('input', renderBuildList);
   document.getElementById('build-sort').addEventListener('change', loadBuilds);

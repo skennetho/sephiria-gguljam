@@ -1,0 +1,381 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>빌드 카드 미리보기</title><style>
+/* Sephiria 인게임 오버레이
+   배경은 완전 투명해야 한다. 패널만 불투명하게 그리고, 나머지 영역은
+   renderer 가 마우스 이벤트를 게임으로 통과시킨다. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+  color: #dde3f0;
+  font-size: 14px;
+  /* 오버레이 전체에서 텍스트 선택 금지 (드래그 시 파랗게 반전되는 것 방지) */
+  user-select: none;
+  cursor: default;
+}
+
+.hidden { display: none !important; }
+
+/* ── 공통 패널 ─────────────────────────────────────── */
+.panel {
+  position: absolute;
+  background: rgba(15, 18, 28, 0.94);
+  border: 1px solid #3b4663;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #2a3147;
+  cursor: move;
+}
+.panel-head .title { font-weight: bold; font-size: 15px; color: #eaf0ff; }
+.panel-head .hotkey {
+  font-size: 11px; color: #59d0ff;
+  border: 1px solid #2c5a75; border-radius: 4px;
+  padding: 1px 6px; background: #132433;
+}
+.drag-hint { margin-left: auto; color: #4a5470; font-size: 11px; }
+
+.empty { padding: 20px; text-align: center; color: #5a6685; font-size: 13px; }
+
+/* ── ① 최적 배치 ───────────────────────────────────── */
+#panel-optimizer { left: 24px; top: 104px; width: 404px; }
+
+.opt-status { display: flex; align-items: center; gap: 10px; padding: 10px 14px 0; }
+
+.status-badge {
+  font-size: 12px; padding: 3px 10px; border-radius: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.status-badge.idle    { background: #1a2032; color: #8b93ad; border: 1px solid #2a3147; }
+.status-badge.done    { background: #12301f; color: #5fdc94; border: 1px solid #2b5c40; }
+.status-badge.calc    { background: #33270f; color: #ffd75e; border: 1px solid #6b5624; }
+.status-badge.error   { background: #331616; color: #ff8a8a; border: 1px solid #6b2b2b; }
+
+.spinner {
+  width: 11px; height: 11px;
+  border: 2px solid #6b5624; border-top-color: #ffd75e;
+  border-radius: 50%; animation: spin 0.9s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.calc-btn {
+  margin-left: auto;
+  background: #1d3a52; color: #8fdcff;
+  border: 1px solid #2c5a75; border-radius: 6px;
+  padding: 5px 12px; font-size: 13px; cursor: pointer;
+  font-family: inherit;
+}
+.calc-btn:hover { background: #25496a; }
+.calc-btn:disabled { opacity: 0.5; cursor: default; }
+
+.prev-note { padding: 4px 14px 0; font-size: 11px; color: #a08c4a; }
+
+.mini-grid-wrap { padding: 12px 14px 6px; }
+.mini-grid { display: grid; gap: 3px; justify-content: center; }
+
+.cell {
+  background: #181d2c; border: 1px solid #262e45;
+  border-radius: 5px; position: relative;
+  width: 58px; height: 58px;
+}
+.cell.void { background: repeating-linear-gradient(45deg, #12151f, #12151f 4px, #171b28 4px, #171b28 8px); border-color: #1d2130; }
+.cell.tablet { background: #20263c; border-color: #3d4966; }
+.cell img {
+  width: 100%; height: 100%; object-fit: contain;
+  image-rendering: pixelated; padding: 5px;
+}
+.cell .lv {
+  position: absolute; right: 2px; bottom: 1px;
+  font-size: 12px; font-weight: bold; color: #ffd75e;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+}
+.cell.inactive img { filter: grayscale(1) brightness(0.6); }
+.cell.inactive::after {
+  content: ''; position: absolute; inset: 0;
+  border: 1px solid #6b2b2b; border-radius: 4px;
+}
+
+.grid-caption { text-align: center; color: #5a6685; font-size: 11px; padding: 4px 0 8px; }
+
+.opt-section { padding: 8px 14px; border-top: 1px solid #232a40; }
+.opt-section .sec-title { font-size: 12px; color: #8b93ad; margin-bottom: 7px; }
+.sec-hint { color: #4a5470; }
+
+.prio-list { min-height: 4px; }
+.prio-row {
+  display: flex; align-items: center; gap: 8px;
+  background: #1a2032; border: 1px solid #2a3147;
+  border-radius: 6px; padding: 5px 9px; margin-bottom: 5px;
+  cursor: grab;
+}
+.prio-row.dragging { opacity: 0.4; }
+.prio-row .handle { color: #4a5470; font-size: 14px; }
+.prio-row .rank { color: #59d0ff; font-weight: bold; width: 16px; }
+.prio-row img { width: 24px; height: 24px; image-rendering: pixelated; }
+.prio-row .x { margin-left: auto; color: #4a5470; cursor: pointer; font-size: 13px; padding: 0 4px; }
+.prio-row .x:hover { color: #ff8a8a; }
+
+.add-combo {
+  width: 100%; background: none; border: 1px dashed #3b4663;
+  color: #5a6685; border-radius: 6px; padding: 5px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.add-combo:hover { border-color: #3d5a80; color: #8b93ad; }
+
+.combo-picker {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 4px; margin-top: 6px;
+  max-height: 190px; overflow-y: auto;
+}
+.combo-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: #1a2032; border: 1px solid #2a3147; border-radius: 6px;
+  padding: 6px 2px; cursor: pointer; font-size: 11px; color: #a9b2c9;
+}
+.combo-opt:hover { border-color: #3d5a80; }
+.combo-opt img { width: 24px; height: 24px; image-rendering: pixelated; }
+
+.seg { display: flex; border: 1px solid #2c5a75; border-radius: 6px; overflow: hidden; }
+.seg div {
+  flex: 1; text-align: center; padding: 7px 0;
+  font-size: 13px; color: #5a6685; cursor: pointer;
+}
+.seg div.on { background: #1d3a52; color: #8fdcff; font-weight: bold; }
+
+/* ── ② 위키 빌드 ───────────────────────────────────── */
+#panel-builds {
+  right: 24px; top: 104px; width: 470px;
+  max-height: calc(100vh - 190px);
+  display: flex; flex-direction: column;
+}
+#build-list-view, #build-detail-view { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+
+.search-row { display: flex; gap: 8px; padding: 10px 14px 0; }
+.search-row input {
+  flex: 1; background: #181d2c; border: 1px solid #2a3147;
+  border-radius: 6px; color: #dde3f0; padding: 7px 10px;
+  font-size: 13px; font-family: inherit;
+}
+.filter-row { display: flex; gap: 8px; padding: 8px 14px; font-size: 12px; align-items: center; }
+.filter-sel {
+  background: #181d2c; border: 1px solid #2a3147; border-radius: 6px;
+  color: #a9b2c9; padding: 5px 9px; cursor: pointer; font-family: inherit; font-size: 12px;
+}
+.filter-chk { color: #8b93ad; display: flex; gap: 4px; align-items: center; cursor: pointer; }
+
+.build-list { flex: 1; overflow-y: auto; padding: 2px 14px 12px; }
+.build-card {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  background: #1a2032; border: 1px solid #2a3147; border-radius: 8px;
+  padding: 10px 12px 10px 10px; margin-bottom: 8px; cursor: pointer;
+}
+.build-card:hover { border-color: #3d5a80; }
+
+/* 코스튬 / 무기 / 기적 아이콘. 텍스트만으로는 빌드가 구분되지 않는다. */
+.bc-icons { display: flex; gap: 5px; flex-shrink: 0; }
+.bc-icon {
+  width: 40px; height: 40px; border-radius: 6px;
+  background: #12151f; border: 1px solid #262e45;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.bc-icon img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; image-rendering: pixelated;
+}
+.bc-icon.costume { background: #171c2b; }
+.bc-icon.missing::after { content: '?'; color: #3d4966; font-size: 14px; }
+
+.bc-body { min-width: 0; flex: 1; }
+.bc-title {
+  font-size: 13px; font-weight: bold; color: #eaf0ff; margin-bottom: 4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; line-height: 1.35;
+  /* 우상단 즐겨찾기 별과 겹치지 않도록 */
+  padding-right: 20px;
+}
+.bc-meta { display: flex; gap: 8px; font-size: 11px; color: #8b93ad; align-items: center; flex-wrap: wrap; }
+.bc-like { color: #ff7d9a; }
+.bc-combos { display: flex; gap: 3px; margin-left: auto; }
+.bc-combos img { width: 16px; height: 16px; image-rendering: pixelated; }
+
+/* 즐겨찾기 별 */
+.fav-btn {
+  position: absolute; top: 4px; right: 6px;
+  font-size: 15px; color: #4a5470; cursor: pointer; line-height: 1;
+  padding: 2px 4px; border-radius: 4px;
+}
+.fav-btn:hover { color: #ffd75e; background: #232b42; }
+.fav-btn.on { color: #ffd75e; }
+.fav-btn.detail { position: static; font-size: 18px; margin-left: auto; }
+
+/* 빌드 목록 탭 */
+.build-tabs { display: flex; gap: 4px; padding: 10px 14px 0; }
+.build-tab {
+  padding: 5px 12px; font-size: 12px; color: #5a6685;
+  background: #161b29; border: 1px solid #232a40;
+  border-radius: 6px; cursor: pointer;
+}
+.build-tab.on { color: #8fdcff; background: #1d3a52; border-color: #2c5a75; font-weight: bold; }
+.tab-count {
+  background: #232b42; border-radius: 8px; padding: 0 5px;
+  font-size: 10px; color: #a9b2c9; margin-left: 3px;
+}
+
+/* 상세 화면 헤더 */
+.bd-head { display: flex; align-items: center; margin-bottom: 10px; }
+.bd-head .back-btn { margin-bottom: 0; }
+.bd-icons { display: flex; gap: 8px; margin-bottom: 12px; }
+.bd-icon {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: 64px;
+}
+.bd-icon img {
+  width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated;
+  background: #12151f; border: 1px solid #262e45; border-radius: 6px; padding: 3px;
+}
+.bd-icon em {
+  font-style: normal; font-size: 10px; color: #8b93ad;
+  text-align: center; line-height: 1.2;
+}
+.bd-icon.missing img { display: none; }
+
+.build-detail { overflow-y: auto; padding: 10px 14px; }
+.back-btn {
+  background: none; border: 1px solid #2a3147; color: #8b93ad;
+  border-radius: 6px; padding: 4px 10px; font-size: 12px;
+  cursor: pointer; margin-bottom: 10px; font-family: inherit;
+}
+.back-btn:hover { border-color: #3d5a80; color: #dde3f0; }
+.bd-title { font-size: 16px; font-weight: bold; color: #eaf0ff; }
+.bd-writer { font-size: 12px; color: #8b93ad; margin: 4px 0 10px; }
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.chip { background: #232b42; border-radius: 5px; padding: 4px 9px; font-size: 12px; color: #a9b2c9; }
+.chip b { color: #dde3f0; }
+.combo-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.combo-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: #1d3a52; border: 1px solid #2c5a75;
+  border-radius: 6px; padding: 4px 10px; font-size: 13px; color: #8fdcff;
+}
+.combo-badge img { width: 22px; height: 22px; image-rendering: pixelated; }
+.stat-row { display: flex; gap: 5px; margin-bottom: 12px; }
+.stat-box {
+  flex: 1; background: #181d2c; border: 1px solid #262e45;
+  border-radius: 6px; text-align: center; padding: 6px 0;
+}
+.stat-box .sn { font-size: 10px; color: #5a6685; }
+.stat-box .sv { font-size: 15px; font-weight: bold; color: #ffd75e; }
+.stat-box .sv.zero { color: #3d4966; }
+.bd-desc {
+  background: #161b29; border: 1px solid #232a40; border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; line-height: 1.7; color: #b8c0d6;
+  max-height: 200px; overflow-y: auto; margin-bottom: 12px;
+}
+.bd-desc p { margin: 0 0 6px; }
+.bd-desc ul { margin: 0 0 6px 16px; }
+.item-section { margin-bottom: 12px; }
+.item-section .is-label { font-size: 13px; font-weight: bold; color: #dde3f0; margin-bottom: 6px; }
+.icon-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
+.icon-row .it {
+  width: 44px; height: 44px; background: #181d2c;
+  border: 1px solid #262e45; border-radius: 5px; padding: 4px;
+}
+.icon-row .it img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.icon-row .it.owned { border-color: #2b5c40; background: #12301f; }
+.is-desc { font-size: 12px; color: #7d869e; line-height: 1.6; }
+
+/* ── ③ 팀원 ────────────────────────────────────────── */
+#panel-team { left: 24px; bottom: 70px; width: 404px; }
+.team-tabs { display: flex; gap: 4px; padding: 8px 14px 0; flex-wrap: wrap; }
+.team-tab {
+  padding: 5px 14px; font-size: 13px; color: #5a6685;
+  background: #161b29; border: 1px solid #232a40;
+  border-radius: 6px 6px 0 0; cursor: pointer;
+}
+.team-tab.on { color: #8fdcff; background: #1d3a52; border-color: #2c5a75; font-weight: bold; }
+.team-body { padding: 10px 14px 12px; }
+.team-body .cell { width: 44px; height: 44px; }
+.team-body .cell .lv { font-size: 10px; }
+.team-body .cell img { padding: 3px; }
+
+/* ── 상태 / 단축키 바 ──────────────────────────────── */
+.ws-status {
+  position: absolute; right: 24px; top: 20px;
+  font-size: 13px; border-radius: 14px; padding: 5px 14px;
+  background: rgba(15, 18, 28, 0.88);
+  display: flex; align-items: center; gap: 7px;
+}
+.ws-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+.ws-status.connected    { color: #5fdc94; border: 1px solid #2b5c40; }
+.ws-status.connected .dot    { background: #5fdc94; }
+.ws-status.disconnected { color: #ff8a8a; border: 1px solid #6b2b2b; }
+.ws-status.disconnected .dot { background: #ff8a8a; }
+
+.hotkey-bar {
+  position: absolute; bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 18, 28, 0.88);
+  border: 1px solid #2a3147; border-radius: 16px;
+  padding: 7px 18px; font-size: 12px; color: #8b93ad;
+  display: flex; gap: 16px;
+}
+.hotkey-bar b { color: #8fdcff; font-weight: normal; }
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3147; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3d4966; }
+
+/* 새로고침처럼 부차적인 버튼 */
+.calc-btn.ghost {
+  margin-left: auto;
+  background: transparent;
+  color: #8b93ad;
+  border-color: #2a3147;
+}
+.calc-btn.ghost:hover { background: #1a2032; color: #dde3f0; }
+/* 새로고침이 margin-left:auto 를 가져갔으므로 계산 버튼은 붙여 놓는다 */
+.calc-btn.ghost + .calc-btn { margin-left: 0; }
+
+/* 팀원 패널의 격자는 최적배치보다 작게 */
+#panel-team .mini-grid { gap: 2px; }
+#panel-team .cell { width: 44px; height: 44px; }
+#panel-team .cell .lv { font-size: 10px; }
+#panel-team .cell img { padding: 3px; }
+.team-meta { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
+
+body { background:#0a0c12; padding:24px; display:flex; gap:24px; align-items:flex-start; }
+.wrap { width:470px; background:rgba(15,18,28,0.94); border:1px solid #3b4663; border-radius:10px; }
+.note { color:#8b93ad; font-size:13px; max-width:320px; line-height:1.7; }
+.note b { color:#8fdcff; }
+</style></head><body>
+<div class="wrap">
+  <div class="panel-head"><span class="title">📖 위키 빌드</span><span class="hotkey">Ctrl+B</span></div>
+  <div class="build-tabs"><span class="build-tab on">전체</span><span class="build-tab">⭐ 즐겨찾기 <span class="tab-count">2</span></span></div>
+  <div class="search-row"><input placeholder="빌드 검색…"></div>
+  <div class="filter-row"><span class="filter-sel">무기: 전체 ▾</span><span class="filter-sel">인기순 ▾</span><label class="filter-chk"><input type="checkbox"> 최신버전만</label></div>
+  <div class="build-list"><div class="build-card"><span class="fav-btn on">★</span><div class="bc-icons"><span class="bc-icon costume" title="코스튬: 흰색 토끼"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABICAYAAACwc3YrAAAACXBIWXMAAAsTAAALEwEAmpwYAAABG0lEQVR4nO3YMWrDQBSE4T3K8sBu1CQgfAK3AUEgIrUgBOsAwVHjJtcwPpQblXsM42LTKN17CRssy1r/A9Othv06Sa7dfDit4suY0s/tl9OautPa91GrHgawBeAAyFwAYgylZuwdAfBHAAwBILkATiEkdewdARAARAAeQABwAlACiADCFQBTRYz7vNZvTiuAS0cAeAC3DejrRm1qUnfEuCeAHkADIAKoG/PlDMAQAD8BMASA/ydgqgiAiSMAJo5kC6heWrXWA+vuoLZ43qm1zlv7kvpJCaADEAFUcwaI8YB1oeN7qfa8X6m1zlv7cqnf6wD2ACKAIkdAYXT5UKlN3REAHkAE4O8JsHh8UvvL0Khd2PcBEAF4AC47wDePhtmTYcGXRwAAAABJRU5ErkJggg=="></span><span class="bc-icon weapons" title="무기: 회귀하는 수호"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAAB4BAMAAADyLZq6AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAB5QTFRFAAAAAAAA////NzZMvb7Pfoen+542S0tkSThDcFBSf1zMpwAAAAp0Uk5TAP///////////36JFFYAAAE0SURBVHic7djRbcIwEAbgMzBAvEHFBEhZgAd2KiPQnfLAApGYALFBMkBLejn/dowBAX0hTu8kwEb3PXCxzwmGXg+jJmNj8dlMwthh2LVqnjOm8LBJ2ZsNhIVpLpSaO8bXmco+nWGNuVN5GYD5ipOP+G7JyT8Hz7Ix4bez8Bew9AUwhSg1VybqZ0SLNb+FWvPrey/DXAyAKeLWvOkZgwrzZC9My1gAZwK7NEl/G60J1597QNcyxNYXs+wXQxUJNc5A8BFgzyc3nn10rbhsTenvauYrFIBLUat5ZKSsNNQabTNHE+0FPgvOJwY4AmRByTlXv80EdmU4PunLDdTcfC5BwRfrGHDsaJuloWgNIUHmrgZ3nxvV0HAPiwx0vjpbk4SYTdLc/qNxMQkz5v/sxm1uh5q/mV8ieSaXPForfAAAAABJRU5ErkJggg=="></span><span class="bc-icon miracle" title="기적: 어쌔신"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAAA/CAYAAABU6B73AAAACXBIWXMAAAsTAAALEwEAmpwYAAABVElEQVR4nO3azW3DMAxAYY8icIbsoCEyQ5Ft4iE6gk89dofmkgm8gXKIEBhp5VKSU1H1ewCPFswPiPODDIMicYfQ8wxbJQaWAcI1hhADC5hAEQM3DYRrDCGKg3qpCkWAuLdriP+0fBUKEAcgRAOhzR9PJkYbEDEgtobwlTc8Xb5U8yoYIGJAWICYlMtviZIKiBgQrSCmyqVqr08FRAwICxC+4DVee1YqIGJAtIIYPz4fUwtRclYqIGJAWPhkORYsUguZCogYEBaeEdPi7W9twZJrgDgCEUxCvJ3fH5NaJDXLa58n93ogzkAEUxBTxU9waxC5KEBcgAhdQ4wrz5HrPP86QMxAhC4gfCaK9rmgeV6Y+mTpgTjtG+I57ZegV482IGJAlEJIAYrVNDsC4YAIu/iDuuQuD8QPCRDf0xzU4wy5iYGbBsIZgli26+WXtV4ECPd3EDdnY4K0dsiRIAAAAABJRU5ErkJggg=="></span></div><div class="bc-body"><div class="bc-title">어 형은 방패만 던지면서 살아 ( 하드 60 클리어 가능!! )</div><div class="bc-meta"><span>애플</span><span class="bc-like">♥ 1</span><span>v1.0.27</span><span class="bc-combos"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA9ElEQVQ4EWNgoDb4//8/RUbC9DMSYQqyTXjVMxEwDGjpfwYQXnPgCkgpssEEtKJK/6/pXwYyDA5AfHwG4nIZyACGN/fuoRgP4uNzIS7DGNYevIpiEIx/4fwlFHFkDk7DkBXZmPsgc3GycRoGcwHMoP6ycpyGwCRwGgZScPnkcbA6XXNLMA3jgzlYCLyGoRsC4hsY6mExBiKE1zCQkiMnt4BVFnZ1gmmY98EcNIKgYSD1MINAbLJcBtMESxIggwgBnC5b3t3HIKKkhKEfJI4L4Mu4/4O9kxhEkQx8DcwBa7fOA5mFVR9WQSSbsWVsQnqQtA8WJgBSnl4NG7+87gAAAABJRU5ErkJggg==" title="STURDY"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAuUlEQVQ4Ed2RzQlCQQyEg2WIB7vzbAN2oFZiJZ6sQBB8XUhMZok8BrJm9SC4sOxf8mUyK/J347qrt6QW6nNoLLJoVbCGgCnMi+h9jyUrWL03YW2YNx+1PC8ULDV1WgH2PqTBDKTnFWAVYO7ZdBCZjlC73sA7eZxwTD+lA2sgWW5f0NtF3gLnXsUe7blf3iam7e0xZsSVVhjvEAe4X7EvZVMQJ7M6Cu8fuZ2v1XE5Vsvvw2dWPAz4TcITd02GMptOjvIAAAAASUVORK5CYII=" title="PRECISION"></span></div></div></div><div class="build-card"><span class="fav-btn on">★</span><div class="bc-icons"><span class="bc-icon costume" title="코스튬: 학자 도마뱀"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABIBAMAAACw4T69AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABtQTFRFAAAAIiA0rcDUfI+m////TFJrNDVMrIN+PUReOxPaMgAAAAl0Uk5TAP//////////NwKb1AAAAP1JREFUeJzV1dENgjAQBuC/ygB0A9IJJH31kW1dgQcWMHGCxrhAHQCjLVegqFjRQvQe0Lt+qVcshSEUrLmk9no94yGJK7gpdUIA6kMBmp2E+aqjC2k/lKsKSpYRLntbAOsNTWpGJI1DxRCYIEzwCML+koQXyq5a2f/pxwSnLS6wx0BeDv8n3OMqneA20TbBBIGmPIvQ96Jw2wbU1O4bkWxRjYukDs0xKlha9BK0ltITthpT5KdMYZWpGcTwadDUTAnvdJhdmEFuOuvuQ9O4Jkg7OSC4q8QX+XGSECRMuxo+WlhQk+62te+lftF1tZRgaUi0x8/zoDN5GfE6wuIGlV4C3ii1B4kAAAAASUVORK5CYII="></span><span class="bc-icon weapons" title="무기: 냉동 빙어"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAAB4BAMAAADyLZq6AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABVQTFRFAAAAAAAA////O1GCy+P+l8f+ZJnoTaBx2QAAAAd0Uk5TAP///////6V/pvsAAADqSURBVHic7djdCcIwEADgS6zvyQalEwgu0BEcuCsIThDcIC7g3zU/FRKb+CDk9CKEgPkeetxdjwr4fAk2bIgaoeLRsqk1LyLDqJkg9PMHJlVsMsaDzQ53E6/TNk5YjAHAkU3R+Eh34/UEMOBRw0TddKNQ94t/+HLu/L0JvUModxrczdXcad74DavBYA8Z2HzTyN7l29yv9+t12rwBrJ/bOU4ipq5+WjQLkz3u83wwuT/Y1LxPtwfMHYu5k0SaonETgg4BYFMyXoSKC3dpG6Fkj3OVxskq6fBs3pl0kTU5Vf5+wKZqsWHzi+YB9wwMiKo+vLUAAAAASUVORK5CYII="></span><span class="bc-icon miracle" title="기적: 설원 경비병"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAAA/CAYAAABU6B73AAAACXBIWXMAAAsTAAALEwEAmpwYAAABYklEQVR4nO3awQ3CMAwF0I4SeQZ2yBCdIWIbGIIReuqRHeiFCdjACFFVUaCR06TEpf9L/wQK9kMtCNE0gpA58JbblAopWAYQpjIEKVhABQopGBoQpjIECQ7aSrJQCBDv7Brin5bPQgHEARAkgZDGtkcVlQYQYwBRGsIuGPLcX6fGhpec5U6XqUtgADEGEGtDdMNtauq17AO9Ovc6c5CAaAHBaiFs4rV8fzymhhD+Y5LXiL0JgGgBwSoh7ExLQmziHmEBcQSEE3zry4WQfpQCogUEV4Vw3vJzzYUIn/etgOgBwVUhnGDxWKUQkuVjBUQPCFYPkRtAjAHEv0E4wf2ixH0BED0guBpE5/089mrq8rFhcxYP5wLEAAiuCtFl9JdnAyIIIEpDrDn8GouHAcQYQCyFoAUoWiPZERAGELyLP6hT6vKA+BICxGckB22xTWpIwdCAMIog/Ox6eT+1FwGE+R3EE02UX64QIgbuAAAAAElFTkSuQmCC"></span></div><div class="bc-body"><div class="bc-title">일단 찔러, 그리고 얼려, 그럼 죽어! ( 하드 60 클리어 가능!! )</div><div class="bc-meta"><span>애플</span><span class="bc-like">♥ 1</span><span>v1.0.27</span><span class="bc-combos"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAABNElEQVQ4EWNgGMrgP7GOZyKg8D8QgJTADITRWLXhMwxmEAPMwJSZL5ANxjAQl2Fwg0A6Zpz4Dzbw+o5ZDAGlW/EaiG4DyCA4mH78HwrbOrDpP9BAkHcxvIzLZWALQC7auW47g4FVDENg2TaGs5deMWh6pDG8vnMW3QFgPk7DYAbdP7IMrBBEv4EaAjIQG8BqGMigDAtGBphBpgm9cANBDGM9MWxmMWA1DGQQCCjaRIHp0wuK4XxcBoEUsIBVoRGps16CbRdRMQbLgFwIMtg9yBPMB4UjNoDVMFASuL4DohwUPiBDQS5a0tWCzQy4GFZvgmSPrq8DKwIZjGwQTBxuAhIDEjhIAlAmKA2B5P4D0xVcFmoQWBwqD5dDYSBrQpGAGIg1kYLU4dGHZgyCi5HaEVJDgQUA5cqNFmc9doIAAAAASUVORK5CYII=" title="GLACIER"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAuUlEQVQ4Ed2RzQlCQQyEg2WIB7vzbAN2oFZiJZ6sQBB8XUhMZok8BrJm9SC4sOxf8mUyK/J347qrt6QW6nNoLLJoVbCGgCnMi+h9jyUrWL03YW2YNx+1PC8ULDV1WgH2PqTBDKTnFWAVYO7ZdBCZjlC73sA7eZxwTD+lA2sgWW5f0NtF3gLnXsUe7blf3iam7e0xZsSVVhjvEAe4X7EvZVMQJ7M6Cu8fuZ2v1XE5Vsvvw2dWPAz4TcITd02GMptOjvIAAAAASUVORK5CYII=" title="PRECISION"></span></div></div></div><div class="build-card"><span class="fav-btn">☆</span><div class="bc-icons"><span class="bc-icon costume" title="코스튬: 하얀 늑대"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABOCAYAAADfPhN+AAAACXBIWXMAAAsTAAALEwEAmpwYAAAB8ElEQVR4nO3av0oDQRCA8XmUZdtAIHCmCYjYKNgqURFPEP+AihZaCbbxKWx9iqSxSWdjKWm1uwewGLGfFSas7h18C1+VZbmbX4ojF4mhki63s31mFkOlnqpqS6y853ivv/gAIwDlhxgB6G47AAAQATgDoG2Dns5ezbwDfZg8mwGwDQAAAQABAAAFIADwH6ln0Np8mnkH7T3HW+mhCgDlBysAdCMFAAAFIADQCYBpoY7rOzMAZgAAEABQAABQAGYAJNvc2DfL9Ri6Uj+apfbnCoAGAAACAAoAAApA3WEA76vBX/ZLoiyD9gK8z1/Mcg364uRGrACoARAAAFAAAgAAzFsE8A9/hBKrq8t7s1yvEnOVup6jw2uxSt0vAA0AAgAACkAAAICmAECuQXsBBoMNsUrt964UzF/n/cIBMAFAAABAARgAAMCkAECuQWe8ULVaLD7Mcq2vp6HZ23lllloALLkACAAA8ASAAgCAthrAO+jUjaX2e1cKJlW/NzIbDdddeR+7AVgAAEAAQAEAQADotQjA+2NcLoBSq58JYInHawB+FgAACAA9AAAIAGgrAFIfrK3vm3lhSgHE9CBc3e4emC1xFgARAAAiABUAAFQAxLYD5IIp1d74VKxS9zXsr5rlGjQAYwAACAAIAAAIAKE9AN/7gqLHqgLCAwAAAABJRU5ErkJggg=="></span><span class="bc-icon weapons" title="무기: 검참도: 파무"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAAB4BAMAAADyLZq6AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAB5QTFRFAAAAAAAA////vb7PNzZMLStAS0tkfoencFBSSThDc/5CkQAAAAp0Uk5TAP///////////36JFFYAAAEgSURBVHic5dgxDoIwFAbg17iwaW9gnN28gldw9xYwdsTN0dGjeAET4gEIkyuMalSkrzrZqCUof7FDaQnf0NfXQhHkXoT1ruS6LPCMGDxaduWjkZKuWdXOv2wmks4b7j2rts0spd54o4fUEbOl635+WkOalC67oXMMcA12rHFztGZeZ9zDM3JEl8Qq/DR6LSSO75KfGZ4fTGNi3R0DnQe5edc75TWwmUxJBIqsqkkTSjoo030K+L+YOKfjSpXF4ssmrC796uHOGPA5XXLv87WAbED3Xj44x5GuEU1MuS2hvTUmBoDGrFO38cCbOjH4ldHjcf2/A2pMvpHe4xFNTFtJ1WG7A4YjEBJPD6AJVPRCNGe42D7GfTR39YK0ad6WOuYGiOjCiHuNAwoAAAAASUVORK5CYII="></span><span class="bc-icon miracle" title="기적: 결투가"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAAA/CAYAAABU6B73AAAACXBIWXMAAAsTAAALEwEAmpwYAAABT0lEQVR4nO3a0W3CMBCA4Yxi3QzskCE8A+o2dIiO4Cceu0OZxTxgRVZah8NO4wv5f+kek/g+iYCqDoMicae45xnWSgwsA4TrDCEGFjCBIgYODYTrDCGKG+2lJhQB4tGhId5p+SYUIE5AiAZC2+g/TIw2IFJArA0xGli6BQaIFBBbQoTbzzSf1++ns3R9abRnKQVECohe74iQHf58+ZpGe30OVvP8UkCkgLDw9RkylJpFap5ZCogUENZ+WYYFlDWfUwqIFBDWIMaFw/7nvYGYBUQviDztO6L0C7T16zcPiBQQFt4RedprapYHwgMRzUOcC5/3pXuVlq/5ewYQHohoBiI0fq41o30GEB6IaAZiNDRAeCDiphDzrC8+D4gUELUQUoFiNc2OQDgg4iH+QV1eXR6IPxIgfqe50R5neDUxcGggnCGIvEMvn9d7ESDcdhB3vNwQImAbjFQAAAAASUVORK5CYII="></span></div><div class="bc-body"><div class="bc-title">검도학원검참난무무한대쉬무한흡혈정밀견고쌍왕관기적의검빌드</div><div class="bc-meta"><span>D_INU</span><span class="bc-like">♥ 0</span><span>v1.0.27</span><span class="bc-combos"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA9ElEQVQ4EWNgoDb4//8/RUbC9DMSYQqyTXjVMxEwDGjpfwYQXnPgCkgpssEEtKJK/6/pXwYyDA5AfHwG4nIZyACGN/fuoRgP4uNzIS7DGNYevIpiEIx/4fwlFHFkDk7DkBXZmPsgc3GycRoGcwHMoP6ycpyGwCRwGgZScPnkcbA6XXNLMA3jgzlYCLyGoRsC4hsY6mExBiKE1zCQkiMnt4BVFnZ1gmmY98EcNIKgYSD1MINAbLJcBtMESxIggwgBnC5b3t3HIKKkhKEfJI4L4Mu4/4O9kxhEkQx8DcwBa7fOA5mFVR9WQSSbsWVsQnqQtA8WJgBSnl4NG7+87gAAAABJRU5ErkJggg==" title="STURDY"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAuUlEQVQ4Ed2RzQlCQQyEg2WIB7vzbAN2oFZiJZ6sQBB8XUhMZok8BrJm9SC4sOxf8mUyK/J347qrt6QW6nNoLLJoVbCGgCnMi+h9jyUrWL03YW2YNx+1PC8ULDV1WgH2PqTBDKTnFWAVYO7ZdBCZjlC73sA7eZxwTD+lA2sgWW5f0NtF3gLnXsUe7blf3iam7e0xZsSVVhjvEAe4X7EvZVMQJ7M6Cu8fuZ2v1XE5Vsvvw2dWPAz4TcITd02GMptOjvIAAAAASUVORK5CYII=" title="PRECISION"></span></div></div></div><div class="build-card"><span class="fav-btn">☆</span><div class="bc-icons"><span class="bc-icon costume" title="코스튬: 날개 잃은 박쥐"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAABICAYAAACqT5alAAAACXBIWXMAAAsTAAALEwEAmpwYAAABNUlEQVR4nO3XPU7DQBBA4T3KaBA/BQLJjG0FChq6gGTo0lOmyU04SM6SKy1NypmgiRzJNq943Wo837qwXFSsBNVMz6uv4nVifqrHhze37J4FsACugAVwXSx4u/1xG+sisrD1+tsNsAA2wArY/h/4sPl0y17Eqh+KVxYW7QNYABtgBWyAD3+UvYgsDPAGcAWsgA2wHuu791QRILqIqOxzAQtgA6yADXB/7P6qc4vOZz8z2fmABbABVsC2XHB39+IWDYo+P5cu2ifavwAWwAWwAK6zB2swaGevbtH5S5fdpwAWwBWwAa6zB3/ctm7RoH3TjNJYF9Fed8ULsAJuAStgmw94uHlymwvsRO6LBDwANsB7wM18wDoSbGo/FYAFsAHeA26WC9aJLXrGecC8YZ1GgBWwnQ3+BQ5TiZURDuumAAAAAElFTkSuQmCC"></span><span class="bc-icon weapons" title="무기: 대형 석궁: 화약초 연성"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAAB4BAMAAADyLZq6AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAACRQTFRFAAAAAAAA//jl08uzii4yrDIyZGmFIiA0YygzS0tkNzZMjoJ7I8SOjQAAAAx0Uk5TAP//////////////CcRQJgAAAQFJREFUeJzt1D0OgjAUAOBXRFnhBoQTmHABBg/gws6EKxtewSO4ubN4AAYvQOIJiDeASRP/sC3hRzAhDNqA7w0NfbzvhdK0BPoHQYMGDRo0aNB8yRCVjVlaS2lVZnBG+9gICiXaEDVpJCUd4r8w+WbyCo1PElqUFA0SEaa5idMlUUM6hmCWueuOjUMw5cJZ2Lc92FkqWzGfGvQl/QcBy8FajJnMY1gAPI4unUWS/jyxNW6KTiZE+YMIo3gBuPeDbBlnB7YXT/HK+lpU984YDYAPwcwh6uq9ih8cXlDdxL80+VnwwaRLaX99O4ZhuipFmfJ8d4MRmz6BBg0aNGjQoBFjXsCV/XmaGKe4AAAAAElFTkSuQmCC"></span><span class="bc-icon miracle" title="기적: 사냥꾼"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAA/CAYAAAC/36X0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABQklEQVR4nO3UwW3DMAyFYY0iaIbukCE0g+FtqiE6Qk89dof2kgmyAQMYSKAEcEo5jUnZ/wN4lKz3wVIIiqT4Jj2PpuOfsS4BQjRESA4Ob46RHBwahGiEkJSbec9TIAmEsF+EtIHST4MkEEB4iKDNIY8uRpPmP0Eb6/IgZEOEw8xBhveP63gEAUFAmAKCgDAFBDFAGFYAmfsGCBkE2QzC8GC9Zl8QMgjiFmFoBClf3zfTuh6EDIJ0jVDuitdzPJ2us+k3oYAw7hehzJT+/P25mRphc29CAWHcL0JR3Pt7BE1xEDII0gVCURRvvfcgZBCkG4SycnEQMgjiCuE4U3CN4iBkEMQEoc6rivxX8TogCAjLENICEI/R9AsggCATQh3Ngh5QmovXASGAsBikpwmtSQ4ODUJ0gFBn1+UvsS4BQnw9whkrzwbLYVTNNwAAAABJRU5ErkJggg=="></span></div><div class="bc-body"><div class="bc-title">저점 높은 그레이브즈</div><div class="bc-meta"><span>shwoa12</span><span class="bc-like">♥ 2</span><span>v1.0.27</span><span class="bc-combos"></span></div></div></div><div class="build-card"><span class="fav-btn">☆</span><div class="bc-icons"><span class="bc-icon costume" title="코스튬: 붉은 옷 고양이"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABOCAYAAACDtFBaAAAACXBIWXMAAAsTAAALEwEAmpwYAAABoUlEQVR4nO3bT0oDMRSA8RwlBLVSxMowTKUgFFFcpJtSt+4EBc9QkNAzeJUeood6XuC96oMUw/gtvlWG/PltOsN0Qop9MJKW2lzMgtaR/Vfp2KC0FEARIAEoAiQA/QCU86urfTdRO6z1rOut/VxNl0ELoAiQALQGSADK/xRoenmnZm3UOpgX1Fut24jZ9UPQAigCJABFgASg3CiQNeBdYFe+1ObDSs0LYc1Ta13rXABlgASgApAAlBsFsga8B/h8+VDzHsALYa3rhQYoAyQAFYAEoDISoFo/z/mP8kJMzhdBC6AIkACUARKAcqNA1oA1UTJ6f9uqea+vNY93/+aLQ4B6gBJAW4ASQNs2gbx/f9kZD41W1jzeh9tT7wegApAAFAESgOJIgBa3K7VaGz111j7vl89BC6AIkABUABKAykiAns5u1KyFrU8LvJ8ceOex9rOZPwatI7c1AG0A6gE6ADQB6DAGIGvhvXEwK+8LPOt677rW/AB1AAlAA0ACUAeQ/AaiFpAXDqABIAEoAiQAdQDJyAIoAdQDlADqAUpt5gL6BoFfeWANBmD1AAAAAElFTkSuQmCC"></span><span class="bc-icon weapons" title="무기: 피아올라 의사봉"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAAB4BAMAAADyLZq6AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABhQTFRFAAAAAAAA+/I27bEu33EmujkTNzZMS0tk6ZNywAAAAAh0Uk5TAP/////////VylQyAAABD0lEQVR4nO3XwQ2DIBQAUNAOABsYJjDx3lNX6Aodqit0BQ9dwKQTECYoDtBqgVLaRNtIovhp+AcjP74DP3wEjPwDx2aoe+vb+A0mn6MRNYsxQj+otEDGbAxhmDTK5GV/FWio1jFGZAW7nZ/jzVZ0YoBWM5hkReMSedkJCcjYlcy4TS1jsqJv1ScV4ux+UQlMeNTG1WBXT65BcONScZvRmNu8FUOSmrYekqgMsouboXrX6Y1q8n8ulNE9J6nqOa9/cABjzxT707hY2ZgpVc0XAsDo+UA1h2MyySSTTDIvA3m/hrzHQ64B5LqlWgcx5mxp7o2e51G4pkKMq3P84sbes0AaG/9h3M3Wtxd8ze+AbB7dHZ6IOvHvAwAAAABJRU5ErkJggg=="></span><span class="bc-icon miracle" title="기적: 요리사"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAAA/CAYAAABU6B73AAAACXBIWXMAAAsTAAALEwEAmpwYAAABOUlEQVR4nO3awY3CMBBA0ZRiTQ304CKoAaUbmtgSaIW9uAI6yB52Dl4WryZ2gseb/6W5gAied0BRxDQZknBaRp5pq8TBMkCEzhDiYAEXKOLg0ECEzhBiuNAoNaEIEN8dGuI/Ld+EAsQJCLFAWIvn2cVYA0IDYmuI2Hjg9HiYZi8YIDQgPECkbEFrrSilgNCAeCdEqlh4bVagUkBoQOwN4SUgNCA0IDQgNCA0IDQgNCC8QMSGO8vnZxBD31lGIGYgomFKh8+7fd5/jOUzNd8PxIuA6AWRskXyZUuv//VezWO7UkBoQPSCuFw/dhkgrkAsQ0OkDZ9oD/0bkYCYjwHxnPVge481IDQgaiGkAsVrlh2BCEAsh/iDuqxdHogXCRC/s1xoxJnWJg4ODURwBJF36OXzei8CRHgfxBc6Li5XZ9CcQwAAAABJRU5ErkJggg=="></span></div><div class="bc-body"><div class="bc-title">내가 보기 위한 잉걸불 빌드</div><div class="bc-meta"><span>김샷건</span><span class="bc-like">♥ 1</span><span>v1.0.27</span><span class="bc-combos"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA/klEQVQ4Ec3TMRJBMRAG4I2Kxh00ZjQcwV1UjmAcQG0UvMqMo7iBV5nRqBWvUXhUkT95O5MXG0lHZsjb2P2SLIj+aWits4+DzOzsToptds4Ckxg2ywGRk4UBfJy21sWbNJRSXzGzmbtdXe78+uiVkydjqC4LC1aHMWYRjGH2VD7Um8ypgeg6G4qghLWg22ZNi+JFmHn0p11+bM0SRnwiAKuzsgWY78dnqzgMRAxJ6BFDy5FrEcchwrGIAUKPQoRjfCYNEcN1AKI3DGBGDMjvn4+6hvgr7lnjGwsbzdBgf0FWrPZTMysAtfk52Jf5B9gY62K2WUzpUmGqJrbXD9ff5jJ4l0bZy9sAAAAASUVORK5CYII=" title="EMBER"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAuUlEQVQ4Ed2RzQlCQQyEg2WIB7vzbAN2oFZiJZ6sQBB8XUhMZok8BrJm9SC4sOxf8mUyK/J347qrt6QW6nNoLLJoVbCGgCnMi+h9jyUrWL03YW2YNx+1PC8ULDV1WgH2PqTBDKTnFWAVYO7ZdBCZjlC73sA7eZxwTD+lA2sgWW5f0NtF3gLnXsUe7blf3iam7e0xZsSVVhjvEAe4X7EvZVMQJ7M6Cu8fuZ2v1XE5Vsvvw2dWPAz4TcITd02GMptOjvIAAAAASUVORK5CYII=" title="PRECISION"></span></div></div></div><div class="build-card"><span class="fav-btn">☆</span><div class="bc-icons"><span class="bc-icon costume" title="코스튬: 유령"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAABIBAMAAABYYYuWAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAA9QTFRFAAAAIiA0////TFJr4+X/0nPvgQAAAAV0Uk5TAP////8c0CZSAAAAb0lEQVR4nGNkwAsYB780owCI/P8BwRgS0kAhTGmwiiEjDQdDSxqIIDEBYYDRoJaG+wrC+PdgqEgLQuSYFEAScADhDnJpZgOoEJo0EPy9MASkkeXgKga3NCIloQFEWhus0hCAVRq9NhiU0jjAIJYGAJesLYo/5aVfAAAAAElFTkSuQmCC"></span><span class="bc-icon weapons" title="무기: XRA-9"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAAB4BAMAAADyLZq6AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAB5QTFRFAAAAAAAAvb7PAl/HS0tkfoenB0ORLStAZGmFAHr8NvCc1QAAAAp0Uk5TAP///////////36JFFYAAAEGSURBVHic7dbNDYIwFADgVzCeYQPSCUhYwIMrePfkDK7gzRG4e3EADi5AwgSsgFdRon2F0qKo8SJ/7yUlzStfk9c2BQa/ByNDhgwZMmSmZJiDz/t5osY1B7I+mbIQ2dHvt9bVjeGQMsfyXLidVLqlrjEavZcriCyvSAIxgQtFknZt6r2UmhcJdmzfrMkI3OT+G2y2H4v9iXEA1yBqATKyQZgV5GGVtP0lXPbY46Jt8nC+Vu9vB2JmCy6OZKyGApHYgeUFzeqvR+jEBFUJmTp+XNR1gJfQ521sRkWmrjlcu3KZGlFeKP8z+n6TGXOKD9+fsZnnVK3e/CN0aL4GGTJkyJAhM2bzALy22HkXVOwtAAAAAElFTkSuQmCC"></span><span class="bc-icon miracle" title="기적: 전격술사"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAAA/BAMAAACmxgPEAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABhQTFRFAAAAIiA0////R1tvl8HJbZar4vDwu93cbRdTSgAAAAh0Uk5TAP/////////VylQyAAAAtUlEQVR4nMWVbwqDMAzFUz2A5gQbnkDY/WFH8AQyvEB7gGl9tv0w2IqOxphCUni/D4/0TwwhmH6Hd0jmCJHTEyJDcM5IcOGdCJEFEHZLQkTQv6DkQpdIOn+qW/6bwG55oVZ3b911BDONyWl1c1GWJrBG6uCj7uchWjmFsLHxdf9+oprmTOIBF1REmDYezZUEeopehrRMua4XEjp3TO1FSbz9QqL4H9P5tfcInRklM28l5v4OsQIIKW5u1ZHqygAAAABJRU5ErkJggg=="></span></div><div class="bc-body"><div class="bc-title">무한연막 유령 [프리셋있음]</div><div class="bc-meta"><span>초반</span><span class="bc-like">♥ 2</span><span>v1.0.27</span><span class="bc-combos"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAABIklEQVQ4EWNgGAWkhgAjAQ3/scjj1INLAmyIr2cWg5amKdy8a9dPM2zePg3Gx9CLLoDVEJhuGI3LUGTD/qO7BKQZpHFT0yaGf4+eMFQdnQ8zD0wjGQo2B9kwkAK8LuuIrAUbGjAnC6t30Q2D2fxfV9uJQUFOAyPMHjy6wXBpwS0GRtMnILUo+llgupFosEHcXLwMII0gDGJ//fYZrATEBnkZG8BmGFgzSDFIIwiIikgzMLx5CmYf32AHpEG4GMxHJpiQOTD2cs+NMCaYRk4eYIFn/SjyMA42wxgVmxgYQAbCvAZTDOI/mFmMNbxAalACEKYJSv+/XwdhyekzMDy6CGGDLAICrPqwCkK0gUlwUkHig5iE9KApHzTcv2sZGECYUgAAVEFdoxrXiOYAAAAASUVORK5CYII=" title="ACADEMY"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA20lEQVQ4EWNkAIL///+DKDBgZGSEMQnSOPUhSxA0BUkBhj4MASTFxDBJ1Y8IBzymMxFhKlAJ2Cy8BhJhDihuIGD68X8gw/AaiMfRYCmwSSCDQIASw1AMAhlIyHVM+Jw248R/hgwLRgYQDQJnHvzDp5wBl2EgV2A1CCQOBFjDDpdhWA0yUWDC6zqchqF7jZBBIOfiNAwkCQsjYgzCa9iaLTdA8gzoBj24cgssjo3AV0T8d66+xqCgowbXBzJob6sWiI9VH1ZBuG7ssUZID5L2QcVMXv6HAYTJAch6AZxoj0dJKhcrAAAAAElFTkSuQmCC" title="LAKE"></span></div></div></div></div>
+</div>
+<div class="note">
+  <p><b>카드 구성</b></p>
+  <p>왼쪽부터 <b>코스튬 · 무기 · 기적</b> 아이콘. 이름은 툴팁으로 뜬다.</p>
+  <p>우측 하단의 작은 아이콘은 <b>목표 콤보</b>.</p>
+  <p>우상단 <b>☆</b> 를 누르면 즐겨찾기. 위 두 개는 즐겨찾기된 상태 예시다.</p>
+  <p>상단 <b>즐겨찾기 탭</b>에서 모아볼 수 있고, 목록은 localStorage 에 저장된다.</p>
+</div>
+</body></html>

@@ -17,6 +17,7 @@
 // 결과물:  assets/wiki/wikidata.json
 
 import { writeFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -129,20 +130,30 @@ function extractRecords(flight) {
 
 /**
  * flight 에 레코드가 없는 페이지(코스튬 등)를 위한 폴백.
- * SSR 된 카드 마크업에서 <img alt="슬러그" src=".../<cat>/<슬러그>.png"> 뒤에 오는
- * 첫 텍스트 div 를 한글명으로 본다.
+ *
+ * 마크업이 이런 모양이다:
+ *   <img alt="pink_rabbit" src=".../costume/pink_rabbit.png"/>
+ *   <div ...><div class="text-base">분홍 토끼</div>...
+ * alt 는 슬러그라 쓸모가 없고, 뒤따르는 첫 한글 텍스트 노드가 이름이다.
  */
 function extractFromCards(html) {
   const out = [];
   const re =
-    /<img\b[^>]*\balt="([^"]+)"[^>]*\bsrc="https:\/\/img\.sephiria\.wiki\/([^/]+)\/([^"?#]+?)\.(?:png|webp|jpe?g)"[^>]*>([\s\S]{0,400}?)<\/div>/g;
+    /<img\b[^>]*\bsrc="https:\/\/img\.sephiria\.wiki\/([^/]+)\/([^"?#]+?)\.(?:png|webp|jpe?g)"[^>]*>/g;
+
   for (const m of html.matchAll(re)) {
-    const [, , category, slug, tail] = m;
-    // tail 안의 마지막 텍스트 노드 중 한글이 포함된 첫 조각
-    const texts = [...tail.matchAll(/>([^<>]+)</g)].map(t => t[1].trim()).filter(Boolean);
-    const kor = texts.find(t => /[가-힣]/.test(t));
-    if (!kor) continue;
-    out.push({ value: slug, label_kor: kor, image: `https://img.sephiria.wiki/${category}/${slug}.png` });
+    const [tag, category, slug] = m;
+    // 이미지 뒤쪽 마크업에서 첫 한글 텍스트 노드를 찾는다
+    const tail = html.slice(m.index + tag.length, m.index + tag.length + 600);
+    const text = [...tail.matchAll(/>([^<>]+)</g)]
+      .map(t => t[1].trim())
+      .find(t => /[가-힣]/.test(t));
+    if (!text) continue;
+    out.push({
+      value: slug,
+      label_kor: text,
+      image: `https://img.sephiria.wiki/${category}/${slug}.png`,
+    });
   }
   return out;
 }
@@ -210,6 +221,70 @@ await writeFile(
 await writeFile(
   join(OUT_DIR, 'slugs.json'),
   JSON.stringify({ _generatedAt: new Date().toISOString(), _counts: counts, ...slugs }, null, 2) + '\n',
+  'utf8',
+);
+
+// ── 아이콘 내려받기 ────────────────────────────────────────
+// 오버레이가 오프라인에서도 뜨도록 CDN 이미지를 로컬에 캐시한다.
+// 이미 있는 파일은 건너뛴다.
+
+const ICON_DIR = join(OUT_DIR, 'icons');
+let downloaded = 0, skipped = 0, failed = 0;
+
+for (const [category, records] of Object.entries(data)) {
+  // 아티팩트 아이콘은 플러그인이 게임에서 직접 뽑으므로 받지 않는다
+  if (category === 'artifacts') continue;
+
+  const dir = join(ICON_DIR, category);
+  await mkdir(dir, { recursive: true });
+
+  for (const rec of Object.values(records)) {
+    if (!rec.image) continue;
+    const ext = (rec.image.match(/\.(png|webp|jpe?g)(?:$|\?)/i) || [, 'png'])[1];
+    const dest = join(dir, `${rec.value}.${ext}`);
+
+    if (existsSync(dest)) { skipped++; continue; }
+
+    try {
+      const res = await fetch(rec.image, { headers: { 'User-Agent': UA } });
+      if (!res.ok) { failed++; continue; }
+      await writeFile(dest, Buffer.from(await res.arrayBuffer()));
+      rec.localIcon = `${category}/${rec.value}.${ext}`;
+      downloaded++;
+    } catch {
+      failed++;
+    }
+  }
+
+  // 이미 받아둔 파일도 localIcon 을 채워준다
+  for (const rec of Object.values(records)) {
+    if (rec.localIcon || !rec.image) continue;
+    const ext = (rec.image.match(/\.(png|webp|jpe?g)(?:$|\?)/i) || [, 'png'])[1];
+    if (existsSync(join(dir, `${rec.value}.${ext}`))) {
+      rec.localIcon = `${category}/${rec.value}.${ext}`;
+    }
+  }
+}
+
+log.push(`아이콘: 신규 ${downloaded} · 기존 ${skipped} · 실패 ${failed}`);
+
+// localIcon 이 채워졌으니 다시 저장한다
+await writeFile(
+  join(OUT_DIR, 'wikidata.json'),
+  JSON.stringify(
+    {
+      _source: 'https://www.sephiria.wiki (scripts/fetch-wiki-data.mjs)',
+      _generatedAt: new Date().toISOString(),
+      _counts: counts,
+      _note:
+        'effect.sets = 콤보 소속 슬러그. effect.content 의 "a/b/c/d" 는 강화 단계별 수치. ' +
+        'label_kor 로 게임 추출 DB(assets/database.json)와 매칭한다. ' +
+        'localIcon 은 assets/wiki/icons/ 아래 상대경로.',
+      data,
+    },
+    null,
+    2,
+  ) + '\n',
   'utf8',
 );
 
