@@ -155,11 +155,22 @@ html, body {
 
 /* ── ② 위키 빌드 ───────────────────────────────────── */
 #panel-builds {
-  right: 24px; top: 104px; width: 470px;
-  max-height: calc(100vh - 190px);
+  right: 24px; top: 72px; width: 470px;
+  /* 내용이 적으면 줄어들고, 길면 여기까지 커진 뒤 안에서 스크롤한다.
+     고정 높이로 두면 빌드가 몇 개 없을 때 빈 패널이 커다랗게 남는다. */
+  max-height: calc(100vh - 130px);
   display: flex; flex-direction: column;
 }
-#build-list-view, #build-detail-view { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+
+/* 목록 화면만 flex 컬럼이다. 목록이 남는 공간을 다 먹어야 하기 때문. */
+#build-list-view { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+
+/*
+ * 상세 화면은 절대 flex 컨테이너로 두면 안 된다.
+ * flex 자식은 기본적으로 줄어들 수 있어서, 내용이 길면 설명 박스가
+ * 한 줄로 찌그러진다. 평범한 블록 + 스크롤이 맞다.
+ */
+#build-detail-view { display: block; min-height: 0; flex: 1; overflow-y: auto; }
 
 .search-row { display: flex; gap: 8px; padding: 10px 14px 0; }
 .search-row input {
@@ -252,7 +263,7 @@ html, body {
 }
 .bd-icon.missing img { display: none; }
 
-.build-detail { overflow-y: auto; padding: 10px 14px; }
+.build-detail { padding: 10px 14px; }
 .back-btn {
   background: none; border: 1px solid #2a3147; color: #8b93ad;
   border-radius: 6px; padding: 4px 10px; font-size: 12px;
@@ -282,7 +293,9 @@ html, body {
 .bd-desc {
   background: #161b29; border: 1px solid #232a40; border-radius: 8px;
   padding: 10px 12px; font-size: 13px; line-height: 1.7; color: #b8c0d6;
-  max-height: 200px; overflow-y: auto; margin-bottom: 12px;
+  /* 최소 높이를 확보해야 읽을 수 있다. 길면 자체 스크롤. */
+  min-height: 160px; max-height: 45vh; overflow-y: auto;
+  margin-bottom: 12px;
 }
 .bd-desc p { margin: 0 0 6px; }
 .bd-desc ul { margin: 0 0 6px 16px; }

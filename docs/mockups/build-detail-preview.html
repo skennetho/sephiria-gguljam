@@ -1,0 +1,392 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>빌드 상세 미리보기</title><style>
+/* Sephiria 인게임 오버레이
+   배경은 완전 투명해야 한다. 패널만 불투명하게 그리고, 나머지 영역은
+   renderer 가 마우스 이벤트를 게임으로 통과시킨다. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Malgun Gothic', 'Segoe UI', sans-serif;
+  color: #dde3f0;
+  font-size: 14px;
+  /* 오버레이 전체에서 텍스트 선택 금지 (드래그 시 파랗게 반전되는 것 방지) */
+  user-select: none;
+  cursor: default;
+}
+
+.hidden { display: none !important; }
+
+/* ── 공통 패널 ─────────────────────────────────────── */
+.panel {
+  position: absolute;
+  background: rgba(15, 18, 28, 0.94);
+  border: 1px solid #3b4663;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #2a3147;
+  cursor: move;
+}
+.panel-head .title { font-weight: bold; font-size: 15px; color: #eaf0ff; }
+.panel-head .hotkey {
+  font-size: 11px; color: #59d0ff;
+  border: 1px solid #2c5a75; border-radius: 4px;
+  padding: 1px 6px; background: #132433;
+}
+.drag-hint { margin-left: auto; color: #4a5470; font-size: 11px; }
+
+.empty { padding: 20px; text-align: center; color: #5a6685; font-size: 13px; }
+
+/* ── ① 최적 배치 ───────────────────────────────────── */
+#panel-optimizer { left: 24px; top: 104px; width: 404px; }
+
+.opt-status { display: flex; align-items: center; gap: 10px; padding: 10px 14px 0; }
+
+.status-badge {
+  font-size: 12px; padding: 3px 10px; border-radius: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.status-badge.idle    { background: #1a2032; color: #8b93ad; border: 1px solid #2a3147; }
+.status-badge.done    { background: #12301f; color: #5fdc94; border: 1px solid #2b5c40; }
+.status-badge.calc    { background: #33270f; color: #ffd75e; border: 1px solid #6b5624; }
+.status-badge.error   { background: #331616; color: #ff8a8a; border: 1px solid #6b2b2b; }
+
+.spinner {
+  width: 11px; height: 11px;
+  border: 2px solid #6b5624; border-top-color: #ffd75e;
+  border-radius: 50%; animation: spin 0.9s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.calc-btn {
+  margin-left: auto;
+  background: #1d3a52; color: #8fdcff;
+  border: 1px solid #2c5a75; border-radius: 6px;
+  padding: 5px 12px; font-size: 13px; cursor: pointer;
+  font-family: inherit;
+}
+.calc-btn:hover { background: #25496a; }
+.calc-btn:disabled { opacity: 0.5; cursor: default; }
+
+.prev-note { padding: 4px 14px 0; font-size: 11px; color: #a08c4a; }
+
+.mini-grid-wrap { padding: 12px 14px 6px; }
+.mini-grid { display: grid; gap: 3px; justify-content: center; }
+
+.cell {
+  background: #181d2c; border: 1px solid #262e45;
+  border-radius: 5px; position: relative;
+  width: 58px; height: 58px;
+}
+.cell.void { background: repeating-linear-gradient(45deg, #12151f, #12151f 4px, #171b28 4px, #171b28 8px); border-color: #1d2130; }
+.cell.tablet { background: #20263c; border-color: #3d4966; }
+.cell img {
+  width: 100%; height: 100%; object-fit: contain;
+  image-rendering: pixelated; padding: 5px;
+}
+.cell .lv {
+  position: absolute; right: 2px; bottom: 1px;
+  font-size: 12px; font-weight: bold; color: #ffd75e;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+}
+.cell.inactive img { filter: grayscale(1) brightness(0.6); }
+.cell.inactive::after {
+  content: ''; position: absolute; inset: 0;
+  border: 1px solid #6b2b2b; border-radius: 4px;
+}
+
+.grid-caption { text-align: center; color: #5a6685; font-size: 11px; padding: 4px 0 8px; }
+
+.opt-section { padding: 8px 14px; border-top: 1px solid #232a40; }
+.opt-section .sec-title { font-size: 12px; color: #8b93ad; margin-bottom: 7px; }
+.sec-hint { color: #4a5470; }
+
+.prio-list { min-height: 4px; }
+.prio-row {
+  display: flex; align-items: center; gap: 8px;
+  background: #1a2032; border: 1px solid #2a3147;
+  border-radius: 6px; padding: 5px 9px; margin-bottom: 5px;
+  cursor: grab;
+}
+.prio-row.dragging { opacity: 0.4; }
+.prio-row .handle { color: #4a5470; font-size: 14px; }
+.prio-row .rank { color: #59d0ff; font-weight: bold; width: 16px; }
+.prio-row img { width: 24px; height: 24px; image-rendering: pixelated; }
+.prio-row .x { margin-left: auto; color: #4a5470; cursor: pointer; font-size: 13px; padding: 0 4px; }
+.prio-row .x:hover { color: #ff8a8a; }
+
+.add-combo {
+  width: 100%; background: none; border: 1px dashed #3b4663;
+  color: #5a6685; border-radius: 6px; padding: 5px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.add-combo:hover { border-color: #3d5a80; color: #8b93ad; }
+
+.combo-picker {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 4px; margin-top: 6px;
+  max-height: 190px; overflow-y: auto;
+}
+.combo-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: #1a2032; border: 1px solid #2a3147; border-radius: 6px;
+  padding: 6px 2px; cursor: pointer; font-size: 11px; color: #a9b2c9;
+}
+.combo-opt:hover { border-color: #3d5a80; }
+.combo-opt img { width: 24px; height: 24px; image-rendering: pixelated; }
+
+.seg { display: flex; border: 1px solid #2c5a75; border-radius: 6px; overflow: hidden; }
+.seg div {
+  flex: 1; text-align: center; padding: 7px 0;
+  font-size: 13px; color: #5a6685; cursor: pointer;
+}
+.seg div.on { background: #1d3a52; color: #8fdcff; font-weight: bold; }
+
+/* ── ② 위키 빌드 ───────────────────────────────────── */
+#panel-builds {
+  right: 24px; top: 72px; width: 470px;
+  /* 내용이 적으면 줄어들고, 길면 여기까지 커진 뒤 안에서 스크롤한다.
+     고정 높이로 두면 빌드가 몇 개 없을 때 빈 패널이 커다랗게 남는다. */
+  max-height: calc(100vh - 130px);
+  display: flex; flex-direction: column;
+}
+
+/* 목록 화면만 flex 컬럼이다. 목록이 남는 공간을 다 먹어야 하기 때문. */
+#build-list-view { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+
+/*
+ * 상세 화면은 절대 flex 컨테이너로 두면 안 된다.
+ * flex 자식은 기본적으로 줄어들 수 있어서, 내용이 길면 설명 박스가
+ * 한 줄로 찌그러진다. 평범한 블록 + 스크롤이 맞다.
+ */
+#build-detail-view { display: block; min-height: 0; flex: 1; overflow-y: auto; }
+
+.search-row { display: flex; gap: 8px; padding: 10px 14px 0; }
+.search-row input {
+  flex: 1; background: #181d2c; border: 1px solid #2a3147;
+  border-radius: 6px; color: #dde3f0; padding: 7px 10px;
+  font-size: 13px; font-family: inherit;
+}
+.filter-row { display: flex; gap: 8px; padding: 8px 14px; font-size: 12px; align-items: center; }
+.filter-sel {
+  background: #181d2c; border: 1px solid #2a3147; border-radius: 6px;
+  color: #a9b2c9; padding: 5px 9px; cursor: pointer; font-family: inherit; font-size: 12px;
+}
+.filter-chk { color: #8b93ad; display: flex; gap: 4px; align-items: center; cursor: pointer; }
+
+.build-list { flex: 1; overflow-y: auto; padding: 2px 14px 12px; }
+.build-card {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  background: #1a2032; border: 1px solid #2a3147; border-radius: 8px;
+  padding: 10px 12px 10px 10px; margin-bottom: 8px; cursor: pointer;
+}
+.build-card:hover { border-color: #3d5a80; }
+
+/* 코스튬 / 무기 / 기적 아이콘. 텍스트만으로는 빌드가 구분되지 않는다. */
+.bc-icons { display: flex; gap: 5px; flex-shrink: 0; }
+.bc-icon {
+  width: 40px; height: 40px; border-radius: 6px;
+  background: #12151f; border: 1px solid #262e45;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.bc-icon img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; image-rendering: pixelated;
+}
+.bc-icon.costume { background: #171c2b; }
+.bc-icon.missing::after { content: '?'; color: #3d4966; font-size: 14px; }
+
+.bc-body { min-width: 0; flex: 1; }
+.bc-title {
+  font-size: 13px; font-weight: bold; color: #eaf0ff; margin-bottom: 4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; line-height: 1.35;
+  /* 우상단 즐겨찾기 별과 겹치지 않도록 */
+  padding-right: 20px;
+}
+.bc-meta { display: flex; gap: 8px; font-size: 11px; color: #8b93ad; align-items: center; flex-wrap: wrap; }
+.bc-like { color: #ff7d9a; }
+.bc-combos { display: flex; gap: 3px; margin-left: auto; }
+.bc-combos img { width: 16px; height: 16px; image-rendering: pixelated; }
+
+/* 즐겨찾기 별 */
+.fav-btn {
+  position: absolute; top: 4px; right: 6px;
+  font-size: 15px; color: #4a5470; cursor: pointer; line-height: 1;
+  padding: 2px 4px; border-radius: 4px;
+}
+.fav-btn:hover { color: #ffd75e; background: #232b42; }
+.fav-btn.on { color: #ffd75e; }
+.fav-btn.detail { position: static; font-size: 18px; margin-left: auto; }
+
+/* 빌드 목록 탭 */
+.build-tabs { display: flex; gap: 4px; padding: 10px 14px 0; }
+.build-tab {
+  padding: 5px 12px; font-size: 12px; color: #5a6685;
+  background: #161b29; border: 1px solid #232a40;
+  border-radius: 6px; cursor: pointer;
+}
+.build-tab.on { color: #8fdcff; background: #1d3a52; border-color: #2c5a75; font-weight: bold; }
+.tab-count {
+  background: #232b42; border-radius: 8px; padding: 0 5px;
+  font-size: 10px; color: #a9b2c9; margin-left: 3px;
+}
+
+/* 상세 화면 헤더 */
+.bd-head { display: flex; align-items: center; margin-bottom: 10px; }
+.bd-head .back-btn { margin-bottom: 0; }
+.bd-icons { display: flex; gap: 8px; margin-bottom: 12px; }
+.bd-icon {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: 64px;
+}
+.bd-icon img {
+  width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated;
+  background: #12151f; border: 1px solid #262e45; border-radius: 6px; padding: 3px;
+}
+.bd-icon em {
+  font-style: normal; font-size: 10px; color: #8b93ad;
+  text-align: center; line-height: 1.2;
+}
+.bd-icon.missing img { display: none; }
+
+.build-detail { padding: 10px 14px; }
+.back-btn {
+  background: none; border: 1px solid #2a3147; color: #8b93ad;
+  border-radius: 6px; padding: 4px 10px; font-size: 12px;
+  cursor: pointer; margin-bottom: 10px; font-family: inherit;
+}
+.back-btn:hover { border-color: #3d5a80; color: #dde3f0; }
+.bd-title { font-size: 16px; font-weight: bold; color: #eaf0ff; }
+.bd-writer { font-size: 12px; color: #8b93ad; margin: 4px 0 10px; }
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.chip { background: #232b42; border-radius: 5px; padding: 4px 9px; font-size: 12px; color: #a9b2c9; }
+.chip b { color: #dde3f0; }
+.combo-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.combo-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: #1d3a52; border: 1px solid #2c5a75;
+  border-radius: 6px; padding: 4px 10px; font-size: 13px; color: #8fdcff;
+}
+.combo-badge img { width: 22px; height: 22px; image-rendering: pixelated; }
+.stat-row { display: flex; gap: 5px; margin-bottom: 12px; }
+.stat-box {
+  flex: 1; background: #181d2c; border: 1px solid #262e45;
+  border-radius: 6px; text-align: center; padding: 6px 0;
+}
+.stat-box .sn { font-size: 10px; color: #5a6685; }
+.stat-box .sv { font-size: 15px; font-weight: bold; color: #ffd75e; }
+.stat-box .sv.zero { color: #3d4966; }
+.bd-desc {
+  background: #161b29; border: 1px solid #232a40; border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; line-height: 1.7; color: #b8c0d6;
+  /* 최소 높이를 확보해야 읽을 수 있다. 길면 자체 스크롤. */
+  min-height: 160px; max-height: 45vh; overflow-y: auto;
+  margin-bottom: 12px;
+}
+.bd-desc p { margin: 0 0 6px; }
+.bd-desc ul { margin: 0 0 6px 16px; }
+.item-section { margin-bottom: 12px; }
+.item-section .is-label { font-size: 13px; font-weight: bold; color: #dde3f0; margin-bottom: 6px; }
+.icon-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
+.icon-row .it {
+  width: 44px; height: 44px; background: #181d2c;
+  border: 1px solid #262e45; border-radius: 5px; padding: 4px;
+}
+.icon-row .it img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.icon-row .it.owned { border-color: #2b5c40; background: #12301f; }
+.is-desc { font-size: 12px; color: #7d869e; line-height: 1.6; }
+
+/* ── ③ 팀원 ────────────────────────────────────────── */
+#panel-team { left: 24px; bottom: 70px; width: 404px; }
+.team-tabs { display: flex; gap: 4px; padding: 8px 14px 0; flex-wrap: wrap; }
+.team-tab {
+  padding: 5px 14px; font-size: 13px; color: #5a6685;
+  background: #161b29; border: 1px solid #232a40;
+  border-radius: 6px 6px 0 0; cursor: pointer;
+}
+.team-tab.on { color: #8fdcff; background: #1d3a52; border-color: #2c5a75; font-weight: bold; }
+.team-body { padding: 10px 14px 12px; }
+.team-body .cell { width: 44px; height: 44px; }
+.team-body .cell .lv { font-size: 10px; }
+.team-body .cell img { padding: 3px; }
+
+/* ── 상태 / 단축키 바 ──────────────────────────────── */
+.ws-status {
+  position: absolute; right: 24px; top: 20px;
+  font-size: 13px; border-radius: 14px; padding: 5px 14px;
+  background: rgba(15, 18, 28, 0.88);
+  display: flex; align-items: center; gap: 7px;
+}
+.ws-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+.ws-status.connected    { color: #5fdc94; border: 1px solid #2b5c40; }
+.ws-status.connected .dot    { background: #5fdc94; }
+.ws-status.disconnected { color: #ff8a8a; border: 1px solid #6b2b2b; }
+.ws-status.disconnected .dot { background: #ff8a8a; }
+
+.hotkey-bar {
+  position: absolute; bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 18, 28, 0.88);
+  border: 1px solid #2a3147; border-radius: 16px;
+  padding: 7px 18px; font-size: 12px; color: #8b93ad;
+  display: flex; gap: 16px;
+}
+.hotkey-bar b { color: #8fdcff; font-weight: normal; }
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3147; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3d4966; }
+
+/* 새로고침처럼 부차적인 버튼 */
+.calc-btn.ghost {
+  margin-left: auto;
+  background: transparent;
+  color: #8b93ad;
+  border-color: #2a3147;
+}
+.calc-btn.ghost:hover { background: #1a2032; color: #dde3f0; }
+/* 새로고침이 margin-left:auto 를 가져갔으므로 계산 버튼은 붙여 놓는다 */
+.calc-btn.ghost + .calc-btn { margin-left: 0; }
+
+/* 팀원 패널의 격자는 최적배치보다 작게 */
+#panel-team .mini-grid { gap: 2px; }
+#panel-team .cell { width: 44px; height: 44px; }
+#panel-team .cell .lv { font-size: 10px; }
+#panel-team .cell img { padding: 3px; }
+.team-meta { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
+
+body { background:#0a0c12; margin:0; height:100vh; }
+#panel-builds { position:absolute; right:24px; top:72px; }
+</style></head><body>
+<div class="panel" id="panel-builds">
+  <div class="panel-head"><span class="title">📖 위키 빌드</span><span class="hotkey">Ctrl+B</span><span class="drag-hint">드래그로 이동</span></div>
+  <div id="build-detail-view" class="build-detail">
+    <div class="bd-head"><button class="back-btn">← 목록으로</button><span class="fav-btn detail on">★</span></div>
+    <div class="bd-title">60단 원트클한 동료 빌드</div>
+    <div class="bd-writer">Asher · ♥ 8 · v1.0.24</div>
+    <div class="bd-icons"><span class="bd-icon" title="코스튬: 학자 도마뱀"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABIBAMAAACw4T69AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABtQTFRFAAAAIiA0rcDUfI+m////TFJrNDVMrIN+PUReOxPaMgAAAAl0Uk5TAP//////////NwKb1AAAAP1JREFUeJzV1dENgjAQBuC/ygB0A9IJJH31kW1dgQcWMHGCxrhAHQCjLVegqFjRQvQe0Lt+qVcshSEUrLmk9no94yGJK7gpdUIA6kMBmp2E+aqjC2k/lKsKSpYRLntbAOsNTWpGJI1DxRCYIEzwCML+koQXyq5a2f/pxwSnLS6wx0BeDv8n3OMqneA20TbBBIGmPIvQ96Jw2wbU1O4bkWxRjYukDs0xKlha9BK0ltITthpT5KdMYZWpGcTwadDUTAnvdJhdmEFuOuvuQ9O4Jkg7OSC4q8QX+XGSECRMuxo+WlhQk+62te+lftF1tZRgaUi0x8/zoDN5GfE6wuIGlV4C3ii1B4kAAAAASUVORK5CYII="><em>학자 도마뱀</em></span><span class="bd-icon" title="무기: 발리스타 소드"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAAB4BAMAAADyLZq6AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAACFQTFRFAAAAAAAA////fvr/ANvwHIie+5421Gg0NzZM/c+bS0tkihMCdgAAAAt0Uk5TAP////////////99dn3VAAABL0lEQVR4nO2YOw6CQBCGf/DdyQ2IJzDhAh7Bxt4j0GlJqZ21lb2NR/AkxBtg5zPqjBMQMcT4DOj8BbsD81HszM4OGHhchjLKfI6xZDgu/5Wx4kagzEOMUZeVVkaZP2CifRIgsWlIpo3D4vJYmVeYpNOVHAYKzf08Z0ypvZtFjqZNGSbHlMOjaSvzRsaoF1tijIGKSy+QJHM4345LYbhPyA1T7gJDDNhcueLRAaaoelh7pTbN8sVwDDtosHlYbCd8cwD4Ug/o0lfmbQyFgKY+xyHcTOf4VFxsRinxyRxDh7JI8i2g3dPjNYgVh9ooyj9lXmcaXJ7WHi6iwhVi5/jIVGpv9hmL1yBsNpK66fmUieVOusL+7WcZVqznC67d07+dlbmjzP4T+iJzI2WUeZY5AVjKK5eGj2K9AAAAAElFTkSuQmCC"><em>발리스타 소드</em></span><span class="bd-icon" title="기적: 장군"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAA/CAYAAAC/36X0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABL0lEQVR4nO3Z0WkDMQzGcY9iNEN38BCaIdw26RAZ4Z762B3aWVQo9HApbnUpieTc/wO9Gn0/7pzAleKI1CebeTwd/0x0CRBqIIIkWD4cRBIsDEINQhDnQdnzLxABoRwXQR6k+CguDAEBhF8RvGm6pBhvdj0J3kSXB0EDEdpgkfX9bZusICAYCPdBOJ0v24xwvFD9WaMB4QyCTYHw/PK6zai4t6CnOAgKgk13JzTnz9ze4iAoCDb1ndBuBAKCgmBT3Anrkf4xNhAuIJyc7+41Bae9ExoICwgtYEBQEAwEBcFAUBAMBAXBUiGsfItcQGhHQ+gTWdZbvA8IBsJ+BLkSJVs83QoIINgnQp9HAfH2+Fb+KyAUEH7Ee9BsU/ZEEiwMQk2A0OewxftElwCh3h7hA67boopoPn+DAAAAAElFTkSuQmCC"><em>장군</em></span></div>
+    <div class="combo-row"><span class="combo-badge"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA9UlEQVQ4Ee2RMRKCQAxFd209iJewoLLxBJZWnsAatvYQll7CGSmkt7CxcjiEYhfzgwsssIg4Y2Vm1k1M/iObKPW3TyegOwRUyaGuHlfSueuDEVtRrLVWtE8lvicPNQ4n8BvaUaEoHQdkjHFAKLuZC67ya4jY2mB5hn8BCqdLidHRO/PC0jR/FgAAzQ8rOV3AVhg6smaOW4FEUaSCIBD/mmQ27dyNIXKWMJMN7UTsVHMQx3FxOHT0bZ1pbGutFyKyMECsvXwHZHO+Gx0SP41YLIefig02tugD1P+n8+wkwD6gPq1WO+lTX2/oyxirH2I8hiGyH2ue8pBlsnRgqNkAAAAASUVORK5CYII=">COMPANION</span><span class="combo-badge"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAx0lEQVQ4EWNgGAWkhgAjDg3/cYgjC2PoZUGWRWb//w8xb/PDtXBhX/lgMJuREcMciDhcJSoDaNZ/BhtzHwYJUXGGF69fwukjJ7cwQA3DMBGny0AuAhkkqqQEtgZGI7sU1X4GBiZ0ARh/6yOE92BiIBqXOEgOp2EgSVLB4DUMI0aQvPY//VAkw5tOTnhsipR/Z5hptxykBKs+rILoBsL4+AzCaQNMM5RGzg2ELGdgAHmHEkCpftx2w0yG0bhVosrA1MNoVFkKeQDojDYi73qutQAAAABJRU5ErkJggg==">GUARDIAN</span></div>
+    <div class="stat-row"><div class="stat-box"><div class="sn">기본</div><div class="sv">10</div></div><div class="stat-box"><div class="sn">의지</div><div class="sv">20</div></div><div class="stat-box"><div class="sn">분노</div><div class="sv zero">0</div></div><div class="stat-box"><div class="sn">신속</div><div class="sv zero">0</div></div><div class="stat-box"><div class="sn">지혜</div><div class="sv zero">0</div></div><div class="stat-box"><div class="sn">인내</div><div class="sv">20</div></div><div class="stat-box"><div class="sn">생존</div><div class="sv zero">0</div></div></div>
+    <div class="chip-row"><span class="chip">🍡 과일꼬치: <b>adaptive_drop_bonus 1 · colleague 3 · guardian 2</b></span></div>
+    <div class="bd-desc"><p>[주의]</p><p>딜 고점 빌드가 아닌, 하드모드 60단 안정적으로 깨기 위한 빌드입니다.</p><p></p><p>[개요]</p><p>하드모드 60단 원트클한 동료 빌드입니다.</p><p>손 편한 자동사냥 빌드 좋아해서 저단에서 동료 빌드 자주 썼는데,</p><p>60단에서도 쓸 수 없을까 고민하다 만들고 써봤는데 통하네요.</p><p></p><p>고단에선 인내 20, 의지 20, 기지 10 쓰시면 되고,</p><p>저단에선 인내 20, 의지 20 쓰시면 됩니다.</p><p></p><p>안정성 낮추고 딜 올리겠다 하시면 고단에선 분노 10, 인내 10, 의지 20, 기지 10,</p><p>저단에선 분노 10, 인내 10, 의지 20 쓰시면 됩니다.</p><p></p><p>목표 콤보는 동료 10 = 수호 10 &gt; 정밀 10 입니다.</p><p>'전술 지침서'가 언제 뜰지 모르고, 정밀 없이도 클리어 가능해서요.</p><p></p><p>(추가)<span style="font-size:14px">방어력을 많이 올리는 빌드이므로, 방패 가방으로 번개 속성치를 많이 올릴 수 있습니다.</span></p><p><span style="font-size:14px">만약 발리스타와 플럭스도 있다면 먹구름이 딜을 상당히 올려줄 것으로 예상합니다.</span></p><p><span style="font-size:14px">다단히트 가드하면 발리스타가 먹구름 지속적으로 충전 및 발동시키거든요.</span></p><p><span style="font-size:14px">헌신의 휘장으로 발리스타 외 동료들에게도 번개(혼돈) 속성 부여하면 딜이 조금 더 오를겁니다.</span></p><p></p><p>[플레이 방식]</p><p>안전한 선에서 적극적으로 가드</p><p></p><p>[빌드 설명]</p><ul><li><p>학자 도마뱀은 체력이 낮지만 마나가 무한, 따라서 무한 가드 가능</p></li><li><p>적절한 가드가 생존력과 딜 상승으로 이어짐</p><ul><li><p>가드 성공 시 코스튬 시작템 '세렌의 휘갈긴 편지'에 의해 실드 생성</p><ul><li><p>필요 시 허공에 특수 공격으로 실드 채우기 가능(혹은 보호막 사용)</p></li></ul></li><li><p>가드 성공 시 발리스타 소드 특성에 의해 발리스타 폭딜</p><ul><li><p>단, 두더지 대장 먼저 업글하고 발리스타는 없어도 클리어엔 지장 없음</p></li></ul></li></ul></li><li><p>인내 20과 수호 콤보로 생존력 챙김</p><ul><li><p>방어력으로 급사 방지</p></li><li><p>피 깎이면 인내 10 특성으로 초당 피 5% 회복</p></li><li><p>급사하더라도 인내 20 특성으로 목숨 1코인 추가</p></li></ul></li></ul><p></p></div>
+    <div class="item-section"><div class="is-label">소원 분수</div><div class="icon-row"><span class="it" title="채굴작업 총괄 완장"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAYAAACAl21KAAABTklEQVQ4EbWUPU4CURDHZ40X8AAkhm3ttNqCaO8BaChMqGwNx6DdyoTCxltATNyOjnYp9AAc4Tn/Wd4w8/ZhINFJXpjP35sZeBTD6zv6C7nMQELGl3MV1nlhDdZPhaDM5dqONNDO1wnfm+XLrXewFUEO0iyGVI3aXnJZ9/aJOhkxgqQInQCSE0Bsp6YrgaU7UkbzUaquSss1fHCZhSJ+FIRgDpbzIdeNhtuqpy2Ztok2h73EHUk36M6IB42XRO8PvbZNfqcCgtx6piEHap6nVNUdTDNyCkOQS3SlUQeq6lfpSG4b3GuSU75XkiMXjv6hI8Kj5RNwwtcyfD6W8hmOicmJdWC40bod7cdz83gDY6U7KkBj4a+hk7ebHS+cYb/sCJDJ5rBoriwiCBQHgyN9b/HHmEKQa0GwFQbjBNH/pPSJaOAcCHLdsvfF58D0vh9KZphbubaTOgAAAABJRU5ErkJggg=="></span><span class="it" title="크리톤의 인장"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAYAAACAl21KAAABiUlEQVQ4Ea2TPUoEUQzHM7KwhR+FjTaC2MiIaKOFneARVCw8wYInsFnmEOIJLEQ9gmBnL6JY22jrarEgrPPLmrd52Q8bU+wmL8lv8s+8KVaWt+Q/rPEHpBfyRYhTOAoUm1Nx7fhcBp3yVaFQU63pjuw2PkOZhh4qhdtRStC83hRZWF3TjveXpwR67Iqcf82muHZ0siFpZ/Md2Tyt5O3mUm4fBoDnbiFlsyd7GzW8Pg+wNFGa5npnSZiAJzOVGTGww7meTnpw/2op/otsR0gCcvVRKITJTB5QIACpodZbBqIYCBIwLw8oRk2clvMMxAEQk2Q7YqqLdpv0WBsC+UoWe1xVunSD+7z3J4IW9490EoDIMWPp0TIQxb6JHWEsV1977bNDW7omf38yEHfDmmjAN0n4nJ1slzpdvEd2IZlVX5VKqJvK8AaRAwRgkKY6J34i8TUTA7n7nvGqhkAk0w0n8B9raCaNpa2btP5xP5FgY5p9rfkSQSTsKQmYqgc5d9R3R4GsyIAWT/z/AXpRmnmahexoAAAAAElFTkSuQmCC"></span><span class="it" title="보호막"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAbCAYAAABiFp9rAAABSElEQVRIDWNUUjBhoAdgQbPkPxqfUi4jzAAmGANIU9sSkNFwM9F9xBAalI1kN+lMUz9TsKayhAQUzRgWgWS37VwMVsTNxYuimBDn67fPYL31UydhKMVqEUiVgpwGhmJCAqJABQ8e3WA4vek0hlLkOIJLkuoTuEYgA5derBYha6QWe9QiskNyNOhGgw4eAlgTA6jMIhfg0ouzrAOVWbiKE1yOgFkCKsFXr0NVhdUiL/dYVFUk8Dp6E8Cqy9D0YFh07TpmyYumBy+3djI7VnkMi0Cqvht9ZXDlccSqgZDgzL4+BkNtPQxlWC0S0hVjmFkxBUMxMQJdCxaAlZ0npoYFqdTWNANrIJW4cOkSVi2MSM0teEPCdVs4WPFur5VYNZEoCG4JIVsE0g+3jETDcCmHN7fQ4wgkgW4ZXDEu04gRR7cIpIcqBqNbDgDMAD0opNcUQgAAAABJRU5ErkJggg=="></span></div><div class="is-desc">완장 덕에 초반이 무난해 후반을 위한 인장 쓰고, 생존에 더 집중하고 싶으시면 보호막 추천드려요. 맵 진입 직전이나 위급할 때 쓰기 좋습니다.</div></div><div class="item-section"><div class="is-label">목표 콤보: 동료 10 = 수호 10 > 정밀 10</div><div class="icon-row"><span class="it" title="미니 발리스타"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAWCAYAAAAmaHdCAAABYUlEQVQ4EaVSS0oDQRDtibp0IRoR3KhZBBFERI2XEIRs3XsLQW/gAcQDiBj0EppsRBCJIm4H4xFk1FeTqnndMz0K9mLqVdV7b6o/ycrSlvvvmvzF4Iv6CWEPNrzMT9gAnTA3dp2JkA6eB0aOgZiJ/fV4ypNanasxE+HoFBpZyLjWBMTdzh7zK3ESuWIbe3Vtwz093rO4dEt8xSZkRQVmnhjqdrhhuperQ8EarVEA0amJlIdHRcoYTc4Zo1eokP2s17eBCIb9LC+Mv8ghRj9cerDedkBsLW+LaP9y3fW6D659kokB6sFKdBLvxEGE0XV/RviIahwaINdJuGdTQYh3cnt3I5MRyfspXzFxcvh53nFnm5lDpOUZoK7bIU4O8ciwjfZOw7Y1JtmkKoqafIxSN73Ycqe9CYnN+QXVlGLUZK6Ziy7SWRGN3tOSWAu1B6ukIP7pTEokMqnsxW6nkkxmHvwGPQVfEbaM/FgAAAAASUVORK5CYII="></span><span class="it" title="알폰소의 뿔"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAATCAYAAABlcqYFAAABf0lEQVQ4EbWUMUsEQQyFd8VOT0tBEMQfYHWVva2t/9jKSmwsrIQDS72z1vvG/WJmdvcEwcBcJpmX95Kb3e0vzpfdf9v+hMBnyvVp/+dtK5IFICWeE2qx4Cexe5wMFkXXN7fm5nxgGwD50Vk7SXe5vGrqRmGQ2Mzr6qV7uL/LQDAxlZNE4cnpWQbP7nMz1CCYc9vC4FSkkDUgBQKcC+melQ2xKY5KJBc0YIRCjDMIWfmvakWtqUQE4SGYMok9xyPqnRjn2kpks34rnUmQp7FYL6lk5GnOZR5fiZBop5EUwTyhca6xSTk4wyqRj/V7SWYyRFiYvgTbH3ASeoZQsvIY+54QlIstoNU3jMJMkmMQ3oWenI2y1/r0gYyn52Bx5Hl3uDiuJnBKBZ+fHguGAhsaikcvI/lI5m4cH1KWMRcvKTn3rUAhTpMM5z/vAwmmYhoNQmP2uaEBE81a450Y4+N+CCBpidoY3GAjAfJTIuQFxz2R3GHiJyFzIoJ3Fgv6zX8Bygq+m2ihWKAAAAAASUVORK5CYII="></span><span class="it" title="얇은 방석"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAASCAYAAABIB77kAAABhUlEQVQ4EZ2UP0sDQRDF59QqJJUIWgghhRCwFDttLawEtRH8ApYp/AwWln4BwUYFKwtb7awFwUIECwWxMqQT9a15x+zsv9OFZG7fvJ3f7exyVa+7JHpcHy7I6uBBS/9+jtWqLLBQ/SuRrxJ6IE8FSlxIgehmvgguAVmIhQVtanVX3Hz0dGPbT38SnGopF3qgnctFmZzp1xoePt/u5WT9zoLpCcAWWASdb7+ymIubp7MuNgVroAdD6+yOACOAVKtlwG63BNYwntHawbO02m1XV7fxePnMO8Pd2y2yXXsxGQ2HcrU/L5Ezrjzgxd6cTPc6rgAuhoZC1GBnGv9hVxwaBu398UM2jl6Y9oFQNRTzHDgHwloDg+QDAePbNAGjgt0RNA3SNX9SPhBmDG1KgeHjOeEZIwP6NSgghPriMJsD04PYAASbd0shcDQG/wXE4rylnOuYBdOou0BtHIOvDPQckOsDMBOJGAXRW/p4w8cCGpzTWDsaJ7SK9mQGIPzRxjlfgHodbc1vbM/J/MIvcSAAAAAASUVORK5CYII="></span><span class="it" title="전술 지침서"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAYAAACAl21KAAABQ0lEQVQ4Ea2UMU4CURCGZ5UQCzsvYCg4ALHgIlJaWWgHp9GCihKvQKitTEysvIOdFYrIN7v/Mm83LwFxkrdvZt6bf/5/NrtF7/LK/sM6AWQT/EPcgssnVcVfQSj32sjIXsdfjjuabuyiu7aP1anNb72h3c++7eGmY8u3ddXbbLI4q/0EqM5uHQHFHP7TS0meJtEkrc7RuX++8pidGIuF0ffD7SNhRBFMohGPprvu1wOk/viVyWJ3MwGi6P2zW8uCEd210/fxuSXC0RIg4Ws+gLAiy7thyYa7WUYcxvkQRxDiHKMWT6SxNFD8fawlTYxU3Iz3lqZhx8FHeTlpCSO9oSabKC/HKJkRn4BmIzBifSbkYKSlO+wJEIkIBggxFuV5ovFIpOlMrLSTl5+TVlQ/tmN+I/QpJK38V5A63Lw2SjsGzH4BVhWC1/ckiCsAAAAASUVORK5CYII="></span><span class="it" title="보호막"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAbCAYAAABiFp9rAAABSElEQVRIDWNUUjBhoAdgQbPkPxqfUi4jzAAmGANIU9sSkNFwM9F9xBAalI1kN+lMUz9TsKayhAQUzRgWgWS37VwMVsTNxYuimBDn67fPYL31UydhKMVqEUiVgpwGhmJCAqJABQ8e3WA4vek0hlLkOIJLkuoTuEYgA5derBYha6QWe9QiskNyNOhGgw4eAlgTA6jMIhfg0ouzrAOVWbiKE1yOgFkCKsFXr0NVhdUiL/dYVFUk8Dp6E8Cqy9D0YFh07TpmyYumBy+3djI7VnkMi0Cqvht9ZXDlccSqgZDgzL4+BkNtPQxlWC0S0hVjmFkxBUMxMQJdCxaAlZ0npoYFqdTWNANrIJW4cOkSVi2MSM0teEPCdVs4WPFur5VYNZEoCG4JIVsE0g+3jETDcCmHN7fQ4wgkgW4ZXDEu04gRR7cIpIcqBqNbDgDMAD0opNcUQgAAAABJRU5ErkJggg=="></span><span class="it" title="손 거울"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAeCAYAAAA2Lt7lAAACWklEQVRIDbWUPWgVQRDH50kq60DED3xJZ5dCTDBVJFZiYyEpRBBMoXYh6R6IYqfYWSkIYpHKzi4kVUSt7Ow0EhQDqW2T9xvfLDP7du/OgAN3u7fzv/987Mz0ZvoX5X/KREfywwquVzlPxyfSrr6pkfNHk04Z2yJIBPMb67I009efNr/tysflp7ofvsBUI+kSgUC++3Vfnlx6oA97zrpIUwTJewjvXpsT4RnJq/efbMtajaJXqaJEPvj8QkjJ99UNTyjTz5c1ZUTlZCxVJQOBHE8PX27Lyr37cv7MpHJdWZyVyws3pLeyqJE1GaneAZ7XyLHyYeedGgYDtibeAJ4n70lLyXMj2tr+Ilev31QMWCeBxwwkYoB49OfZzlhajARypH92UiMBW6gq5QxVZOWIR/u/9kLOc/IfPw/kzq0lef12U7HTQ8Cph7elf2HK94hYBPo/5fj70Rvj0pULNTHPPbnpWPN/OQsGAFgUU6fPSRdyKgusNZ/rcPjFl2m4BwxR+1RLzXPIB4PH2hM5MdwY8BGEJmHuUOfUO5KnxcjB2IxS4N9X4vIRmD5F4nuBSLhQxJMzQpoarWQAjmCEqqIUqSyEnJ9cWzj2qFCS4SsZofx02JlmuNLBWdWktDhYuGR/bvtkhINSnY+ARXJ0/pJH2LCEH2kiyjGTgMl0rQbAJwLIMeIk6dxZ2LZFEMCVCAIm//gnA4UIcr6x7y4G0kUXIki6MebRQRcDCmV0MA5sXtUI8/MwrnOl/7Zhxlmhkjw07Gud7EFtaWispC4paiJo0qmTXVPUSuRD9vsjwLwO35f9op8AAAAASUVORK5CYII="></span><span class="it" title="흰 테두리 빵"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAQCAYAAAAbBi9cAAABoUlEQVQ4EYWUP0jDUBDGL+rSzVgK4h8wlhYsDhWUQkcFUXFSKl1cFMFNnAQHEQc3EQdB0EFwEV2lbroqDjqIQ4sEXVt0KF3VfBfu8hpjvSH3ct/d7929F2INDoxSC/tuoUGyRG+TRYT/D4ISzemIADQlvLoPQUrlRtfJyQ1ZA2ZFgXQXhnjF5csjOr964cLibIbShVWClnTGFGYZZ6QAqEgs7y4wwOmyyP0IZLwv7h8QpcYVJmcUZIUggIYheEeXpmE0hcgoO/lhM4ekI9Nj1K1CcGbSEY9C3nmcra8xBEUwsxidmHGMJqagammPZ5bksBcoPLRcfoiwsVi73dmzjZf53gZ91d9pZnmJYvU3atRqnGPH/M5QPDWRob7+BM2d3lK8O07VyiOdlJ45D7emZ3R3WKTPp3u+XqgyJnZPb15wAR7cveeRO33sclyuX2HXKw4LdjZHidQIj8sBbwx0gBi8CYEuHyT6Zxh2EBiu2M76xQzzHsYXLSF4SzqSoHaGAEaFoYs/AJD5EMMgCE0wBCLMvwFDkNGMkP4aooC/AFL4A27HqH0VKG0EAAAAAElFTkSuQmCC"></span><span class="it" title="야수의 심장"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAQCAYAAADwMZRfAAABQElEQVQ4EaVSvUqDQRDckzyCgqWkEbGxEP8KC619BFECn41gEUtrSy0EGz8Iis9hhDRR0qQRsRBbIb6D3my+We7b5LRwIbe3uzOTyeZCc2FV/hsNJ/DtapQhfnJ9hc/oOT6mATH5s08nBiw7pekWrcLumT54gSIKBvD89qRGhFCuT2BNhM2Hu55edw+25f1jIMhpjzjmdCfsad5Y31MiBVDnouak3x8orvs4lNm5eQHx6bmnGTX6COK0iEeo3okttlUcSfftXs4Or+Ty4lq+Rp8q2D491n3tLO5Lp7whHznw5+AtaAAAIBYMIhz8JgASneCubpaWV+T1ZSh0hIViL3TAOQgx9MvpZNyK5+bWmgBIR14Acx8TTjwAbyR9dG6uTlIRzG3BDjyttD3W/uKItEHFSkX9zIS9iA2qS5aYAn8AEklzgwqaPuEAAAAASUVORK5CYII="></span></div><div class="is-desc">동료 및 수호 콤보 내 우선순위 높은 아티입니다.</div></div><div class="item-section"><div class="is-label">(추가)빌드 아티 심화편</div><div class="icon-row"><span class="it" title="방패 가방"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAYAAAD+4+QTAAACZ0lEQVRIDbVVvUscURCfC9clJ0FQOIkgUTCmOMEIkoBYKySFhZWdhX9ACrsIqaJir0hSiYjFCQb8aPxAjRE1xEujhaS44EIC5+GJre5vdufdvHe7nglkYPfN15vfzryZt4mnTZ30vykZAXAToRNVwmeq2cXXrA8MFzB3BYDHP9l1JibA+FCfwf6684P57Gne6KrYEQcZG0qoM2EQBFjOfmGHzYsiQdZA1exhZAtEMjFZCHxtfYrIB9F09vOA1je+05NkG6sH/XeOuSBb7at5AWHdzKcZXgvHRSowF5RoYjXLwUc/zOu9zOeO9ohSjaHelNQqmZSLMxkcfkvXmwtU+F3iTSiXfP3W/gnrvn2e5fVP6YrqUo8Ia7q1nXWZFy9pdnqS+fDFZbO6q6frGfWOvKNC83N+XIC1uSlKP67hB0HAZxobyDs9JgCA8KEuWSArY+/pYneRWkp5flB/NwMJgCw04QNAXL6ygStkgeg2xTkIgGSAvenuNxyi4zWOvSwjIylVpvMV2+QlIFbLwYgsXMLXe9tLrJazgSxZ1aUeultYtror0sNXShDYJZO0cvbCZlAqi5VMLKUWnBpr0735WBCcBwDQNWhTkKw6Onyi9Nontly/Fj5SZmCIgTAH3vkZ75OzQGBdxlz+3MxL7jC4lgSoIhPcUzKM4oQ12dDMojsnkEEykCyUX5XDWLYFHFpShgwazqh4SZ7/gLDqDKBzs4BOrhXw5pLsb5W7iAizgym+TwM4AGYsNIgFBMGlODAnOLYZABbU/0RimoxE8ZerBYC9Ud1V4RSCVAOP2xcJEvfhsUHiNoj+FiQ9+BLvqNAJAAAAAElFTkSuQmCC"></span><span class="it" title="미니 발리스타"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAWCAYAAAAmaHdCAAABYUlEQVQ4EaVSS0oDQRDtibp0IRoR3KhZBBFERI2XEIRs3XsLQW/gAcQDiBj0EppsRBCJIm4H4xFk1FeTqnndMz0K9mLqVdV7b6o/ycrSlvvvmvzF4Iv6CWEPNrzMT9gAnTA3dp2JkA6eB0aOgZiJ/fV4ypNanasxE+HoFBpZyLjWBMTdzh7zK3ESuWIbe3Vtwz093rO4dEt8xSZkRQVmnhjqdrhhuperQ8EarVEA0amJlIdHRcoYTc4Zo1eokP2s17eBCIb9LC+Mv8ghRj9cerDedkBsLW+LaP9y3fW6D659kokB6sFKdBLvxEGE0XV/RviIahwaINdJuGdTQYh3cnt3I5MRyfspXzFxcvh53nFnm5lDpOUZoK7bIU4O8ciwjfZOw7Y1JtmkKoqafIxSN73Ycqe9CYnN+QXVlGLUZK6Ziy7SWRGN3tOSWAu1B6ukIP7pTEokMqnsxW6nkkxmHvwGPQVfEbaM/FgAAAAASUVORK5CYII="></span><span class="it" title="플럭스 결합기 Mk.2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAABmklEQVRIDc2Uv0oDQRDG58R3EATBP41VGiOSNNr4AtZpIgRBsLKyUbCxshIECWhj7QuksjAi0SalIBaC4DNYqN9yM/fNeZfbKwS32dndb3/fZHYuyeJ8U/5qTNcAf5E2obg0nCo98QcMxkl+7dXpKhYe5J2d/UJI2WYM3LIcP90zx/Z5k+MYeNAj673drtTJPonoFsuw0WzL+HHIyU182KpuMXD/sp9Cu9Lb7qkBzksNiuAGVALAZ+dX8vH+JjOzc4J1zkClzohrDmgpGOUY3t2EssAo+yXKDbNjKNxB9dE0Y4BfXkeytLAaCFizgerJJvBcWSBCu62vLf/M7aBFKQA++hTpPI/s/mBjK8R4ZNU3VlpyfXFqGgfXg9uHVtoV3VBjzRi3Nk+OZXBwKIBi4FeoHjEPbkVXGhVxaRiMnqdHVbnO4WEZrge/TNRAu2UC2HVLEVxNMJsRd0cuYwfky1VwZ1D3C9VWZMPCGJ30r/5bYjK3mqKPadg+7bkwpua4YA9LtyvhMZmDlwfl1+SZhe4LzbYLoygg3/wGRTCcK6HQqZcAAAAASUVORK5CYII="></span><span class="it" title="헌신의 휘장"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAZCAYAAAA4/K6pAAACCUlEQVQ4EaVUPUscURQ9E1dwCkXRoHbGUbv4AaJFFMRCf4CxVEvzC1TwD8RSKwsr0wSihdhZBCFEUBBXK1E36UTZFT8gyersOM65u+/tm9nZBcmDmXfn3nvOO/c8GKu9rR//sxIxYD8mx5QVl38TSZYDs421krqpQBc/2t1oTBwL902uBxv/TiQuvNin1VgFD0LgR+sYwzU+Mu4HpJ+GBPfbu8Ju7otJJCShEWZrfQzYSSzMjiLlWtjK7uHA2wTB76paMJKYMgkkDhEwM3F4iPW179jN5ntn6i6Qxk8hGbAv8knjbXqASw+4WpkT8EgN4FT7omTITgW5FJqCb0CfKV7oL5Ju/w1kr+WPpoIfWUtITp8c2M/j4gkNNpci0K7StFZ/Gl3VECPpxX2uA/VWsxiacXtMPEIjsELDOOt9EFPBg+cImCaydudfVybgVdV6vpzuBCoyLk8ugpPeTohAjRBK0ov3E44o+JX7Iyd/XnYRAcvYJSOkdpaQPj8SwsXewQKxi7edfUH8VR2kPStR4IzNS/Ntcl+aufNRpIpB7SaBZiVJQ+F07nzyChSsuJeMwBLHOPu2WuwKolcREKkUKBaqilvmCKG6mp1JxlQVt2JHYKOpwIyjJBUVsJmz8yl3C2UVdE1+ElC52ZUS9UdS3/rPpBIxu75u1qIKWIyShABRwigB6xUBUYIX2OvCHDEJ+kgAAAAASUVORK5CYII="></span></div><div class="is-desc">방어력을 많이 올리는 빌드이므로, 방패 가방으로 번개 속성치를 많이 올릴 수 있습니다. 만약 발리스타와 플럭스도 있다면 먹구름이 딜을 상당히 올려줄 것으로 예상합니다(다단히트 가드하면 발리스타가 먹구름 지속적으로 충전 및 발동). 헌신의 휘장으로 발리스타 외 동료들에게도 번개(혼돈) 속성 부여하면 딜이 조금 더 오를겁니다.</div></div>
+  </div>
+</div>
+</body></html>
