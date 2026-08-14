@@ -298,6 +298,8 @@ html, body {
   margin-bottom: 12px;
 }
 .bd-desc p { margin: 0 0 6px; }
+/* 위키 본문은 빈 <p></p> 로 빈 줄을 만든다 — 웹과 같은 간격으로 */
+.bd-desc p:empty { min-height: 1.2em; }
 .bd-desc ul { margin: 0 0 6px 16px; }
 .item-section { margin-bottom: 12px; }
 .item-section .is-label { font-size: 13px; font-weight: bold; color: #dde3f0; margin-bottom: 6px; }
@@ -308,7 +310,11 @@ html, body {
 }
 .icon-row .it img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
 .icon-row .it.owned { border-color: #2b5c40; background: #12301f; }
-.is-desc { font-size: 12px; color: #7d869e; line-height: 1.6; }
+.is-desc {
+  font-size: 12px; color: #7d869e; line-height: 1.6;
+  /* API 가 주는 섹션 설명은 \n 이 든 일반 텍스트다 — 웹처럼 줄바꿈 유지 */
+  white-space: pre-line;
+}
 
 /* ── ③ 팀원 ────────────────────────────────────────── */
 #panel-team { left: 24px; bottom: 70px; width: 404px; }
@@ -440,4 +446,22 @@ html, body {
   border-left: 2px solid #3d5a80; border-radius: 4px;
   padding: 7px 9px; margin-bottom: 6px;
 }
-.tt-flavor { color: #6f7891; font-size: 11px; font-style: italic; }
+.tt-flavor {
+  color: #6f7891; font-size: 11px; font-style: italic;
+  white-space: pre-line;
+}
+
+
+/* ── 빌드 목록 페이저 ───────────────────────────────────── */
+.build-pager {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 8px 14px 12px; border-top: 1px solid #232a40;
+}
+.pager-btn {
+  background: #1a2032; color: #a9b2c9;
+  border: 1px solid #2a3147; border-radius: 6px;
+  padding: 5px 14px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.pager-btn:hover:not(:disabled) { border-color: #3d5a80; color: #dde3f0; }
+.pager-btn:disabled { opacity: 0.35; cursor: default; }
+.pager-info { font-size: 12px; color: #8b93ad; min-width: 60px; text-align: center; }

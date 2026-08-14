@@ -61,10 +61,7 @@
       <span class="build-tab on" data-tab="all">전체</span>
       <span class="build-tab" data-tab="fav">⭐ 즐겨찾기 <span id="fav-count" class="tab-count">0</span></span>
     </div>
-    <div class="search-row">
-      <input id="build-search" placeholder="빌드 검색…">
-    </div>
-    <div class="filter-row">
+    <div class="filter-row" id="build-filters">
       <select id="build-weapon" class="filter-sel"><option value="">무기: 전체</option></select>
       <select id="build-sort" class="filter-sel">
         <option value="like">인기순</option>
@@ -73,6 +70,11 @@
       <label class="filter-chk"><input type="checkbox" id="build-latest-only"> 최신버전만</label>
     </div>
     <div id="build-list" class="build-list"><div class="empty">불러오는 중…</div></div>
+    <div id="build-pager" class="build-pager">
+      <button id="pager-prev" class="pager-btn">◀ 이전</button>
+      <span id="pager-info" class="pager-info">1 / 1</span>
+      <button id="pager-next" class="pager-btn">다음 ▶</button>
+    </div>
   </div>
 
   <div id="build-detail-view" class="build-detail hidden"></div>

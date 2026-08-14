@@ -44,6 +44,10 @@ function readJson(relPath) {
     fs.readFileSync(path.join(ASSETS_DIR, relPath), 'utf8').replace(/^﻿/, ''));
 }
 
+// 슬러그 -> 한글명 (assets/wiki/slugs.json). init 에서 바로 쓰므로 최상단에서 로드한다.
+let slugMap = null;
+try { slugMap = readJson(path.join('wiki', 'slugs.json')); } catch { /* 없으면 슬러그 그대로 표시 */ }
+
 // ── 상태 ──────────────────────────────────────────────
 let ws = null;
 let reconnectTimer = null;
@@ -78,6 +82,9 @@ let enhanceMode = 'combo';  // combo | even
 let builds = [];
 let buildDetail = null;
 let buildTab = 'all';           // all | fav
+let buildPage = 1;
+let buildTotal = 0;
+let buildPageSize = 10;
 
 // 즐겨찾기는 편의 기능이라 잃어버려도 상관없다. localStorage 로 충분하다.
 const FAV_KEY = 'sephiria.favBuilds';
@@ -143,6 +150,7 @@ function updateFavCount() {
   setupMousePassthrough();
   setupPanelDragging();
   setupControls();
+  setupArtifactTooltips();
   loadBuilds();
   log.info('init', '초기화 완료', { 로그파일: log.path });
 })();
@@ -251,7 +259,9 @@ function handleMessage(msg) {
       applyRefresh();
     }
 
-    if (buildDetail) renderBuildDetail(buildDetail); // 보유 표시만 갱신
+    // 상세 화면을 통째로 다시 그리면 1~2초마다 호버 상태·스크롤이 리셋되어
+    // 아이템 툴팁이 뜨자마자 사라진다. 보유 표시 클래스만 제자리에서 갱신한다.
+    if (buildDetail) updateOwnedMarks();
 
   } else if (msg.type === 'optimize_data') {
     // 재시작된 계산이라면 옛 스냅샷은 버린다
@@ -727,22 +737,74 @@ async function loadBuilds() {
   const weapon = document.getElementById('build-weapon').value;
 
   try {
-    // 위키는 봇 UA 를 403 처리하므로 main 프로세스가 대신 받아온다
-    builds = await ipcRenderer.invoke('fetch-builds', { sort, latestOnly, weapon });
-    log.info('builds', '목록 수신', { 개수: builds.length, sort, latestOnly, weapon: weapon || '전체' });
+    // 위키는 봇 UA 를 403 처리하므로 main 프로세스가 대신 받아온다.
+    // 즐겨찾기가 아닌 목록은 항상 네트워크에서 최신을 가져온다 (연타 방지 캐시 60초).
+    const r = await ipcRenderer.invoke('fetch-builds', {
+      page: buildPage, sort, latestOnly, weapon,
+    });
+    builds = r.builds;
+    buildTotal = r.total;
+    buildPageSize = r.pageSize || 10;
+    log.info('builds', '목록 수신', {
+      개수: builds.length, 전체: buildTotal, page: buildPage,
+      sort, latestOnly, weapon: weapon || '전체',
+    });
     renderBuildList();
   } catch (err) {
     log.error('builds', '목록 요청 실패', err.message || String(err));
     list.innerHTML = `<div class="empty">빌드를 불러오지 못했습니다<br><small>${err.message || err}</small></div>`;
   }
+  renderPager();
+}
+
+function renderPager() {
+  const pager = document.getElementById('build-pager');
+  const filters = document.getElementById('build-filters');
+
+  // 즐겨찾기 탭은 로컬 목록이라 검색 옵션·페이지가 의미 없다
+  const isFav = buildTab === 'fav';
+  pager.classList.toggle('hidden', isFav);
+  filters.classList.toggle('hidden', isFav);
+  if (isFav) return;
+
+  const totalPages = Math.max(1, Math.ceil(buildTotal / buildPageSize));
+  document.getElementById('pager-info').textContent = `${buildPage} / ${totalPages}`;
+  document.getElementById('pager-prev').disabled = buildPage <= 1;
+  document.getElementById('pager-next').disabled = buildPage >= totalPages;
+}
+
+/** 무기 필터 목록을 위키 데이터로 채운다 (한글명 가나다순). */
+function populateWeaponFilter() {
+  const sel = document.getElementById('build-weapon');
+  const weapons = (slugMap && slugMap.weapons) || {};
+  const entries = Object.entries(weapons)
+    .sort((a, b) => a[1].localeCompare(b[1], 'ko'));
+  for (const [slug, kor] of entries) {
+    const opt = document.createElement('option');
+    opt.value = slug;
+    opt.textContent = kor;
+    sel.appendChild(opt);
+  }
+  log.info('builds', '무기 필터 채움', { 개수: entries.length });
+}
+
+/** 인벤토리가 갱신될 때 상세 화면의 '보유 중' 표시만 제자리에서 바꾼다. */
+function updateOwnedMarks() {
+  const view = document.getElementById('build-detail-view');
+  if (view.classList.contains('hidden')) return;
+
+  const ownedNames = new Set(
+    ((inventory && inventory.items) || []).map(i => (i.name || '').replace(/\s/g, '')));
+
+  view.querySelectorAll('.it[data-slug]').forEach(el => {
+    const kor = slugName('artifacts', el.dataset.slug).replace(/\s/g, '');
+    el.classList.toggle('owned', ownedNames.has(kor));
+  });
 }
 
 function renderBuildList() {
   const list = document.getElementById('build-list');
-  const q = document.getElementById('build-search').value.trim().toLowerCase();
-
-  const source = buildTab === 'fav' ? [...favorites.values()] : builds;
-  const shown = source.filter(b => !q || (b.title || '').toLowerCase().includes(q));
+  const shown = buildTab === 'fav' ? [...favorites.values()] : builds;
 
   if (shown.length === 0) {
     list.innerHTML = buildTab === 'fav'
@@ -955,9 +1017,7 @@ function slugIcon(category, slug) {
   return `https://img.sephiria.wiki/${category}/${slug}.png`;
 }
 
-// 슬러그 -> 한글명 (assets/wiki/slugs.json)
-let slugMap = null;
-try { slugMap = readJson(path.join('wiki', 'slugs.json')); } catch { /* 없으면 슬러그 그대로 표시 */ }
+// (slugMap 선언은 파일 상단으로 이동 — init 보다 먼저 실행돼야 한다)
 function slugName(category, slug) {
   if (!slug) return '';
   return slugMap?.[category]?.[slug] || slug;
@@ -1140,12 +1200,48 @@ function hideTooltip() {
   if (tooltipEl) tooltipEl.classList.add('hidden');
 }
 
-/** 상세 화면을 다시 그릴 때마다 호출한다. */
-function bindArtifactTooltips(root) {
-  hideTooltip();
-  root.querySelectorAll('.it[data-slug]').forEach(el => {
-    el.addEventListener('mouseenter', guard('tooltip', () => showTooltip(el)));
-    el.addEventListener('mouseleave', hideTooltip);
+let tooltipPinned = false;
+
+/**
+ * 상세 화면 컨테이너에 한 번만 위임으로 바인딩한다.
+ * 요소마다 걸면 재렌더 때마다 날아가서 툴팁이 뜨다 말게 된다.
+ * 클릭하면 고정(pin)되어 마우스를 떼도 유지 — 다시 클릭하거나 다른 곳을 클릭하면 해제.
+ */
+function setupArtifactTooltips() {
+  const view = document.getElementById('build-detail-view');
+
+  view.addEventListener('mouseover', guard('tooltip', e => {
+    if (tooltipPinned) return;
+    const el = e.target.closest('.it[data-slug]');
+    if (el) showTooltip(el);
+  }));
+
+  view.addEventListener('mouseout', guard('tooltip', e => {
+    if (tooltipPinned) return;
+    const el = e.target.closest('.it[data-slug]');
+    // 자식(img)으로 이동한 것은 이탈이 아니다
+    if (el && !el.contains(e.relatedTarget)) hideTooltip();
+  }));
+
+  view.addEventListener('click', guard('tooltip', e => {
+    const el = e.target.closest('.it[data-slug]');
+    if (!el) return;
+    e.stopPropagation();   // 빌드 카드 클릭 등으로 번지지 않게
+    if (tooltipPinned) {
+      tooltipPinned = false;
+      hideTooltip();
+    } else {
+      showTooltip(el);
+      tooltipPinned = true;
+    }
+  }));
+
+  // 다른 곳을 클릭하면 고정 해제
+  document.addEventListener('click', e => {
+    if (tooltipPinned && !e.target.closest('.it[data-slug]')) {
+      tooltipPinned = false;
+      hideTooltip();
+    }
   });
 }
 
@@ -1246,12 +1342,23 @@ function setupControls() {
       buildTab = tab.dataset.tab;
       log.info('builds', '탭 전환', buildTab);
       renderBuildList();
+      renderPager();
     }));
   });
   updateFavCount();
 
-  document.getElementById('build-search').addEventListener('input', renderBuildList);
-  document.getElementById('build-sort').addEventListener('change', loadBuilds);
-  document.getElementById('build-latest-only').addEventListener('change', loadBuilds);
-  document.getElementById('build-weapon').addEventListener('change', loadBuilds);
+  // 옵션이 바뀌면 1페이지부터 다시 검색
+  const restartSearch = guard('builds:option', () => { buildPage = 1; loadBuilds(); });
+  document.getElementById('build-sort').addEventListener('change', restartSearch);
+  document.getElementById('build-latest-only').addEventListener('change', restartSearch);
+  document.getElementById('build-weapon').addEventListener('change', restartSearch);
+
+  document.getElementById('pager-prev').addEventListener('click', guard('pager', () => {
+    if (buildPage > 1) { buildPage--; loadBuilds(); }
+  }));
+  document.getElementById('pager-next').addEventListener('click', guard('pager', () => {
+    buildPage++; loadBuilds();
+  }));
+
+  populateWeaponFilter();
 }

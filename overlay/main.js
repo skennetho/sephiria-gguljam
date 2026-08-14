@@ -163,14 +163,19 @@ const WIKI_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
-const buildCache = new Map();   // key -> { at, data }
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const buildCache = new Map();   // url -> { at, result }
+// '최신정보 검색' 이 목적이므로 캐시는 연타 방지용으로만 짧게 둔다
+const CACHE_TTL_MS = 60 * 1000;
+
+const PAGE_SIZE = 10;   // 위키 사이트와 동일
 
 ipcMain.handle('fetch-builds', async (_e, opts = {}) => {
+  // 실측한 API 의미: like=asc 가 인기순(좋아요 많은 순), like=desc 가 최신순.
+  // 이름과 반대라 헷갈리기 쉬우니 주의.
   const params = new URLSearchParams({
-    page: '1',
-    limit: '30',
-    like: opts.sort === 'latest' ? 'asc' : 'desc',
+    page: String(Math.max(1, opts.page || 1)),
+    limit: String(PAGE_SIZE),
+    like: opts.sort === 'latest' ? 'desc' : 'asc',
     isLatestVersion: opts.latestOnly ? 'true' : 'false',
   });
   if (opts.weapon) params.set('weapon', opts.weapon);
@@ -179,8 +184,8 @@ ipcMain.handle('fetch-builds', async (_e, opts = {}) => {
 
   const hit = buildCache.get(url);
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
-    log.info('wiki', '캐시 사용', { 개수: hit.data.length });
-    return hit.data;
+    log.info('wiki', '캐시 사용', { 개수: hit.result.builds.length, page: opts.page });
+    return hit.result;
   }
   log.info('wiki', '요청', url);
 
@@ -190,15 +195,19 @@ ipcMain.handle('fetch-builds', async (_e, opts = {}) => {
   if (!res.ok) {
     log.error('wiki', `응답 ${res.status}`, url);
     // 위키가 죽었거나 차단됐다면 마지막 캐시라도 준다
-    if (hit) return hit.data;
+    if (hit) return hit.result;
     throw new Error(`위키 응답 ${res.status}`);
   }
 
   const json = await res.json();
-  const data = json.data || [];
-  buildCache.set(url, { at: Date.now(), data });
-  log.info('wiki', '응답 수신', { 개수: data.length });
-  return data;
+  const result = {
+    builds: json.data || [],
+    total: json.count ?? (json.data || []).length,
+    pageSize: PAGE_SIZE,
+  };
+  buildCache.set(url, { at: Date.now(), result });
+  log.info('wiki', '응답 수신', { 개수: result.builds.length, 전체: result.total });
+  return result;
 });
 
 // ── 마우스 통과 토글 ───────────────────────────────────
