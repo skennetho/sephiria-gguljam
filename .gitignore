@@ -1,0 +1,25 @@
+# Build outputs
+SephiriaPlugin/bin/
+SephiriaPlugin/obj/
+
+# Node / Electron
+overlay/node_modules/
+
+# Downloaded libraries (recreated by scripts/setup.ps1)
+libs/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# 오버레이 런타임 로그
+overlay/overlay.log*
+
+# 임시 백업
+*.bak

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Sephiria Overlay</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 연결 상태 -->
+<div id="ws-status" class="ws-status interactive-ui disconnected">
+  <span class="dot"></span><span id="ws-status-text">연결 중…</span>
+</div>
+
+<!-- ═══════════ ① 최적 배치 (Ctrl+D) ═══════════ -->
+<div id="panel-optimizer" class="panel interactive-ui hidden">
+  <div class="panel-head" data-drag>
+    <span class="title">⚡ 최적 배치</span>
+    <span class="hotkey">Ctrl+D</span>
+    <span class="drag-hint">드래그로 이동</span>
+  </div>
+
+  <div class="opt-status">
+    <span id="opt-badge" class="status-badge idle">계산한 적 없음</span>
+    <button id="btn-refresh" class="calc-btn ghost" title="현재 인벤토리를 다시 읽어옵니다">⟳ 새로고침</button>
+    <button id="btn-calc" class="calc-btn">▶ 계산 <small>(Ctrl+R)</small></button>
+  </div>
+  <div id="opt-stale-note" class="prev-note hidden">※ 아래는 직전 계산 결과입니다 — 완료되면 갱신됩니다</div>
+
+  <div class="mini-grid-wrap">
+    <div id="opt-grid" class="mini-grid"></div>
+    <div id="grid-caption" class="grid-caption">새로고침을 눌러 현재 인벤토리를 불러오세요</div>
+  </div>
+
+  <div class="opt-section">
+    <div class="sec-title">콤보 우선순위 <span class="sec-hint">(드래그로 순위 변경)</span></div>
+    <div id="combo-priority" class="prio-list"></div>
+    <button id="btn-add-combo" class="add-combo">＋ 콤보 추가</button>
+    <div id="combo-picker" class="combo-picker hidden"></div>
+  </div>
+
+  <div class="opt-section">
+    <div class="sec-title">강화 배분 모드</div>
+    <div class="seg" id="mode-seg">
+      <div class="on" data-mode="combo">콤보템 최대강화</div>
+      <div data-mode="even">균등 강화</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ② 위키 빌드 (Ctrl+B) ═══════════ -->
+<div id="panel-builds" class="panel interactive-ui hidden">
+  <div class="panel-head" data-drag>
+    <span class="title">📖 위키 빌드</span>
+    <span class="hotkey">Ctrl+B</span>
+    <span class="drag-hint">드래그로 이동</span>
+  </div>
+
+  <div id="build-list-view">
+    <div class="search-row">
+      <input id="build-search" placeholder="빌드 검색…">
+    </div>
+    <div class="filter-row">
+      <select id="build-weapon" class="filter-sel"><option value="">무기: 전체</option></select>
+      <select id="build-sort" class="filter-sel">
+        <option value="like">인기순</option>
+        <option value="latest">최신순</option>
+      </select>
+      <label class="filter-chk"><input type="checkbox" id="build-latest-only"> 최신버전만</label>
+    </div>
+    <div id="build-list" class="build-list"><div class="empty">불러오는 중…</div></div>
+  </div>
+
+  <div id="build-detail-view" class="build-detail hidden"></div>
+</div>
+
+<!-- ═══════════ ③ 팀원 (F1) ═══════════ -->
+<div id="panel-team" class="panel interactive-ui hidden">
+  <div class="panel-head" data-drag>
+    <span class="title">👥 팀원 빌드</span>
+    <span class="hotkey">F1</span>
+    <span class="drag-hint">드래그로 이동</span>
+  </div>
+  <div id="team-tabs" class="team-tabs"></div>
+  <div id="team-body" class="team-body">
+    <div class="empty">멀티플레이 중이 아니거나<br>팀원 정보가 아직 없습니다</div>
+  </div>
+</div>
+
+<!-- 단축키 안내 -->
+<div id="hotkey-bar" class="hotkey-bar interactive-ui">
+  <span><b>Ctrl+D</b> 최적배치</span>
+  <span><b>Ctrl+B</b> 빌드</span>
+  <span><b>F1</b> 팀원</span>
+  <span><b>Ctrl+H</b> 이 바 숨기기</span>
+  <span><b>Ctrl+Q</b> 오버레이 종료</span>
+</div>
+
+<script src="renderer.js"></script>
+</body>
+</html>

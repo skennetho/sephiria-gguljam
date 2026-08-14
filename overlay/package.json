@@ -1,0 +1,12 @@
+{
+  "name": "sephiria-awakened-overlay",
+  "version": "1.0.0",
+  "description": "Awakened PoE Trade Style In-Game Overlay for Sephiria",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  }
+}

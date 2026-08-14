@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Sephiria 오버레이 시안 v1</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a0c12; color:#dde3f0; font-family:'Malgun Gothic','Segoe UI',sans-serif; overflow:hidden; }
+
+  /* ── 시안 컨트롤 (오버레이 아님) ─────────────────── */
+  #controls {
+    height:52px; display:flex; align-items:center; gap:14px; padding:0 16px;
+    background:#161a26; border-bottom:1px solid #2a3147; font-size:13px;
+  }
+  #controls .tag { color:#8b93ad; font-weight:bold; }
+  #controls label { display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
+  #controls input { accent-color:#59d0ff; }
+
+  /* ── 1920x1080 스테이지 ──────────────────────────── */
+  #stageWrap { position:relative; width:100vw; height:calc(100vh - 52px); overflow:hidden; }
+  #stage {
+    position:absolute; top:0; left:50%; width:1920px; height:1080px;
+    transform-origin:top center;
+    background:
+      radial-gradient(ellipse at 50% 40%, #1c2233 0%, #10131d 55%, #0a0c12 100%);
+  }
+
+  /* 게임 UI 자리 표시 */
+  .game-inv-zone {
+    position:absolute; left:560px; top:250px; width:800px; height:560px;
+    border:2px dashed #3d4966; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    color:#5a6685; font-size:20px; line-height:1.7;
+  }
+
+  /* 공통 패널 */
+  .panel {
+    position:absolute; background:rgba(15,18,28,0.93);
+    border:1px solid #3b4663; border-radius:10px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.55);
+    font-size:14px;
+  }
+  .panel-head {
+    display:flex; align-items:center; gap:10px; padding:10px 14px;
+    border-bottom:1px solid #2a3147; cursor:move;
+  }
+  .panel-head .title { font-weight:bold; font-size:15px; color:#eaf0ff; }
+  .panel-head .hotkey {
+    font-size:11px; color:#59d0ff; border:1px solid #2c5a75;
+    border-radius:4px; padding:1px 6px; background:#132433;
+  }
+  .drag-hint { margin-left:auto; color:#4a5470; font-size:11px; }
+
+  /* ── 최적 배치 패널 ──────────────────────────────── */
+  #optimizer { left:24px; top:104px; width:404px; }
+  .opt-status {
+    display:flex; align-items:center; gap:10px; padding:10px 14px 0 14px;
+  }
+  .status-badge {
+    font-size:12px; padding:3px 10px; border-radius:12px;
+    background:#12301f; color:#5fdc94; border:1px solid #2b5c40;
+  }
+  .status-badge.calc { display:none; background:#33270f; color:#ffd75e; border-color:#6b5624; }
+  .stage-calc .status-badge.done { display:none; }
+  .stage-calc .status-badge.calc { display:inline-flex; align-items:center; gap:6px; }
+  .spinner {
+    width:11px; height:11px; border:2px solid #6b5624; border-top-color:#ffd75e;
+    border-radius:50%; animation:spin 0.9s linear infinite; display:inline-block;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .calc-btn {
+    margin-left:auto; background:#1d3a52; color:#8fdcff; border:1px solid #2c5a75;
+    border-radius:6px; padding:5px 12px; font-size:13px; cursor:pointer;
+  }
+  .calc-btn:hover { background:#25496a; }
+  .prev-note { display:none; padding:4px 14px 0; font-size:11px; color:#a08c4a; }
+  .stage-calc .prev-note { display:block; }
+
+  .mini-grid-wrap { padding:12px 14px 6px; }
+  .mini-grid {
+    display:grid; grid-template-columns:repeat(6, 58px); grid-template-rows:repeat(5, 58px);
+    gap:3px; justify-content:center;
+  }
+  .cell {
+    background:#181d2c; border:1px solid #262e45; border-radius:5px; position:relative;
+  }
+  .cell img {
+    width:100%; height:100%; object-fit:contain; image-rendering:pixelated; padding:5px;
+  }
+  .cell .lv {
+    position:absolute; right:2px; bottom:1px; font-size:12px; font-weight:bold;
+    color:#ffd75e; text-shadow:0 1px 2px #000, 0 0 4px #000;
+  }
+  .cell.tablet { background:#20263c; border-color:#3d4966; }
+  .cell.rot90 img { transform:rotate(90deg); }
+  .grid-caption { text-align:center; color:#5a6685; font-size:11px; padding:4px 0 8px; }
+
+  .opt-section { padding:8px 14px; border-top:1px solid #232a40; }
+  .opt-section .sec-title { font-size:12px; color:#8b93ad; margin-bottom:7px; }
+  .prio-row {
+    display:flex; align-items:center; gap:8px; background:#1a2032;
+    border:1px solid #2a3147; border-radius:6px; padding:5px 9px; margin-bottom:5px;
+    cursor:grab;
+  }
+  .prio-row .handle { color:#4a5470; font-size:14px; }
+  .prio-row img { width:24px; height:24px; image-rendering:pixelated; }
+  .prio-row .rank { color:#59d0ff; font-weight:bold; width:16px; }
+  .prio-row .x { margin-left:auto; color:#4a5470; cursor:pointer; font-size:13px; }
+  .add-combo {
+    width:100%; background:none; border:1px dashed #3b4663; color:#5a6685;
+    border-radius:6px; padding:5px; font-size:12px; cursor:pointer;
+  }
+  .seg { display:flex; border:1px solid #2c5a75; border-radius:6px; overflow:hidden; }
+  .seg div { flex:1; text-align:center; padding:7px 0; font-size:13px; color:#5a6685; cursor:pointer; }
+  .seg div.on { background:#1d3a52; color:#8fdcff; font-weight:bold; }
+
+  /* ── 빌드 브라우저 패널 ─────────────────────────── */
+  #builds { right:24px; top:104px; width:470px; height:840px; display:flex; flex-direction:column; }
+  .search-row { display:flex; gap:8px; padding:10px 14px 0; }
+  .search-row input {
+    flex:1; background:#181d2c; border:1px solid #2a3147; border-radius:6px;
+    color:#dde3f0; padding:7px 10px; font-size:13px;
+  }
+  .filter-row { display:flex; gap:8px; padding:8px 14px; font-size:12px; align-items:center; }
+  .filter-sel {
+    background:#181d2c; border:1px solid #2a3147; border-radius:6px;
+    color:#a9b2c9; padding:5px 9px; cursor:pointer;
+  }
+  .filter-chk { color:#8b93ad; display:flex; gap:4px; align-items:center; }
+
+  .build-list { flex:1; overflow-y:auto; padding:2px 14px 12px; }
+  .build-card {
+    background:#1a2032; border:1px solid #2a3147; border-radius:8px;
+    padding:10px 12px; margin-bottom:8px; cursor:pointer;
+  }
+  .build-card:hover { border-color:#3d5a80; }
+  .bc-title { font-size:14px; font-weight:bold; color:#eaf0ff; margin-bottom:5px; }
+  .bc-meta { display:flex; gap:10px; font-size:11px; color:#8b93ad; align-items:center; flex-wrap:wrap; }
+  .bc-chip { background:#232b42; border-radius:4px; padding:2px 7px; color:#a9b2c9; }
+  .bc-like { color:#ff7d9a; }
+
+  .build-detail { flex:1; overflow-y:auto; padding:10px 14px; display:none; }
+  .stage-detail .build-list, .stage-detail .search-row, .stage-detail .filter-row { display:none; }
+  .stage-detail .build-detail { display:block; }
+  .back-btn {
+    background:none; border:1px solid #2a3147; color:#8b93ad; border-radius:6px;
+    padding:4px 10px; font-size:12px; cursor:pointer; margin-bottom:10px;
+  }
+  .bd-title { font-size:16px; font-weight:bold; color:#eaf0ff; }
+  .bd-writer { font-size:12px; color:#8b93ad; margin:4px 0 10px; }
+  .chip-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .chip {
+    background:#232b42; border-radius:5px; padding:4px 9px; font-size:12px; color:#a9b2c9;
+  }
+  .chip b { color:#dde3f0; }
+  .combo-row { display:flex; gap:8px; margin-bottom:12px; }
+  .combo-badge {
+    display:flex; align-items:center; gap:6px; background:#1d3a52;
+    border:1px solid #2c5a75; border-radius:6px; padding:4px 10px; font-size:13px; color:#8fdcff;
+  }
+  .combo-badge img { width:22px; height:22px; image-rendering:pixelated; }
+  .stat-row { display:flex; gap:5px; margin-bottom:12px; }
+  .stat-box {
+    flex:1; background:#181d2c; border:1px solid #262e45; border-radius:6px;
+    text-align:center; padding:6px 0;
+  }
+  .stat-box .sn { font-size:10px; color:#5a6685; }
+  .stat-box .sv { font-size:15px; font-weight:bold; color:#ffd75e; }
+  .stat-box .sv.zero { color:#3d4966; }
+  .bd-desc {
+    background:#161b29; border:1px solid #232a40; border-radius:8px;
+    padding:10px 12px; font-size:13px; line-height:1.7; color:#b8c0d6;
+    max-height:170px; overflow-y:auto; margin-bottom:12px;
+  }
+  .item-section { margin-bottom:12px; }
+  .item-section .is-label { font-size:13px; font-weight:bold; color:#dde3f0; margin-bottom:6px; }
+  .icon-row { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:5px; }
+  .icon-row .it {
+    width:44px; height:44px; background:#181d2c; border:1px solid #262e45;
+    border-radius:5px; padding:4px;
+  }
+  .icon-row .it img { width:100%; height:100%; object-fit:contain; image-rendering:pixelated; }
+  .is-desc { font-size:12px; color:#7d869e; line-height:1.6; }
+
+  /* ── 팀원 패널 ──────────────────────────────────── */
+  #team { left:24px; top:712px; width:404px; display:none; }
+  .stage-team #team { display:block; }
+  .team-tabs { display:flex; gap:4px; padding:8px 14px 0; }
+  .team-tab {
+    padding:5px 14px; font-size:13px; color:#5a6685; background:#161b29;
+    border:1px solid #232a40; border-radius:6px 6px 0 0; cursor:pointer;
+  }
+  .team-tab.on { color:#8fdcff; background:#1d3a52; border-color:#2c5a75; font-weight:bold; }
+  .team-body { padding:10px 14px 12px; }
+  .team-meta { display:flex; gap:6px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
+  .team-grid {
+    display:grid; grid-template-columns:repeat(6, 44px); grid-template-rows:repeat(5, 44px);
+    gap:2px; justify-content:center;
+  }
+  .team-grid .cell .lv { font-size:10px; }
+  .team-grid .cell img { padding:3px; }
+
+  /* ── 상태/단축키 바 ─────────────────────────────── */
+  .ws-status {
+    position:absolute; right:24px; top:20px; font-size:13px; color:#5fdc94;
+    background:rgba(15,18,28,0.85); border:1px solid #2b5c40; border-radius:14px;
+    padding:5px 14px;
+  }
+  .hotkey-bar {
+    position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+    background:rgba(15,18,28,0.85); border:1px solid #2a3147; border-radius:16px;
+    padding:7px 18px; font-size:12px; color:#8b93ad; display:flex; gap:16px;
+  }
+  .hotkey-bar b { color:#8fdcff; font-weight:normal; }
+
+  .stage-noopt #optimizer { display:none; }
+  .stage-nobuilds #builds { display:none; }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <span class="tag">📐 시안 컨트롤 (실제 오버레이 아님) —</span>
+  <label><input type="checkbox" id="ckOpt" checked> 최적배치 패널</label>
+  <label><input type="checkbox" id="ckBuilds" checked> 빌드 패널</label>
+  <label><input type="checkbox" id="ckDetail"> 빌드 상세보기</label>
+  <label><input type="checkbox" id="ckTeam"> 팀원 패널 (F1)</label>
+  <label><input type="checkbox" id="ckCalc"> 계산중 상태</label>
+</div>
+
+<div id="stageWrap"><div id="stage">
+
+  <div class="game-inv-zone">
+    게임 화면<br>
+    <b>V키 인벤토리 = 화면 중앙</b><br>
+    (오버레이 패널이 가리지 않는 영역)
+  </div>
+
+  <!-- ═══════════ ① 최적 배치 (Ctrl+D) ═══════════ -->
+  <div class="panel" id="optimizer">
+    <div class="panel-head">
+      <span class="title">⚡ 최적 배치</span>
+      <span class="hotkey">Ctrl+D</span>
+      <span class="drag-hint">드래그로 이동</span>
+    </div>
+    <div class="opt-status">
+      <span class="status-badge done">✓ 3분 전 계산 완료</span>
+      <span class="status-badge calc"><span class="spinner"></span> 계산 중… 42%</span>
+      <button class="calc-btn">▶ 다시 계산 <small>(Ctrl+R)</small></button>
+    </div>
+    <div class="prev-note">※ 아래 그리드는 직전 계산 결과입니다 — 완료되면 자동 갱신</div>
+    <div class="mini-grid-wrap">
+      <div class="mini-grid" id="optGrid"></div>
+      <div class="grid-caption">아이콘 = 목표 위치 · 노란 숫자 = 최종 강화수 · 석판은 아이콘 방향 = 회전 방향</div>
+    </div>
+    <div class="opt-section">
+      <div class="sec-title">콤보 우선순위 (드래그로 순위 변경)</div>
+      <div class="prio-row"><span class="handle">≡</span><span class="rank">1</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAx0lEQVQ4EWNgGAWkhgAjDg3/cYgjC2PoZUGWRWb//w8xb/PDtXBhX/lgMJuREcMciDhcJSoDaNZ/BhtzHwYJUXGGF69fwukjJ7cwQA3DMBGny0AuAhkkqqQEtgZGI7sU1X4GBiZ0ARh/6yOE92BiIBqXOEgOp2EgSVLB4DUMI0aQvPY//VAkw5tOTnhsipR/Z5hptxykBKs+rILoBsL4+AzCaQNMM5RGzg2ELGdgAHmHEkCpftx2w0yG0bhVosrA1MNoVFkKeQDojDYi73qutQAAAABJRU5ErkJggg=="><span>수호</span><span class="x">✕</span></div>
+      <div class="prio-row"><span class="handle">≡</span><span class="rank">2</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA9UlEQVQ4Ee2RMRKCQAxFd209iJewoLLxBJZWnsAatvYQll7CGSmkt7CxcjiEYhfzgwsssIg4Y2Vm1k1M/iObKPW3TyegOwRUyaGuHlfSueuDEVtRrLVWtE8lvicPNQ4n8BvaUaEoHQdkjHFAKLuZC67ya4jY2mB5hn8BCqdLidHRO/PC0jR/FgAAzQ8rOV3AVhg6smaOW4FEUaSCIBD/mmQ27dyNIXKWMJMN7UTsVHMQx3FxOHT0bZ1pbGutFyKyMECsvXwHZHO+Gx0SP41YLIefig02tugD1P+n8+wkwD6gPq1WO+lTX2/oyxirH2I8hiGyH2ue8pBlsnRgqNkAAAAASUVORK5CYII="><span>동료</span><span class="x">✕</span></div>
+      <div class="prio-row"><span class="handle">≡</span><span class="rank">3</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAuUlEQVQ4Ed2RzQlCQQyEg2WIB7vzbAN2oFZiJZ6sQBB8XUhMZok8BrJm9SC4sOxf8mUyK/J347qrt6QW6nNoLLJoVbCGgCnMi+h9jyUrWL03YW2YNx+1PC8ULDV1WgH2PqTBDKTnFWAVYO7ZdBCZjlC73sA7eZxwTD+lA2sgWW5f0NtF3gLnXsUe7blf3iam7e0xZsSVVhjvEAe4X7EvZVMQJ7M6Cu8fuZ2v1XE5Vsvvw2dWPAz4TcITd02GMptOjvIAAAAASUVORK5CYII="><span>정밀</span><span class="x">✕</span></div>
+      <button class="add-combo">＋ 콤보 추가</button>
+    </div>
+    <div class="opt-section">
+      <div class="sec-title">강화 배분 모드</div>
+      <div class="seg">
+        <div class="on">콤보템 최대강화</div>
+        <div>균등 강화</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ② 빌드 브라우저 (Ctrl+B) ═══════════ -->
+  <div class="panel" id="builds">
+    <div class="panel-head">
+      <span class="title">📖 위키 빌드</span>
+      <span class="hotkey">Ctrl+B</span>
+      <span class="drag-hint">드래그로 이동</span>
+    </div>
+    <div class="search-row"><input placeholder="빌드 검색…"></div>
+    <div class="filter-row">
+      <span class="filter-sel">무기: 전체 ▾</span>
+      <span class="filter-sel">인기순 ▾</span>
+      <label class="filter-chk"><input type="checkbox" checked> 최신버전만</label>
+    </div>
+    <div class="build-list">
+      <div class="build-card bc-open">
+        <div class="bc-title">60단 원트클한 동료 빌드</div>
+        <div class="bc-meta"><span>Asher</span><span class="bc-chip">발리스타 소드</span><span class="bc-chip">장군</span><span class="bc-like">♥ 7</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">늑대의 유일한 활용처 : 재의 휘날림 빌드(개정판)</div>
+        <div class="bc-meta"><span>두덕리 농부</span><span class="bc-chip">재의 휘날림</span><span class="bc-chip">어쌔신</span><span class="bc-like">♥ 9</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">레이피어 먹구름(개정판)</div>
+        <div class="bc-meta"><span>두덕리 농부</span><span class="bc-chip">섬광의 레이피어</span><span class="bc-chip">기상학자</span><span class="bc-like">♥ 8</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">가장 쉬운 60 안정 클리어. 20기지 전격 차크람 - 플라즈마 덱</div>
+        <div class="bc-meta"><span>김범근</span><span class="bc-chip">바위검</span><span class="bc-chip">탐험가</span><span class="bc-like">♥ 1</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">(멀티용 탱커빌드) 절대 쓰러지지않는 선봉장 탱커 빌드</div>
+        <div class="bc-meta"><span>Maru</span><span class="bc-chip">바위검</span><span class="bc-chip">도박사</span><span class="bc-like">♥ 1</span><span>v1.0.24 · 26.08.11</span></div>
+      </div>
+    </div>
+    <div class="build-detail">
+      <button class="back-btn">← 목록으로</button>
+      <div class="bd-title">60단 원트클한 동료 빌드</div>
+      <div class="bd-writer">Asher · ♥ 7 · v1.0.24 · 26.08.13 (수정됨)</div>
+      <div class="chip-row">
+        <span class="chip">코스튬 <b>학자 도마뱀</b></span>
+        <span class="chip">무기 <b>발리스타 소드</b></span>
+        <span class="chip">기적 <b>장군 · 소원 분수</b></span>
+      </div>
+      <div class="combo-row">
+        <span class="combo-badge"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA9UlEQVQ4Ee2RMRKCQAxFd209iJewoLLxBJZWnsAatvYQll7CGSmkt7CxcjiEYhfzgwsssIg4Y2Vm1k1M/iObKPW3TyegOwRUyaGuHlfSueuDEVtRrLVWtE8lvicPNQ4n8BvaUaEoHQdkjHFAKLuZC67ya4jY2mB5hn8BCqdLidHRO/PC0jR/FgAAzQ8rOV3AVhg6smaOW4FEUaSCIBD/mmQ27dyNIXKWMJMN7UTsVHMQx3FxOHT0bZ1pbGutFyKyMECsvXwHZHO+Gx0SP41YLIefig02tugD1P+n8+wkwD6gPq1WO+lTX2/oyxirH2I8hiGyH2ue8pBlsnRgqNkAAAAASUVORK5CYII=">동료</span>
+        <span class="combo-badge"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAx0lEQVQ4EWNgGAWkhgAjDg3/cYgjC2PoZUGWRWb//w8xb/PDtXBhX/lgMJuREcMciDhcJSoDaNZ/BhtzHwYJUXGGF69fwukjJ7cwQA3DMBGny0AuAhkkqqQEtgZGI7sU1X4GBiZ0ARh/6yOE92BiIBqXOEgOp2EgSVLB4DUMI0aQvPY//VAkw5tOTnhsipR/Z5hptxykBKs+rILoBsL4+AzCaQNMM5RGzg2ELGdgAHmHEkCpftx2w0yG0bhVosrA1MNoVFkKeQDojDYi73qutQAAAABJRU5ErkJggg==">수호</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="sn">기본</div><div class="sv">10</div></div>
+        <div class="stat-box"><div class="sn">의지</div><div class="sv">20</div></div>
+        <div class="stat-box"><div class="sn">분노</div><div class="sv zero">0</div></div>
+        <div class="stat-box"><div class="sn">신속</div><div class="sv zero">0</div></div>
+        <div class="stat-box"><div class="sn">지혜</div><div class="sv zero">0</div></div>
+        <div class="stat-box"><div class="sn">인내</div><div class="sv">20</div></div>
+        <div class="stat-box"><div class="sn">생존</div><div class="sv zero">0</div></div>
+      </div>
+      <div class="chip-row">
+        <span class="chip">🍡 과일꼬치: <b>동료 3 · 수호 2 · 적응 1</b></span>
+      </div>
+      <div class="bd-desc">
+        [주의] 딜 고점 빌드가 아닌, 하드모드 60단 안정적으로 깨기 위한 빌드입니다.<br><br>
+        하드모드 60단 원트클한 동료 빌드입니다. 손 편한 자동사냥 빌드 좋아해서 저단에서 동료 빌드 자주 썼는데,
+        60단에서도 쓸 수 없을까 고민하다 만들고 써봤는데 통하네요.<br><br>
+        고단에선 인내 20, 의지 20, 기지 10 쓰시면 되고, 저단에선 인내 20, 의지 20 쓰시면 됩니다.
+        목표 콤보는 동료 10 = 수호 10 &gt; 정밀 10 입니다.
+      </div>
+      <div class="item-section">
+        <div class="is-label">소원 분수</div>
+        <div class="icon-row">
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAYAAACAl21KAAABTklEQVQ4EbWUPU4CURDHZ40X8AAkhm3ttNqCaO8BaChMqGwNx6DdyoTCxltATNyOjnYp9AAc4Tn/Wd4w8/ZhINFJXpjP35sZeBTD6zv6C7nMQELGl3MV1nlhDdZPhaDM5dqONNDO1wnfm+XLrXewFUEO0iyGVI3aXnJZ9/aJOhkxgqQInQCSE0Bsp6YrgaU7UkbzUaquSss1fHCZhSJ+FIRgDpbzIdeNhtuqpy2Ztok2h73EHUk36M6IB42XRO8PvbZNfqcCgtx6piEHap6nVNUdTDNyCkOQS3SlUQeq6lfpSG4b3GuSU75XkiMXjv6hI8Kj5RNwwtcyfD6W8hmOicmJdWC40bod7cdz83gDY6U7KkBj4a+hk7ebHS+cYb/sCJDJ5rBoriwiCBQHgyN9b/HHmEKQa0GwFQbjBNH/pPSJaOAcCHLdsvfF58D0vh9KZphbubaTOgAAAABJRU5ErkJggg==" title="채굴 작업 총괄 완장"></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAABuklEQVRIDbWUu0sDQRDGJ6I2JoUGIVho1FIDEmMj2Kay096AnSBYCPonKFgIgnXSa6WVrWDhCyVaithIfESLpFLw8Q3OOLfByybBKW73Zuf7fXtzexcZSmbov6K9CfCn0UTMvGbaVpMJT1gwKt37gLoRuILyp0cWgryu2QVfuIpvbk8ov/9CGJ3QGsn7wFW0uHtAh+V31mKEQbQ3QYmRMeFpLRI+cBYCXCy+0cb6DuWme+jsrspGl8d7VH0sCTwwesO3ZrKUSnWyGAZL6W6e4wlgYEJ37wPX4waD5ZVZ5swXHmgq3qEGzjtgAx+42RTR6tyCGmyev4YZUMTjC9XHHI19sNFzf5rWCtt8atAqadHw4ITdSKTezhWcTXZRXzzG4tL1BeUyk/xikUDfXTDyYfAAGMX35QpdVX4lMBgfiLIR1n9C39FfbakLFpIzKhh598elUCyiFQh3x98pgdh6ybEGFwu3hT5g6GuASEpIAxWMT1lORciORR86CpyL8J9A4Ki1CgYnAK8+lfQ/AQMToY9v6gJT6TnE3BoYIGTkmyYvdue6Owes+UY9LBxaF+TeN8SXtlhRS0AL+gL1mJoyIbuOaAAAAABJRU5ErkJggg==" title="유리 망치"></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAaCAYAAABVX2cEAAABl0lEQVQ4Ea1TsUoDQRCdEyGKJkIaURBFra1S2fkRYuUH+Bf+gdj4DdpZ+wFptBItgiaNIKQRNF4RLXRnuJmbnZvNWrhw7NuZee/e7s4W21s9+K8xnxD6MfHCrN3lnBO1QljixRpUKyakvd4+4KeG5FQsgu42V9c34P6uT4WIx68vTELB5JatMybJjEJ/deiKoQA6wmFn+YsDCqc1smcTdNytes6iQnSG22SHlSH3h56YFKIAi2icErTbFKHl9gpxltqdigtQTj4If07eJRaA7CTZGuxIsxjjBal24TBoMXGFDkaDR9CumMHueB1m5JE7LUZ57qmd1hvshs+O5+kaDKddCnNjc40+M3GG52XOhetpdvLkTN+mHKTd3u35VyRm8sLTYhFBLzoHC3qZxFmxh+sj+B4dAs650bgAS1jcPFahK4WbMOusSUlHtJjcJvfSzeWZMIeDJ7g4PaE156uk8BqtwW8w3Wdd6jPzCvym5WcyDr/tQ0uc1aAMsMw+J1QnyyxYC8xEyT6TxEx6nYzqvdaICmpeHv0Cv+R2swlpJ1gAAAAASUVORK5CYII=" title="랜턴"></span>
+        </div>
+        <div class="is-desc">완장 덕에 초반이 무난해 후반을 위한 인장 쓰고, 생존에 더 집중하고 싶으시면 보호막 추천드려요.</div>
+      </div>
+      <div class="item-section">
+        <div class="is-label">목표 콤보: 동료 10 = 수호 10 &gt; 정밀 10</div>
+        <div class="icon-row">
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAARCAYAAADHeGwwAAACPklEQVQ4EWNUUjBhoCVgwWP4fzxy2KQYsQkiW0CqgejmoesHWwizAF0SrFlJVYVBWkIY3SA4/+mLt2D2vdt34GJIDJCZjDALwOIngzjg8iWv9RlOX7jC8OzFcwZubh64OIjx9esXsBiIBgFbW3OGcNYUMBtE5OxLhbOZ4Cwgg11RF8yFGQ6TgxkE44MshFkCEgM5ZOXvOWBpSRlxmDIwjeKDM7uuMdx/8pmBQQeh5sfnr2AOjEbIMDCAxDh4ueFCSy+tZpB9KQbngxgoFswMlgIKSTG8XQoJW2yGougGcmCWgOKj+N8eBobnDAyrGHjhylCCSA8aRMLRjAxSEpJwRYQYILXFb8+DlYmra6EoR/HBrkX7GA7M2c3gkOLK8O0zO8PNOoT9odssGPSMLRnszTUY2ts7GcQ1O+EG3TqVxXDlJwNDyZUbDD06GkBxHD74/OArw779FxhANAgwGSJSw62bFxm2b1zC4ORowPDxMzCeoMBUnwvMuv6TEawXRCMDhBOBorwK3AxNS0vBNCiVXJ85k4El8STDzVP/GNTU9Rk8/WPAhoAM+PT2KsOSiXIMe/edBqcoTfb/DOdyIxhANDJACaLHez8gyzE8vPOW4SXQRz+A9KU7xxgunTnGsGQmRAkX/1WgZZIMn95cBUf0dKRgQTYE5gNUf0FVyKsIM4ivSmUA0eiAT0SbYcLc5wwgGgcAm8mIozRF9ScOE7AIYzgU5gN0tRgKoQpA4vjk0M1BzWhosrgMAinDJ4diDABVaLcPEUE7rgAAAABJRU5ErkJggg=="></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAVCAYAAABCIB6VAAABy0lEQVQ4EbWUsUtCURTGj1JEQ0ERCFogRmNCpFkS5BK0NenWFjREa39BS0FQuLYFLU1tjgZhlEVkYwRBKQhhQ0NIUPkd3rnd+967+pbu4Lme+53f++69571QIp6i/xh9PaA/PdZDtvWwbaGT7wVFqVVjc6wKVlbXqFF/omhsku6qZcB4NBsvMoXW49zPsYLu7B4wtJAvKOjV1DYDI9EJASOqGkm6wUoA6EXllgAtHu6zHtDRhyMKAtfBHuhidtaAxs+3aOCzGQgu4EBQ2G4PRgLBBcxble3rTi9zpwSnMoZb9wYc6xiuMycDjDNFByBioChxMs9z/Qfwt+gyOx8rbbBOX8fcAHsW61U9hZbytNXHSJLCpo5ruoJ1ameOe1B38TU+x0cCzXcsjWAMD1hrfMo87tHzUtEowB/k+l+vqTW9Tu3MJi2U8x6NAS6dHfMl4A2bSedY7IYDil6GYzgVqG4IhSHt66a2mUxlCULctBTgpYDLofca4Vx1p6JhJ8496I7VxdRuKgoqbQTngAWBuh07D/y7ID/naEHL9pUxGxj5rscCgd/2kZehn7HkJCq4JCzRcCoa/YwlJ9G3QBadaNXYPvRSby0UgS3+As5B0xuJcZQ5AAAAAElFTkSuQmCC"></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAYAAACpF6WWAAABPklEQVQ4Ea3TPw4BQRQG8FnRKzQq8adANJsgGomgFSfQigM4gFbjACJRKdRuoBSNkkIkKq0TkG/ivbydnd21G5PIzI43P9/MLKdUaKp/t/QfwLcwHIxTYiLuEJgEsV4/J0F92O1+8gSKg/qw9WatAJaLLQ/6y5maW1Tj6Ux121XV77lqvthJUJ9pFOoBCYNC4Ha1lKgeh6EMSkyChqZTYi4M1WtwbrJRQszZUmI+8qIOxwvqdJMgzX17TonnSBRFgE0wKGUYyueJItz0cDjB0NY8KVHgWP77DFZyGY2kskXGGp2BeZaRKIMjN6+h6/Ol8AloPhB18kwZREKCqLegVhB19EoxKBPuzw9pBSKyCGOZVNXqblDCn0EfikvApSRNSInp9nn79MW3j5WQ1tL2bYttc7QutKeLQlFixPyFD5WrWVfDiLZTAAAAAElFTkSuQmCC"></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAOCAYAAADE84fzAAAA+0lEQVQ4EWNUUjBhoBVgwWPwfzxy6FKM6AIgPhM2QaAYKQaDjMCqHpvL4Qpj0osZLp09Drc/NyuRYfK0+XC+uJQsw+5NK2F8kD4UHzCihTmKwSBd9uYaMM0MB0/eALNBYiD2y+dPwHwkC0B8uAXIwUKSwSBTxCVlQBSDq184mIYScHNgLocLgIICBECuunb+JFQ9JuXoFQwXxOUDFMPxGSwsLgU3DMR4+/IZAwELGJGDBUUzMgfdYJAcNjFkPSA2UYajayKWjxIsIE3SsgoYenG5EhQ0yACk7tKZYzAhRpjhIAF4pMJkKaRRwhyePik0FKQdbBZ6DqWmBQwAsfVN0+TNnGAAAAAASUVORK5CYII="></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAQCAYAAADNo/U5AAAA4UlEQVQoFZVSsQrCQAzNiZu6CnZSB4vgZv0Op27+Wxdx0E9RN5cK0k3BVZ3VxL6Q3rWDByW5l/fy0nBuPEzo39OuEbxrMIYc8BaSMjYJuKw1XyTaKOqXPYhsDtCOp50GXxF/fI6HE7gaA6d5MqPtLqPb9S6kS7FXMhJntidOLPKPcZNlwElHY4c0XdLz8dJomggPTnKJ4xF1ex3D+aXcIM8L4A5OAljBdJOBFDSqiMCCABE4YmU8BlfncFvryQJ8jjqePhGPQN5deHBCJ1kILl7Uxv4/aaFJwLh9RuA1CVGnD1/4NLlasUBfAAAAAElFTkSuQmCC"></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAcCAYAAACQ0cTtAAACfklEQVRIDa2Vu0tcURDGZ1WWFNtEi4AgMUbBShQjFhZqqqSyEgJqY1D7RIMEMSRYiLp/gErSJEWIKKRKKh+FgmwRsRJULAJCGm2sFnzsd64zmTv37Lp31wH3vObM73xz5lwTDfXPKI4dn2To6ZOOOFvEN+GBXctq0EmYccnDCrPTgrDsmzPbihtqmARd/rJMSJcyWVNzsbsMk2AAPe9tpfWNPUL/Po1hLubg2FsBYeJ8/LVm4UD6T68V1a/SXt8W0274cfIVrba300a2kuaqL+ndWehMvAXgWMWjq1FS2ZgkakomqDd56YBo9/snqLuz2Sk3pV800HtkgA6z1wKCwpaVeVZESHcpFkojArxMBaCjLNFRDkipSqfw4cJnuc8ALOcsOp2yg0+KlGmrGXhDGoSiCe7ySrvJFehJ248ogwNUwbj0+SkwiO/SFM+dCiPKAkzwOzI8Qlu7B/Rh9rt7BlDEIG7nqiMK86qMVCPuDIFsuaNCR1NXoaKBX/rBY2rr6KHfP7/qc6IfqdKIMq5CnPhHV60EQGqXLipCygB6VFtHfzKb9KJv6M5PXASGoAx8nznNPer/adJABv07/StAfOIKfVM1TGQj6K+LIPW4J21Y49QxiNupqU/um2qAsl3DMClADDQUYzYER+pwVwxCywaFyqRgLAw+AIagtxtD8wycmZkWIPygDuZT54M559wPB+dWz7s+gHiDFsiOti0Es756LMrxBgHklGon2/d+QaxToTH/W+I7RJvPSlWGeKIOQL7Dne21fCwqBxYCYgAgp9VHLDuNuaCs0JU4p9UH099G33rcOXlTZqM7ULlpNDFFpZ5n5XQfadSB0ZfgduEGKTQbhhVnW4wAAAAASUVORK5CYII="></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAABNElEQVQ4Ea2TPW4CQQyFZ1EUUdHRpUBBoiEVok3FCZITrcRhQgUnoKKnCgWRUsEJUiEKkn2W7diena2wxM76h2/e2LPV82ie7mEPBchvIV4V4qnXkihBUIpcaz4q0qLt2096mo1pn/P+Oy02A3rnB+qcusr0SCHH5VABu69HBbxOrhGosOxogPRe3hNURAj8enpRcPOimwvoP9BAbp9rPVZ96Cf87NECjMACIgd9AQQGRQBYiz7nSIQDobkAwKyCxtVeoE+wqMqBqKJ5CIx9hcCXSXJOFweKDeYqSNceIiaqOE+LA8lxWqZDxZhoUKus7B6h+GN10l3tUSxENmVSlYGQ6NqZ1PppUg8tCAzXC0xG+iGXM1wBHUQEZTAECqYQ5F2z+Q8ocEUct0uWj19/Z7FNxvc/CMJsGD7GtkkAAAAASUVORK5CYII="></span>
+          <span class="it"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAWCAYAAADJqhx8AAABUUlEQVQ4EaWSPU4DQQyFvSg/hIZViogmEgqUdOQGHIYzcQbOwA2go4OkSRGUIto0oEABeWbeyPYOBAlLycza/p49nqkmp1P5j3V+gT8LsSr6okAJsgziTsQKtOCL64ls12/SHw7k8WZOIeap0EHy0imA8ItW8ClTpSHqh60Igc3zWo7Ph6rFPTp6ul1Sv2IHdGi7SIJtm3ddLYzjWLMz0HOOr+pvaL5xMD4iDJ8TiOdEZXSxun+Rft1DvizuGl351zoC22fbSBxNT+Rw1zrmEYs4AV6ZhVkZ7VOc1bE6AUwX983JA8CebyC8B9WhgHtdBGwl+IJfGb4Dm5sfVX3WlWb2YWPc54LuFlIUwSxCYrdmyPj8DFIgw726a3OLe86AwQyj/b+YFXAwqq8eXvdqtGYwujxSKMDF8yOxJRBA5PwII2iPUEos+cBlix3sBTKZNl8i4XYPkM5txAAAAABJRU5ErkJggg=="></span>
+        </div>
+        <div class="is-desc">동료 및 수호 콤보 내 우선순위 높은 아티입니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ③ 팀원 패널 (F1) ═══════════ -->
+  <div class="panel" id="team">
+    <div class="panel-head">
+      <span class="title">👥 팀원 빌드</span>
+      <span class="hotkey">F1</span>
+      <span class="drag-hint">드래그로 이동</span>
+    </div>
+    <div class="team-tabs">
+      <span class="team-tab on">두덕리 농부</span>
+      <span class="team-tab">Asher</span>
+      <span class="team-tab">Maru</span>
+    </div>
+    <div class="team-body">
+      <div class="team-meta">
+        <span class="chip">무기 <b>재의 휘날림</b></span>
+        <span class="combo-badge"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA9ElEQVQ4EWNgoDb4//8/RUbC9DMSYQqyTXjVMxEwDGjpfwYQXnPgCkgpssEEtKJK/6/pXwYyDA5AfHwG4nIZyACGN/fuoRgP4uNzIS7DGNYevIpiEIx/4fwlFHFkDk7DkBXZmPsgc3GycRoGcwHMoP6ycpyGwCRwGgZScPnkcbA6XXNLMA3jgzlYCLyGoRsC4hsY6mExBiKE1zCQkiMnt4BVFnZ1gmmY98EcNIKgYSD1MINAbLJcBtMESxIggwgBnC5b3t3HIKKkhKEfJI4L4Mu4/4O9kxhEkQx8DcwBa7fOA5mFVR9WQSSbsWVsQnqQtA8WJgBSnl4NG7+87gAAAABJRU5ErkJggg==">견고</span>
+        <span class="combo-badge"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAA9UlEQVQ4Ee1Suw3CQAx1EBOxAUMgsQEVSNTUUCPRhYKWiB0iBkA06Rghadjg8HNwdA53BxR0WLrz7/nlxQnR3wIbcFzDCdogWG0H+oOOja7uhJEoYYgPg2LPQSFmIuP7gzFlNJ4tBcuMhAMbZRNVJvk3l5sf1608vqEKBo86E7VP8BgzLw6FmKdFsZFeVTZ0zreKezeruM6LEs5UyYuaDslBdGcKOhQ3f09fq1EeeFGU13tV5vdMzBgamopN8Ip0ae62mshir2mIqrJOULQtYGI7cJANA2g3XSGMYdETSwH8L5fCKZf1qsZW0xn/wGnAp92fEj0AriGD6qRVTD8AAAAASUVORK5CYII=">바람노래</span>
+      </div>
+      <div class="team-grid" id="teamGrid"></div>
+    </div>
+  </div>
+
+  <div class="ws-status">● 게임 연결됨 <small style="color:#4a7d5f">ws://localhost:5827</small></div>
+
+  <div class="hotkey-bar">
+    <span><b>Ctrl+D</b> 최적배치</span>
+    <span><b>Ctrl+B</b> 빌드</span>
+    <span><b>F1</b> 팀원</span>
+    <span><b>Shift+Tab</b> 풀오버레이</span>
+    <span><b>Ctrl+Shift+M</b> 미니맵</span>
+    <span><b>Esc</b> 닫기</span>
+  </div>
+
+</div></div>
+
+<script>
+// ── 아이콘 (빌드 스크립트가 데이터 URI 주입) ──
+const ICONS = {
+  '1098': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAYAAACpF6WWAAAB+UlEQVQ4Ea1UOy9EURCeZeMZxMYja4lXRBQUQgiioSEaan9Aq0MpodNqlIJOR4NCEBIRoRCRDcLaUBDEM4TznTVj7t27G4VJ7p45M9/3nTkzJ+urqmii/zZ/EsGvJDlO+djRa4reKP8vgoB74rwqFWBxSRmtD73S5V5YzittrKbO6Qy6vrrgGPCOin2unjoEFZEFZMWBrrwI6+uLYENTm5sgYuxAEDhlwteV2iCAB7tbFns8Xqg4v65/cImqK5ttQONNwFYb11O+EgTnF6Rvv4rwFuopfHpohRmvAXGiSLLg8mUuRd4+KZSeajnap76YcFv7gNazPvdU+sEICLJBDB+M15lwNn3M9jKEV6vDoja42v9AmCp6BuPKUKn+WBgY4MHT5hDtWsy1Uz8brqW5/U25tibAxwGrYwH7ftFT8LTFTR/J7mA+jbSeU8XUscV6XNMKjq4V0M79u0MPGz0oPAfpLQgTpuJENrldblJPOi2PX4sK4CZUR5knuwRiRyBKGFpOVrbNY79xG7T+S435h/t500I2jqdoUeSIbgwhx6wQ6CmNGmhsGLEDiPhgLca+7ilicv2WvDSylTDSteLgleidjia8vvQVA+g2RNjj85Ncn/1EgsC7K0UMJhXHtkl/pUJGOd4pB80aB1Q57XriPAf1w/IkaMVE/jfxsrVfiNWTZgAAAABJRU5ErkJggg==',
+  '1111': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAABNElEQVQ4Ea2TPW4CQQyFZ1EUUdHRpUBBoiEVok3FCZITrcRhQgUnoKKnCgWRUsEJUiEKkn2W7diena2wxM76h2/e2LPV82ie7mEPBchvIV4V4qnXkihBUIpcaz4q0qLt2096mo1pn/P+Oy02A3rnB+qcusr0SCHH5VABu69HBbxOrhGosOxogPRe3hNURAj8enpRcPOimwvoP9BAbp9rPVZ96Cf87NECjMACIgd9AQQGRQBYiz7nSIQDobkAwKyCxtVeoE+wqMqBqKJ5CIx9hcCXSXJOFweKDeYqSNceIiaqOE+LA8lxWqZDxZhoUKus7B6h+GN10l3tUSxENmVSlYGQ6NqZ1PppUg8tCAzXC0xG+iGXM1wBHUQEZTAECqYQ5F2z+Q8ocEUct0uWj19/Z7FNxvc/CMJsGD7GtkkAAAAASUVORK5CYII=',
+  '1156': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAABuklEQVRIDbWUu0sDQRDGJ6I2JoUGIVho1FIDEmMj2Kay096AnSBYCPonKFgIgnXSa6WVrWDhCyVaithIfESLpFLw8Q3OOLfByybBKW73Zuf7fXtzexcZSmbov6K9CfCn0UTMvGbaVpMJT1gwKt37gLoRuILyp0cWgryu2QVfuIpvbk8ov/9CGJ3QGsn7wFW0uHtAh+V31mKEQbQ3QYmRMeFpLRI+cBYCXCy+0cb6DuWme+jsrspGl8d7VH0sCTwwesO3ZrKUSnWyGAZL6W6e4wlgYEJ37wPX4waD5ZVZ5swXHmgq3qEGzjtgAx+42RTR6tyCGmyev4YZUMTjC9XHHI19sNFzf5rWCtt8atAqadHw4ITdSKTezhWcTXZRXzzG4tL1BeUyk/xikUDfXTDyYfAAGMX35QpdVX4lMBgfiLIR1n9C39FfbakLFpIzKhh598elUCyiFQh3x98pgdh6ybEGFwu3hT5g6GuASEpIAxWMT1lORciORR86CpyL8J9A4Ki1CgYnAK8+lfQ/AQMToY9v6gJT6TnE3BoYIGTkmyYvdue6Owes+UY9LBxaF+TeN8SXtlhRS0AL+gL1mJoyIbuOaAAAAABJRU5ErkJggg==',
+  '2031': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAABg0lEQVQ4Ea1TsUoDQRCdEzuxUmxiERSs7JSAFgZEBG0EKyEgiP6BIOgHGPAbFEEQrAQbBZGAFhYBOz/AwjSilVirb8hbZ+c2lytcuLuZuTdv3867yyaqs/Kfa9CRfbs8lWapImsDDH6fZcgAL8RRYQDt7WyYPeLw6PgiLiQyEuorkHU6b3oRW6tNMyz1jAjRAcLJ3SltPljYl+21LalUxuT8plWK0M4warg9a8nM0rycXJ3qJkWjsI1JQij7fPmS4eqQHD405fX9w/Ygxsz9pZgcIWaGYz7dPcry5qKCcGu3n6WPSjU2637YmrCBxlDZ+mo9mEWT4Djxxv0spxBqYAAaQTQ+OqJkMAYbXF7fq9rGyp969HBFClm0T6jAcUFWb87pK7pv1XZ7gsKevxOOw0Y0WfexkV/2yCD1V8Dj6N798NIEltCU4xAqMcOU+zFSJPeneAByuklSYpD7VYrQNtl5om4+GYXRZdtjY/0+baEgVmP7zbCn+4444MocOYAdSTL9AWdrhppf/sP8AAAAAElFTkSuQmCC',
+  '1227': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAaCAYAAABVX2cEAAABl0lEQVQ4Ea1TsUoDQRCdEyGKJkIaURBFra1S2fkRYuUH+Bf+gdj4DdpZ+wFptBItgiaNIKQRNF4RLXRnuJmbnZvNWrhw7NuZee/e7s4W21s9+K8xnxD6MfHCrN3lnBO1QljixRpUKyakvd4+4KeG5FQsgu42V9c34P6uT4WIx68vTELB5JatMybJjEJ/deiKoQA6wmFn+YsDCqc1smcTdNytes6iQnSG22SHlSH3h56YFKIAi2icErTbFKHl9gpxltqdigtQTj4If07eJRaA7CTZGuxIsxjjBal24TBoMXGFDkaDR9CumMHueB1m5JE7LUZ57qmd1hvshs+O5+kaDKddCnNjc40+M3GG52XOhetpdvLkTN+mHKTd3u35VyRm8sLTYhFBLzoHC3qZxFmxh+sj+B4dAs650bgAS1jcPFahK4WbMOusSUlHtJjcJvfSzeWZMIeDJ7g4PaE156uk8BqtwW8w3Wdd6jPzCvym5WcyDr/tQ0uc1aAMsMw+J1QnyyxYC8xEyT6TxEx6nYzqvdaICmpeHv0Cv+R2swlpJ1gAAAAASUVORK5CYII=',
+  '2029': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAOCAYAAAA1+Nx+AAABCUlEQVQ4EWNUUjBhoCVgQTL8PxKbGkxGkCFMUJOobTjIWLCZyD5gKEuJgNpHGdU1ZwXcABQLQKJPn74CS8JouEoCDGlpMbAKGA1TjmIBzFAQ/TXoJ4Oeoi5MHV66yq6SIdk/kQFkOMwMmAZGaCoCh5esswDD5wdfGYLrfBnWNm0Gq+FV4IapxUmD9Jzdc4zB2MWKAaT+8d4PMLWMsEiGCYBpkItAgFjDQWrbDrWDKAyA4oNoTyewApA3526cj1MTuimX7l9m4F7HDg4ikNzS7ftgShhR4gAWhiAaFKbEAm4GhOF4IxlkIEwBjCbWElzqUIIIlyIKxOGRDM7WFBiETSvYTOQ4oIUlDAAVuUYJcJH3HgAAAABJRU5ErkJggg==',
+  '1112': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAABfUlEQVQ4Ea2SP0pDQRDG9z3thPivCgQJWgjyChEttM8B4gVEFATv4AkE7aw8gx5AbILYpLF4nYhiYyEGTK3R9xvfLDubRSycYndmZ/ab+b7dbLG97v7DJgOQr8D/zc1Sybw+/CsI5cnacCL38Nh3o7tzNyovXF5su3x138cgLB+9smGAmcmyWiPpcn95IJeltFp6OytuYf5Twue3CVcU027j7EPT7B5MqUmSSdQGx5viAtBaWxK/LN/ddXeoJeyepgGCDgbITGdP/N3elFBi1+n6h0YRATPU0Ag6alyOjYkSNDMzEUJr1wjEa9Fozgn28GVgeligWqOtTjssAsRr0WjOSjMF1EIDxCFj3149aZ7dg6CN6ghgaAaIf8ITY5GgEvMAN6cnkldACapFxSb2ncMnhgLduaggUA8+J3ezEMiAMRH/BtMHwAc49SkNtarOvw7F0AREhUW/FAgN4ok4wzzNnzC5+qZk44n0hinSw2Afy5u/HhTijhVHeRN+A46Idot9GW5FAAAAAElFTkSuQmCC',
+  '1155': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAWCAYAAADJqhx8AAABUUlEQVQ4EaWSPU4DQQyFvSg/hIZViogmEgqUdOQGHIYzcQbOwA2go4OkSRGUIto0oEABeWbeyPYOBAlLycza/p49nqkmp1P5j3V+gT8LsSr6okAJsgziTsQKtOCL64ls12/SHw7k8WZOIeap0EHy0imA8ItW8ClTpSHqh60Igc3zWo7Ph6rFPTp6ul1Sv2IHdGi7SIJtm3ddLYzjWLMz0HOOr+pvaL5xMD4iDJ8TiOdEZXSxun+Rft1DvizuGl351zoC22fbSBxNT+Rw1zrmEYs4AV6ZhVkZ7VOc1bE6AUwX983JA8CebyC8B9WhgHtdBGwl+IJfGb4Dm5sfVX3WlWb2YWPc54LuFlIUwSxCYrdmyPj8DFIgw726a3OLe86AwQyj/b+YFXAwqq8eXvdqtGYwujxSKMDF8yOxJRBA5PwII2iPUEos+cBlix3sBTKZNl8i4XYPkM5txAAAAABJRU5ErkJggg==',
+  '1152': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAYAAACpF6WWAAABPklEQVQ4Ea3TPw4BQRQG8FnRKzQq8adANJsgGomgFSfQigM4gFbjACJRKdRuoBSNkkIkKq0TkG/ivbydnd21G5PIzI43P9/MLKdUaKp/t/QfwLcwHIxTYiLuEJgEsV4/J0F92O1+8gSKg/qw9WatAJaLLQ/6y5maW1Tj6Ux121XV77lqvthJUJ9pFOoBCYNC4Ha1lKgeh6EMSkyChqZTYi4M1WtwbrJRQszZUmI+8qIOxwvqdJMgzX17TonnSBRFgE0wKGUYyueJItz0cDjB0NY8KVHgWP77DFZyGY2kskXGGp2BeZaRKIMjN6+h6/Ol8AloPhB18kwZREKCqLegVhB19EoxKBPuzw9pBSKyCGOZVNXqblDCn0EfikvApSRNSInp9nn79MW3j5WQ1tL2bYttc7QutKeLQlFixPyFD5WrWVfDiLZTAAAAAElFTkSuQmCC',
+  '1030': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAARCAYAAADHeGwwAAACPklEQVQ4EWNUUjBhoCVgwWP4fzxy2KQYsQkiW0CqgejmoesHWwizAF0SrFlJVYVBWkIY3SA4/+mLt2D2vdt34GJIDJCZjDALwOIngzjg8iWv9RlOX7jC8OzFcwZubh64OIjx9esXsBiIBgFbW3OGcNYUMBtE5OxLhbOZ4Cwgg11RF8yFGQ6TgxkE44MshFkCEgM5ZOXvOWBpSRlxmDIwjeKDM7uuMdx/8pmBQQeh5sfnr2AOjEbIMDCAxDh4ueFCSy+tZpB9KQbngxgoFswMlgIKSTG8XQoJW2yGougGcmCWgOKj+N8eBobnDAyrGHjhylCCSA8aRMLRjAxSEpJwRYQYILXFb8+DlYmra6EoR/HBrkX7GA7M2c3gkOLK8O0zO8PNOoT9odssGPSMLRnszTUY2ts7GcQ1O+EG3TqVxXDlJwNDyZUbDD06GkBxHD74/OArw779FxhANAgwGSJSw62bFxm2b1zC4ORowPDxMzCeoMBUnwvMuv6TEawXRCMDhBOBorwK3AxNS0vBNCiVXJ85k4El8STDzVP/GNTU9Rk8/WPAhoAM+PT2KsOSiXIMe/edBqcoTfb/DOdyIxhANDJACaLHez8gyzE8vPOW4SXQRz+A9KU7xxgunTnGsGQmRAkX/1WgZZIMn95cBUf0dKRgQTYE5gNUf0FVyKsIM4ivSmUA0eiAT0SbYcLc5wwgGgcAm8mIozRF9ScOE7AIYzgU5gN0tRgKoQpA4vjk0M1BzWhosrgMAinDJ4diDABVaLcPEUE7rgAAAABJRU5ErkJggg==',
+  '1085': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAVCAYAAABCIB6VAAABy0lEQVQ4EbWUsUtCURTGj1JEQ0ERCFogRmNCpFkS5BK0NenWFjREa39BS0FQuLYFLU1tjgZhlEVkYwRBKQhhQ0NIUPkd3rnd+967+pbu4Lme+53f++69571QIp6i/xh9PaA/PdZDtvWwbaGT7wVFqVVjc6wKVlbXqFF/omhsku6qZcB4NBsvMoXW49zPsYLu7B4wtJAvKOjV1DYDI9EJASOqGkm6wUoA6EXllgAtHu6zHtDRhyMKAtfBHuhidtaAxs+3aOCzGQgu4EBQ2G4PRgLBBcxble3rTi9zpwSnMoZb9wYc6xiuMycDjDNFByBioChxMs9z/Qfwt+gyOx8rbbBOX8fcAHsW61U9hZbytNXHSJLCpo5ruoJ1ameOe1B38TU+x0cCzXcsjWAMD1hrfMo87tHzUtEowB/k+l+vqTW9Tu3MJi2U8x6NAS6dHfMl4A2bSedY7IYDil6GYzgVqG4IhSHt66a2mUxlCULctBTgpYDLofca4Vx1p6JhJ8496I7VxdRuKgoqbQTngAWBuh07D/y7ID/naEHL9pUxGxj5rscCgd/2kZehn7HkJCq4JCzRcCoa/YwlJ9G3QBadaNXYPvRSby0UgS3+As5B0xuJcZQ5AAAAAElFTkSuQmCC',
+  '2033': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAWCAYAAADAQbwGAAABpElEQVQ4Ea2Uv0rEQBDGN2IhiK3NNacHPoG2IgcKV9hoKWihb2ClhYWFVr6BVyhYamMhnCBi6xsIhzbXWAki2Km/Sb5lN5eY+Gcgm/nz7ZeZndkk081Z958yGpB9BHpeTTJHJWakBhAIRN+RCePCDF3/8Z5AJK2puciuwkSE7FzYWhwiEClk+fjt8XWEjwjZyKaDu0MD9U5vvI5D/qX1tsV353ecPmaOr0WEHLqdEZsgCje9d148ATFEbzPSxRqnpgR+516f3sxWOYPBs+NB5BPGnMGiDANXqp7vX7peM8200Zg0p7IvIwOUBIPtx2LzZCVlzdb+0YNpre2ZyN/duAhtKzkkJOhJMdY6bStVGVI2+tlVeo5gMtHgu8IzFOo37zBDn91fSh5qCmQ0BJlojtv4qGR8jIuaAjZ3juUlr+4t24gwvBobdMaGWJkUniGZIbpmZKgs5RMmT6yS/fmRRSjMnro6ll1J4twksF3nRweORE0xwrLLr/taFYdQGfJRE10t2SLD1s9DsaJ3lGER4Ie+RE3xk15CQLwOxv++4KnaUAvzCXmBo5AJG4hhAAAAAElFTkSuQmCC',
+  '1157': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAOCAYAAADE84fzAAAA+0lEQVQ4EWNUUjBhoBVgwWPwfzxy6FKM6AIgPhM2QaAYKQaDjMCqHpvL4Qpj0osZLp09Drc/NyuRYfK0+XC+uJQsw+5NK2F8kD4UHzCihTmKwSBd9uYaMM0MB0/eALNBYiD2y+dPwHwkC0B8uAXIwUKSwSBTxCVlQBSDq184mIYScHNgLocLgIICBECuunb+JFQ9JuXoFQwXxOUDFMPxGSwsLgU3DMR4+/IZAwELGJGDBUUzMgfdYJAcNjFkPSA2UYajayKWjxIsIE3SsgoYenG5EhQ0yACk7tKZYzAhRpjhIAF4pMJkKaRRwhyePik0FKQdbBZ6DqWmBQwAsfVN0+TNnGAAAAAASUVORK5CYII=',
+  '1159': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAQCAYAAADNo/U5AAAA4UlEQVQoFZVSsQrCQAzNiZu6CnZSB4vgZv0Op27+Wxdx0E9RN5cK0k3BVZ3VxL6Q3rWDByW5l/fy0nBuPEzo39OuEbxrMIYc8BaSMjYJuKw1XyTaKOqXPYhsDtCOp50GXxF/fI6HE7gaA6d5MqPtLqPb9S6kS7FXMhJntidOLPKPcZNlwElHY4c0XdLz8dJomggPTnKJ4xF1ex3D+aXcIM8L4A5OAljBdJOBFDSqiMCCABE4YmU8BlfncFvryQJ8jjqePhGPQN5deHBCJ1kILl7Uxv4/aaFJwLh9RuA1CVGnD1/4NLlasUBfAAAAAElFTkSuQmCC',
+  '1049': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAcCAYAAACQ0cTtAAACfklEQVRIDa2Vu0tcURDGZ1WWFNtEi4AgMUbBShQjFhZqqqSyEgJqY1D7RIMEMSRYiLp/gErSJEWIKKRKKh+FgmwRsRJULAJCGm2sFnzsd64zmTv37Lp31wH3vObM73xz5lwTDfXPKI4dn2To6ZOOOFvEN+GBXctq0EmYccnDCrPTgrDsmzPbihtqmARd/rJMSJcyWVNzsbsMk2AAPe9tpfWNPUL/Po1hLubg2FsBYeJ8/LVm4UD6T68V1a/SXt8W0274cfIVrba300a2kuaqL+ndWehMvAXgWMWjq1FS2ZgkakomqDd56YBo9/snqLuz2Sk3pV800HtkgA6z1wKCwpaVeVZESHcpFkojArxMBaCjLNFRDkipSqfw4cJnuc8ALOcsOp2yg0+KlGmrGXhDGoSiCe7ySrvJFehJ248ogwNUwbj0+SkwiO/SFM+dCiPKAkzwOzI8Qlu7B/Rh9rt7BlDEIG7nqiMK86qMVCPuDIFsuaNCR1NXoaKBX/rBY2rr6KHfP7/qc6IfqdKIMq5CnPhHV60EQGqXLipCygB6VFtHfzKb9KJv6M5PXASGoAx8nznNPer/adJABv07/StAfOIKfVM1TGQj6K+LIPW4J21Y49QxiNupqU/um2qAsl3DMClADDQUYzYER+pwVwxCywaFyqRgLAw+AIagtxtD8wycmZkWIPygDuZT54M559wPB+dWz7s+gHiDFsiOti0Es756LMrxBgHklGon2/d+QaxToTH/W+I7RJvPSlWGeKIOQL7Dne21fCwqBxYCYgAgp9VHLDuNuaCs0JU4p9UH099G33rcOXlTZqM7ULlpNDFFpZ5n5XQfadSB0ZfgduEGKTQbhhVnW4wAAAAASUVORK5CYII=',
+  '1173': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAaCAYAAABCfffNAAACOklEQVRIDbVUv0tbURS+kRAQDAUHHdKhKmgoSWmppaiTuujuIOjoVuhY6F/g4lRpF0u7tMV/QHSKQ8BSf2DQIjqIgwSxQxclASm07zu873DvfS/Ji6FveOfc8+P77nfu5aYGH42a//2lExL8tepSlp/I7UpQZROg3F+3hEhCIiDve29sMBCRjD7Xdp34zUjYLIX9I48jzUHAB/bXERKC0iroUk9dfKihr8nA8VTaKfFT4e2K3QEAn2X+SOHMwanZep5XgMO7tOSgcO77pcYDJ3IxHBLsCM0fb7ud3YGA33KxYN4e/+TSYI368IsQIO6cyavfWTNTHFaCzMq6kBJhaOCFQwBlVBrWxE6EJLoDSAc4dj81+dS8fPfFANz/StsVqUPcO5MIEcdFDC04v9iTmE+AOGM4Myi/PjvRMRMosLpxKmFOEwRigpbxtU9rOjocvj1m1tLGPSsgEkUEDIs1TpWIuyqyYalr/HHZWR1dEFQCFvB68zYyHlqdCNZxSljvFDJIFTj4H68X7euLktge/0yI1dByhCDA92R0vGEtE+2Q6C5BhKu9m582hasasWDtEWu8HRI0KdHqh89C8HA2bxZmpxQwcCJE7ZIo2NH+jvlWrZhq9ZfE3izNay4kUrL7kKgaoH7dLJlcrk8IPEWICVGzKyyNLX66WxJ0lzekxX4076PE5lVVUASC2oMx/9F0X2G7uw1fidAzUS9HWjsdFwF1bAxYNtXpuIjlqGEwsBJv9qxYtYncRkTmH20IrlqOCHgTAAAAAElFTkSuQmCC',
+  '1202': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAUCAYAAACAl21KAAABTklEQVQ4EbWUPU4CURDHZ40X8AAkhm3ttNqCaO8BaChMqGwNx6DdyoTCxltATNyOjnYp9AAc4Tn/Wd4w8/ZhINFJXpjP35sZeBTD6zv6C7nMQELGl3MV1nlhDdZPhaDM5dqONNDO1wnfm+XLrXewFUEO0iyGVI3aXnJZ9/aJOhkxgqQInQCSE0Bsp6YrgaU7UkbzUaquSss1fHCZhSJ+FIRgDpbzIdeNhtuqpy2Ztok2h73EHUk36M6IB42XRO8PvbZNfqcCgtx6piEHap6nVNUdTDNyCkOQS3SlUQeq6lfpSG4b3GuSU75XkiMXjv6hI8Kj5RNwwtcyfD6W8hmOicmJdWC40bod7cdz83gDY6U7KkBj4a+hk7ebHS+cYb/sCJDJ5rBoriwiCBQHgyN9b/HHmEKQa0GwFQbjBNH/pPSJaOAcCHLdsvfF58D0vh9KZphbubaTOgAAAABJRU5ErkJggg=='
+};
+
+// ── 최적배치 미니 그리드: [x, y, iconKey, 최종강화수|null(=석판), 회전] ──
+const optItems = [
+  [0,0,'1098',2,0], [1,0,'1111',5,0], [2,0,'1156',3,0], [4,0,'2031',null,0],
+  [0,1,'1227',3,0], [1,1,'2029',null,0], [2,1,'1112',6,0], [3,1,'1155',4,0], [5,1,'1152',1,0],
+  [1,2,'1030',4,0], [2,2,'1085',3,0], [3,2,'2033',null,90], [4,2,'1157',5,0],
+  [3,3,'1159',2,0], [4,3,'1049',3,0],
+  [5,4,'1173',1,0]
+];
+const teamItems = [
+  [0,0,'1152',2,0], [1,0,'1085',4,0], [2,1,'2029',null,0], [1,1,'1156',3,0],
+  [3,1,'1157',5,0], [2,2,'1227',2,0], [4,2,'1111',3,0], [3,3,'2031',null,0], [4,3,'1049',2,0]
+];
+
+function renderGrid(elId, items, cols, rows) {
+  const grid = document.getElementById(elId);
+  const map = {};
+  items.forEach(function(it) { map[it[0] + ',' + it[1]] = it; });
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    const it = map[x + ',' + y];
+    if (it) {
+      const key = it[2], lv = it[3], rot = it[4];
+      if (lv === null) c.classList.add('tablet');
+      if (rot === 90) c.classList.add('rot90');
+      const img = document.createElement('img');
+      img.src = ICONS[key] || '';
+      c.appendChild(img);
+      if (lv !== null) {
+        const b = document.createElement('span');
+        b.className = 'lv'; b.textContent = lv;
+        c.appendChild(b);
+      }
+    }
+    grid.appendChild(c);
+  }
+}
+renderGrid('optGrid', optItems, 6, 5);
+renderGrid('teamGrid', teamItems, 6, 5);
+
+// ── 시안 컨트롤 토글 ──
+const stage = document.getElementById('stage');
+function bindToggle(id, cls, invert) {
+  document.getElementById(id).addEventListener('change', function(e) {
+    stage.classList.toggle(cls, invert ? !e.target.checked : e.target.checked);
+  });
+}
+bindToggle('ckOpt', 'stage-noopt', true);
+bindToggle('ckBuilds', 'stage-nobuilds', true);
+bindToggle('ckDetail', 'stage-detail', false);
+bindToggle('ckTeam', 'stage-team', false);
+bindToggle('ckCalc', 'stage-calc', false);
+document.querySelector('.bc-open').addEventListener('click', function() {
+  document.getElementById('ckDetail').checked = true;
+  stage.classList.add('stage-detail');
+});
+document.querySelector('.back-btn').addEventListener('click', function() {
+  document.getElementById('ckDetail').checked = false;
+  stage.classList.remove('stage-detail');
+});
+
+// ── 1920x1080 스테이지 스케일 ──
+function fit() {
+  const w = window.innerWidth, h = window.innerHeight - 52;
+  const s = Math.min(w / 1920, h / 1080);
+  stage.style.transform = 'translateX(-50%) scale(' + s + ')';
+}
+window.addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

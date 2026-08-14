@@ -1,0 +1,552 @@
+{
+  "_source": "https://www.sephiria.wiki/combo (v1.0.27, 2026-08-14)",
+  "_rule": "아티팩트 보유 '개수'에 따라 단계가 활성화된다. 강화수(레벨)는 콤보 단계에 영향을 주지 않는다.",
+  "_iconKeyNote": "iconKey는 assets/combos/<KEY>.png 파일명. 게임 어셈블리 enum과의 대조는 M1 recon 결과로 확정할 것.",
+  "combos": [
+    {
+      "ko": "잉걸불",
+      "iconKey": "EMBER",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "화염 손길 효과 활성화"
+        },
+        {
+          "count": 4,
+          "effect": "+6 화염속성 피해"
+        },
+        {
+          "count": 6,
+          "effect": "화염 손길 재사용 대기시간 가속 150%"
+        },
+        {
+          "count": 8,
+          "effect": "+8 화염속성 피해"
+        },
+        {
+          "count": 10,
+          "effect": "화상의 기본 피해 배율이 18→28%로 변경"
+        }
+      ],
+      "wikiSlug": "yinggalbul",
+      "artifactCount": 22
+    },
+    {
+      "ko": "얼음무구",
+      "iconKey": "FROST",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+6% 얼음 무구 충전 속도"
+        },
+        {
+          "count": 4,
+          "effect": "+8% 얼음 무구 충전 속도"
+        },
+        {
+          "count": 6,
+          "effect": "+6% 얼음 무구의 피해량"
+        },
+        {
+          "count": 8,
+          "effect": "+8% 얼음 무구의 피해량"
+        },
+        {
+          "count": 10,
+          "effect": "얼음 무구가 1회 추가 발동"
+        }
+      ],
+      "wikiSlug": "ice_weapon",
+      "artifactCount": 11
+    },
+    {
+      "ko": "빙하",
+      "iconKey": "GLACIER",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "서리 손길 효과 활성화"
+        },
+        {
+          "count": 4,
+          "effect": "+6 얼음속성 피해"
+        },
+        {
+          "count": 6,
+          "effect": "서리 손길 재사용 대기시간 가속 150%"
+        },
+        {
+          "count": 8,
+          "effect": "+8 얼음속성 피해"
+        },
+        {
+          "count": 10,
+          "effect": "빙결에 필요한 동상 중첩 수 -1"
+        }
+      ],
+      "wikiSlug": "glacier",
+      "artifactCount": 19
+    },
+    {
+      "ko": "마법공학",
+      "iconKey": "MAGITECH",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "전격 손길 효과 활성화"
+        },
+        {
+          "count": 4,
+          "effect": "+6 번개속성 피해"
+        },
+        {
+          "count": 6,
+          "effect": "전격 손길 재사용 대기시간 가속 150%"
+        },
+        {
+          "count": 8,
+          "effect": "+8 번개속성 피해"
+        },
+        {
+          "count": 10,
+          "effect": "감전이 발동하는 시간 -1초"
+        }
+      ],
+      "wikiSlug": "magic_engineering",
+      "artifactCount": 16
+    },
+    {
+      "ko": "그림자",
+      "iconKey": "SHADOW",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+4 회피"
+        },
+        {
+          "count": 4,
+          "effect": "+5 회피"
+        },
+        {
+          "count": 6,
+          "effect": "+6 회피"
+        },
+        {
+          "count": 8,
+          "effect": "+8 회피"
+        },
+        {
+          "count": 10,
+          "effect": "+10 회피"
+        }
+      ],
+      "wikiSlug": "shadow",
+      "artifactCount": 12
+    },
+    {
+      "ko": "수호",
+      "iconKey": "GUARDIAN",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+6 방어력"
+        },
+        {
+          "count": 4,
+          "effect": "+7 방어력"
+        },
+        {
+          "count": 6,
+          "effect": "+8 방어력"
+        },
+        {
+          "count": 8,
+          "effect": "+10 방어력"
+        },
+        {
+          "count": 10,
+          "effect": "+12 방어력, +5% 방어 관통"
+        }
+      ],
+      "wikiSlug": "guardian",
+      "artifactCount": 14
+    },
+    {
+      "ko": "바람노래",
+      "iconKey": "WINDSONG",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+8% 공격 속도"
+        },
+        {
+          "count": 4,
+          "effect": "+12% 공격 속도"
+        },
+        {
+          "count": 6,
+          "effect": "+16% 공격 속도"
+        },
+        {
+          "count": 8,
+          "effect": "+20% 공격 속도"
+        },
+        {
+          "count": 10,
+          "effect": "+15% 무기 피해량, +1 대시 횟수"
+        }
+      ],
+      "wikiSlug": "spring_song",
+      "artifactCount": 20
+    },
+    {
+      "ko": "신비",
+      "iconKey": "MYSTIC",
+      "min": 2,
+      "max": 4,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "무작위 1칸"
+        },
+        {
+          "count": 4,
+          "effect": "무작위 2칸"
+        }
+      ],
+      "wikiSlug": "mystery",
+      "artifactCount": 11
+    },
+    {
+      "ko": "행성",
+      "iconKey": "PLANET",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+8% 행성 피해량"
+        },
+        {
+          "count": 4,
+          "effect": "+10% 행성 피해량"
+        },
+        {
+          "count": 6,
+          "effect": "+12% 행성 피해량"
+        },
+        {
+          "count": 8,
+          "effect": "+14% 행성 피해량"
+        },
+        {
+          "count": 10,
+          "effect": "+16% 행성 피해량, +12% 행성 공격 속도"
+        }
+      ],
+      "wikiSlug": "planet",
+      "artifactCount": 10
+    },
+    {
+      "ko": "동료",
+      "iconKey": "COMPANION",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+6% 동료가 입히는 피해량"
+        },
+        {
+          "count": 4,
+          "effect": "+8% 동료가 입히는 피해량"
+        },
+        {
+          "count": 6,
+          "effect": "+10% 동료가 입히는 피해량, +15 동료들의 방어력"
+        },
+        {
+          "count": 8,
+          "effect": "+12% 동료가 입히는 피해량, +20 동료들의 방어력"
+        },
+        {
+          "count": 10,
+          "effect": "+20% 동료가 입히는 피해량, +40% 동료 부활 시간 가속"
+        }
+      ],
+      "wikiSlug": "colleague",
+      "artifactCount": 13
+    },
+    {
+      "ko": "정밀",
+      "iconKey": "PRECISION",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+4% 치명타 확률"
+        },
+        {
+          "count": 4,
+          "effect": "+6% 치명타 확률"
+        },
+        {
+          "count": 6,
+          "effect": "+8% 치명타 확률"
+        },
+        {
+          "count": 8,
+          "effect": "+10% 치명타 확률"
+        },
+        {
+          "count": 10,
+          "effect": "+30% 치명타 피해"
+        }
+      ],
+      "wikiSlug": "precision",
+      "artifactCount": 21
+    },
+    {
+      "ko": "먹구름",
+      "iconKey": "DARKCLOUD",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "먹구름 활성화 (기본 용량 15)"
+        },
+        {
+          "count": 4,
+          "effect": "+8 먹구름 용량"
+        },
+        {
+          "count": 6,
+          "effect": "+12 먹구름 용량"
+        },
+        {
+          "count": 8,
+          "effect": "+16 먹구름 용량"
+        },
+        {
+          "count": 10,
+          "effect": "+20 먹구름 용량, 먹구름이 2점사로 공격함"
+        }
+      ],
+      "wikiSlug": "extrium",
+      "artifactCount": 16
+    },
+    {
+      "ko": "견고",
+      "iconKey": "STURDY",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+2 물리 피해"
+        },
+        {
+          "count": 4,
+          "effect": "+4 물리 피해"
+        },
+        {
+          "count": 6,
+          "effect": "+6 물리 피해"
+        },
+        {
+          "count": 8,
+          "effect": "+8 물리 피해"
+        },
+        {
+          "count": 10,
+          "effect": "+15% 물리 피해 증폭"
+        }
+      ],
+      "wikiSlug": "firmness",
+      "artifactCount": 27
+    },
+    {
+      "ko": "호수",
+      "iconKey": "LAKE",
+      "min": 3,
+      "max": 9,
+      "tiers": [
+        {
+          "count": 3,
+          "effect": "+20 최대 MP, +5 MP 재생"
+        },
+        {
+          "count": 6,
+          "effect": "+30 최대 MP, +10% MP를 소모하는 능력의 피해량"
+        },
+        {
+          "count": 9,
+          "effect": "+40 최대 MP, +25% MP를 소모하는 능력의 피해량"
+        }
+      ],
+      "wikiSlug": "lake",
+      "artifactCount": 17
+    },
+    {
+      "ko": "태양검",
+      "iconKey": "FLAMESWORD",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "효과 활성화(기본 검 x5)"
+        },
+        {
+          "count": 4,
+          "effect": "+6% 태양검 피해량"
+        },
+        {
+          "count": 6,
+          "effect": "+8% 태양검 피해량, +1 태양검 개수 상한"
+        },
+        {
+          "count": 8,
+          "effect": "+10% 태양검 피해량, +2 태양검 개수 상한"
+        },
+        {
+          "count": 10,
+          "effect": "+12% 태양검 피해량, +6 태양검 개수 상한"
+        }
+      ],
+      "wikiSlug": "sun_sword",
+      "artifactCount": 11
+    },
+    {
+      "ko": "아카데미",
+      "iconKey": "ACADEMY",
+      "min": 2,
+      "max": 10,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+8 마법서 가속"
+        },
+        {
+          "count": 4,
+          "effect": "+12 마법서 가속"
+        },
+        {
+          "count": 6,
+          "effect": "+16 마법서 가속"
+        },
+        {
+          "count": 8,
+          "effect": "+20 마법서 가속"
+        },
+        {
+          "count": 10,
+          "effect": "+15% 마법서 피해량, +8 MP 재생"
+        }
+      ],
+      "wikiSlug": "academy",
+      "artifactCount": 19
+    },
+    {
+      "ko": "저주",
+      "iconKey": "CURSE",
+      "min": 2,
+      "max": 4,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+10% 디버프로 가하는 피해량, +7% 이동 속도"
+        },
+        {
+          "count": 4,
+          "effect": "+15% 디버프로 가하는 피해량"
+        }
+      ],
+      "wikiSlug": "curse",
+      "artifactCount": 5
+    },
+    {
+      "ko": "교섭",
+      "iconKey": "SAVVY",
+      "min": 2,
+      "max": 4,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+10 협상력, +15% 잎 드롭"
+        },
+        {
+          "count": 4,
+          "effect": "+15 협상력, 황금손: 소지한 잎 200개당 적에게 주는 피해 +1% (최대 20%)"
+        }
+      ],
+      "wikiSlug": "bargaining",
+      "artifactCount": 3
+    },
+    {
+      "ko": "원소",
+      "iconKey": "ELEMENTAL",
+      "min": 2,
+      "max": 6,
+      "tiers": [
+        {
+          "count": 2,
+          "effect": "+5 가장 높은 속성 피해"
+        },
+        {
+          "count": 4,
+          "effect": "+6 가장 높은 속성 피해"
+        },
+        {
+          "count": 6,
+          "effect": "모든 속성 피해 +10% 증폭"
+        }
+      ],
+      "wikiSlug": "element",
+      "artifactCount": 5
+    },
+    {
+      "ko": "연금술",
+      "iconKey": "ALCHEMY",
+      "min": 1,
+      "max": 3,
+      "tiers": [
+        {
+          "count": 1,
+          "effect": "+1 포션 가방 슬롯"
+        },
+        {
+          "count": 2,
+          "effect": "+1 포션 가방 슬롯"
+        },
+        {
+          "count": 3,
+          "effect": "무작위 포션 1개 (일반~희귀)"
+        }
+      ],
+      "wikiSlug": "alchemy",
+      "artifactCount": 4
+    }
+  ],
+  "_missingFromWikiPage": [
+    "PARTY (파티) - assets/combos/PARTY.png 는 존재하나 위키 콤보 페이지에 없음",
+    "WEAPON (무기) - assets/combos/WEAPON.png 는 존재하나 위키 콤보 페이지에 없음"
+  ],
+  "_slugVerification": "각 슬러그는 소속 아티팩트의 effect.content 키워드 빈도로 실증 확인됨 (예: extrium→먹구름 19회)"
+}

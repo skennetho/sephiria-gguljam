@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Sephiria 오버레이 시안 v1</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a0c12; color:#dde3f0; font-family:'Malgun Gothic','Segoe UI',sans-serif; overflow:hidden; }
+
+  /* ── 시안 컨트롤 (오버레이 아님) ─────────────────── */
+  #controls {
+    height:52px; display:flex; align-items:center; gap:14px; padding:0 16px;
+    background:#161a26; border-bottom:1px solid #2a3147; font-size:13px;
+  }
+  #controls .tag { color:#8b93ad; font-weight:bold; }
+  #controls label { display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
+  #controls input { accent-color:#59d0ff; }
+
+  /* ── 1920x1080 스테이지 ──────────────────────────── */
+  #stageWrap { position:relative; width:100vw; height:calc(100vh - 52px); overflow:hidden; }
+  #stage {
+    position:absolute; top:0; left:50%; width:1920px; height:1080px;
+    transform-origin:top center;
+    background:
+      radial-gradient(ellipse at 50% 40%, #1c2233 0%, #10131d 55%, #0a0c12 100%);
+  }
+
+  /* 게임 UI 자리 표시 */
+  .game-inv-zone {
+    position:absolute; left:560px; top:250px; width:800px; height:560px;
+    border:2px dashed #3d4966; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    color:#5a6685; font-size:20px; line-height:1.7;
+  }
+
+  /* 공통 패널 */
+  .panel {
+    position:absolute; background:rgba(15,18,28,0.93);
+    border:1px solid #3b4663; border-radius:10px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.55);
+    font-size:14px;
+  }
+  .panel-head {
+    display:flex; align-items:center; gap:10px; padding:10px 14px;
+    border-bottom:1px solid #2a3147; cursor:move;
+  }
+  .panel-head .title { font-weight:bold; font-size:15px; color:#eaf0ff; }
+  .panel-head .hotkey {
+    font-size:11px; color:#59d0ff; border:1px solid #2c5a75;
+    border-radius:4px; padding:1px 6px; background:#132433;
+  }
+  .drag-hint { margin-left:auto; color:#4a5470; font-size:11px; }
+
+  /* ── 최적 배치 패널 ──────────────────────────────── */
+  #optimizer { left:24px; top:104px; width:404px; }
+  .opt-status {
+    display:flex; align-items:center; gap:10px; padding:10px 14px 0 14px;
+  }
+  .status-badge {
+    font-size:12px; padding:3px 10px; border-radius:12px;
+    background:#12301f; color:#5fdc94; border:1px solid #2b5c40;
+  }
+  .status-badge.calc { display:none; background:#33270f; color:#ffd75e; border-color:#6b5624; }
+  .stage-calc .status-badge.done { display:none; }
+  .stage-calc .status-badge.calc { display:inline-flex; align-items:center; gap:6px; }
+  .spinner {
+    width:11px; height:11px; border:2px solid #6b5624; border-top-color:#ffd75e;
+    border-radius:50%; animation:spin 0.9s linear infinite; display:inline-block;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .calc-btn {
+    margin-left:auto; background:#1d3a52; color:#8fdcff; border:1px solid #2c5a75;
+    border-radius:6px; padding:5px 12px; font-size:13px; cursor:pointer;
+  }
+  .calc-btn:hover { background:#25496a; }
+  .prev-note { display:none; padding:4px 14px 0; font-size:11px; color:#a08c4a; }
+  .stage-calc .prev-note { display:block; }
+
+  .mini-grid-wrap { padding:12px 14px 6px; }
+  .mini-grid {
+    display:grid; grid-template-columns:repeat(6, 58px); grid-template-rows:repeat(5, 58px);
+    gap:3px; justify-content:center;
+  }
+  .cell {
+    background:#181d2c; border:1px solid #262e45; border-radius:5px; position:relative;
+  }
+  .cell img {
+    width:100%; height:100%; object-fit:contain; image-rendering:pixelated; padding:5px;
+  }
+  .cell .lv {
+    position:absolute; right:2px; bottom:1px; font-size:12px; font-weight:bold;
+    color:#ffd75e; text-shadow:0 1px 2px #000, 0 0 4px #000;
+  }
+  .cell.tablet { background:#20263c; border-color:#3d4966; }
+  .cell.rot90 img { transform:rotate(90deg); }
+  .grid-caption { text-align:center; color:#5a6685; font-size:11px; padding:4px 0 8px; }
+
+  .opt-section { padding:8px 14px; border-top:1px solid #232a40; }
+  .opt-section .sec-title { font-size:12px; color:#8b93ad; margin-bottom:7px; }
+  .prio-row {
+    display:flex; align-items:center; gap:8px; background:#1a2032;
+    border:1px solid #2a3147; border-radius:6px; padding:5px 9px; margin-bottom:5px;
+    cursor:grab;
+  }
+  .prio-row .handle { color:#4a5470; font-size:14px; }
+  .prio-row img { width:24px; height:24px; image-rendering:pixelated; }
+  .prio-row .rank { color:#59d0ff; font-weight:bold; width:16px; }
+  .prio-row .x { margin-left:auto; color:#4a5470; cursor:pointer; font-size:13px; }
+  .add-combo {
+    width:100%; background:none; border:1px dashed #3b4663; color:#5a6685;
+    border-radius:6px; padding:5px; font-size:12px; cursor:pointer;
+  }
+  .seg { display:flex; border:1px solid #2c5a75; border-radius:6px; overflow:hidden; }
+  .seg div { flex:1; text-align:center; padding:7px 0; font-size:13px; color:#5a6685; cursor:pointer; }
+  .seg div.on { background:#1d3a52; color:#8fdcff; font-weight:bold; }
+
+  /* ── 빌드 브라우저 패널 ─────────────────────────── */
+  #builds { right:24px; top:104px; width:470px; height:840px; display:flex; flex-direction:column; }
+  .search-row { display:flex; gap:8px; padding:10px 14px 0; }
+  .search-row input {
+    flex:1; background:#181d2c; border:1px solid #2a3147; border-radius:6px;
+    color:#dde3f0; padding:7px 10px; font-size:13px;
+  }
+  .filter-row { display:flex; gap:8px; padding:8px 14px; font-size:12px; align-items:center; }
+  .filter-sel {
+    background:#181d2c; border:1px solid #2a3147; border-radius:6px;
+    color:#a9b2c9; padding:5px 9px; cursor:pointer;
+  }
+  .filter-chk { color:#8b93ad; display:flex; gap:4px; align-items:center; }
+
+  .build-list { flex:1; overflow-y:auto; padding:2px 14px 12px; }
+  .build-card {
+    background:#1a2032; border:1px solid #2a3147; border-radius:8px;
+    padding:10px 12px; margin-bottom:8px; cursor:pointer;
+  }
+  .build-card:hover { border-color:#3d5a80; }
+  .bc-title { font-size:14px; font-weight:bold; color:#eaf0ff; margin-bottom:5px; }
+  .bc-meta { display:flex; gap:10px; font-size:11px; color:#8b93ad; align-items:center; flex-wrap:wrap; }
+  .bc-chip { background:#232b42; border-radius:4px; padding:2px 7px; color:#a9b2c9; }
+  .bc-like { color:#ff7d9a; }
+
+  .build-detail { flex:1; overflow-y:auto; padding:10px 14px; display:none; }
+  .stage-detail .build-list, .stage-detail .search-row, .stage-detail .filter-row { display:none; }
+  .stage-detail .build-detail { display:block; }
+  .back-btn {
+    background:none; border:1px solid #2a3147; color:#8b93ad; border-radius:6px;
+    padding:4px 10px; font-size:12px; cursor:pointer; margin-bottom:10px;
+  }
+  .bd-title { font-size:16px; font-weight:bold; color:#eaf0ff; }
+  .bd-writer { font-size:12px; color:#8b93ad; margin:4px 0 10px; }
+  .chip-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .chip {
+    background:#232b42; border-radius:5px; padding:4px 9px; font-size:12px; color:#a9b2c9;
+  }
+  .chip b { color:#dde3f0; }
+  .combo-row { display:flex; gap:8px; margin-bottom:12px; }
+  .combo-badge {
+    display:flex; align-items:center; gap:6px; background:#1d3a52;
+    border:1px solid #2c5a75; border-radius:6px; padding:4px 10px; font-size:13px; color:#8fdcff;
+  }
+  .combo-badge img { width:22px; height:22px; image-rendering:pixelated; }
+  .stat-row { display:flex; gap:5px; margin-bottom:12px; }
+  .stat-box {
+    flex:1; background:#181d2c; border:1px solid #262e45; border-radius:6px;
+    text-align:center; padding:6px 0;
+  }
+  .stat-box .sn { font-size:10px; color:#5a6685; }
+  .stat-box .sv { font-size:15px; font-weight:bold; color:#ffd75e; }
+  .stat-box .sv.zero { color:#3d4966; }
+  .bd-desc {
+    background:#161b29; border:1px solid #232a40; border-radius:8px;
+    padding:10px 12px; font-size:13px; line-height:1.7; color:#b8c0d6;
+    max-height:170px; overflow-y:auto; margin-bottom:12px;
+  }
+  .item-section { margin-bottom:12px; }
+  .item-section .is-label { font-size:13px; font-weight:bold; color:#dde3f0; margin-bottom:6px; }
+  .icon-row { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:5px; }
+  .icon-row .it {
+    width:44px; height:44px; background:#181d2c; border:1px solid #262e45;
+    border-radius:5px; padding:4px;
+  }
+  .icon-row .it img { width:100%; height:100%; object-fit:contain; image-rendering:pixelated; }
+  .is-desc { font-size:12px; color:#7d869e; line-height:1.6; }
+
+  /* ── 팀원 패널 ──────────────────────────────────── */
+  #team { left:24px; top:712px; width:404px; display:none; }
+  .stage-team #team { display:block; }
+  .team-tabs { display:flex; gap:4px; padding:8px 14px 0; }
+  .team-tab {
+    padding:5px 14px; font-size:13px; color:#5a6685; background:#161b29;
+    border:1px solid #232a40; border-radius:6px 6px 0 0; cursor:pointer;
+  }
+  .team-tab.on { color:#8fdcff; background:#1d3a52; border-color:#2c5a75; font-weight:bold; }
+  .team-body { padding:10px 14px 12px; }
+  .team-meta { display:flex; gap:6px; margin-bottom:8px; align-items:center; flex-wrap:wrap; }
+  .team-grid {
+    display:grid; grid-template-columns:repeat(6, 44px); grid-template-rows:repeat(5, 44px);
+    gap:2px; justify-content:center;
+  }
+  .team-grid .cell .lv { font-size:10px; }
+  .team-grid .cell img { padding:3px; }
+
+  /* ── 상태/단축키 바 ─────────────────────────────── */
+  .ws-status {
+    position:absolute; right:24px; top:20px; font-size:13px; color:#5fdc94;
+    background:rgba(15,18,28,0.85); border:1px solid #2b5c40; border-radius:14px;
+    padding:5px 14px;
+  }
+  .hotkey-bar {
+    position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+    background:rgba(15,18,28,0.85); border:1px solid #2a3147; border-radius:16px;
+    padding:7px 18px; font-size:12px; color:#8b93ad; display:flex; gap:16px;
+  }
+  .hotkey-bar b { color:#8fdcff; font-weight:normal; }
+
+  .stage-noopt #optimizer { display:none; }
+  .stage-nobuilds #builds { display:none; }
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <span class="tag">📐 시안 컨트롤 (실제 오버레이 아님) —</span>
+  <label><input type="checkbox" id="ckOpt" checked> 최적배치 패널</label>
+  <label><input type="checkbox" id="ckBuilds" checked> 빌드 패널</label>
+  <label><input type="checkbox" id="ckDetail"> 빌드 상세보기</label>
+  <label><input type="checkbox" id="ckTeam"> 팀원 패널 (F1)</label>
+  <label><input type="checkbox" id="ckCalc"> 계산중 상태</label>
+</div>
+
+<div id="stageWrap"><div id="stage">
+
+  <div class="game-inv-zone">
+    게임 화면<br>
+    <b>V키 인벤토리 = 화면 중앙</b><br>
+    (오버레이 패널이 가리지 않는 영역)
+  </div>
+
+  <!-- ═══════════ ① 최적 배치 (Ctrl+D) ═══════════ -->
+  <div class="panel" id="optimizer">
+    <div class="panel-head">
+      <span class="title">⚡ 최적 배치</span>
+      <span class="hotkey">Ctrl+D</span>
+      <span class="drag-hint">드래그로 이동</span>
+    </div>
+    <div class="opt-status">
+      <span class="status-badge done">✓ 3분 전 계산 완료</span>
+      <span class="status-badge calc"><span class="spinner"></span> 계산 중… 42%</span>
+      <button class="calc-btn">▶ 다시 계산 <small>(Ctrl+R)</small></button>
+    </div>
+    <div class="prev-note">※ 아래 그리드는 직전 계산 결과입니다 — 완료되면 자동 갱신</div>
+    <div class="mini-grid-wrap">
+      <div class="mini-grid" id="optGrid"></div>
+      <div class="grid-caption">아이콘 = 목표 위치 · 노란 숫자 = 최종 강화수 · 석판은 아이콘 방향 = 회전 방향</div>
+    </div>
+    <div class="opt-section">
+      <div class="sec-title">콤보 우선순위 (드래그로 순위 변경)</div>
+      <div class="prio-row"><span class="handle">≡</span><span class="rank">1</span><img src="__COMBO_GUARDIAN__"><span>수호</span><span class="x">✕</span></div>
+      <div class="prio-row"><span class="handle">≡</span><span class="rank">2</span><img src="__COMBO_COMPANION__"><span>동료</span><span class="x">✕</span></div>
+      <div class="prio-row"><span class="handle">≡</span><span class="rank">3</span><img src="__COMBO_PRECISION__"><span>정밀</span><span class="x">✕</span></div>
+      <button class="add-combo">＋ 콤보 추가</button>
+    </div>
+    <div class="opt-section">
+      <div class="sec-title">강화 배분 모드</div>
+      <div class="seg">
+        <div class="on">콤보템 최대강화</div>
+        <div>균등 강화</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ② 빌드 브라우저 (Ctrl+B) ═══════════ -->
+  <div class="panel" id="builds">
+    <div class="panel-head">
+      <span class="title">📖 위키 빌드</span>
+      <span class="hotkey">Ctrl+B</span>
+      <span class="drag-hint">드래그로 이동</span>
+    </div>
+    <div class="search-row"><input placeholder="빌드 검색…"></div>
+    <div class="filter-row">
+      <span class="filter-sel">무기: 전체 ▾</span>
+      <span class="filter-sel">인기순 ▾</span>
+      <label class="filter-chk"><input type="checkbox" checked> 최신버전만</label>
+    </div>
+    <div class="build-list">
+      <div class="build-card bc-open">
+        <div class="bc-title">60단 원트클한 동료 빌드</div>
+        <div class="bc-meta"><span>Asher</span><span class="bc-chip">발리스타 소드</span><span class="bc-chip">장군</span><span class="bc-like">♥ 7</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">늑대의 유일한 활용처 : 재의 휘날림 빌드(개정판)</div>
+        <div class="bc-meta"><span>두덕리 농부</span><span class="bc-chip">재의 휘날림</span><span class="bc-chip">어쌔신</span><span class="bc-like">♥ 9</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">레이피어 먹구름(개정판)</div>
+        <div class="bc-meta"><span>두덕리 농부</span><span class="bc-chip">섬광의 레이피어</span><span class="bc-chip">기상학자</span><span class="bc-like">♥ 8</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">가장 쉬운 60 안정 클리어. 20기지 전격 차크람 - 플라즈마 덱</div>
+        <div class="bc-meta"><span>김범근</span><span class="bc-chip">바위검</span><span class="bc-chip">탐험가</span><span class="bc-like">♥ 1</span><span>v1.0.24 · 26.08.13</span></div>
+      </div>
+      <div class="build-card">
+        <div class="bc-title">(멀티용 탱커빌드) 절대 쓰러지지않는 선봉장 탱커 빌드</div>
+        <div class="bc-meta"><span>Maru</span><span class="bc-chip">바위검</span><span class="bc-chip">도박사</span><span class="bc-like">♥ 1</span><span>v1.0.24 · 26.08.11</span></div>
+      </div>
+    </div>
+    <div class="build-detail">
+      <button class="back-btn">← 목록으로</button>
+      <div class="bd-title">60단 원트클한 동료 빌드</div>
+      <div class="bd-writer">Asher · ♥ 7 · v1.0.24 · 26.08.13 (수정됨)</div>
+      <div class="chip-row">
+        <span class="chip">코스튬 <b>학자 도마뱀</b></span>
+        <span class="chip">무기 <b>발리스타 소드</b></span>
+        <span class="chip">기적 <b>장군 · 소원 분수</b></span>
+      </div>
+      <div class="combo-row">
+        <span class="combo-badge"><img src="__COMBO_COMPANION__">동료</span>
+        <span class="combo-badge"><img src="__COMBO_GUARDIAN__">수호</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="sn">기본</div><div class="sv">10</div></div>
+        <div class="stat-box"><div class="sn">의지</div><div class="sv">20</div></div>
+        <div class="stat-box"><div class="sn">분노</div><div class="sv zero">0</div></div>
+        <div class="stat-box"><div class="sn">신속</div><div class="sv zero">0</div></div>
+        <div class="stat-box"><div class="sn">지혜</div><div class="sv zero">0</div></div>
+        <div class="stat-box"><div class="sn">인내</div><div class="sv">20</div></div>
+        <div class="stat-box"><div class="sn">생존</div><div class="sv zero">0</div></div>
+      </div>
+      <div class="chip-row">
+        <span class="chip">🍡 과일꼬치: <b>동료 3 · 수호 2 · 적응 1</b></span>
+      </div>
+      <div class="bd-desc">
+        [주의] 딜 고점 빌드가 아닌, 하드모드 60단 안정적으로 깨기 위한 빌드입니다.<br><br>
+        하드모드 60단 원트클한 동료 빌드입니다. 손 편한 자동사냥 빌드 좋아해서 저단에서 동료 빌드 자주 썼는데,
+        60단에서도 쓸 수 없을까 고민하다 만들고 써봤는데 통하네요.<br><br>
+        고단에선 인내 20, 의지 20, 기지 10 쓰시면 되고, 저단에선 인내 20, 의지 20 쓰시면 됩니다.
+        목표 콤보는 동료 10 = 수호 10 &gt; 정밀 10 입니다.
+      </div>
+      <div class="item-section">
+        <div class="is-label">소원 분수</div>
+        <div class="icon-row">
+          <span class="it"><img src="__ICON_1202__" title="채굴 작업 총괄 완장"></span>
+          <span class="it"><img src="__ICON_1156__" title="유리 망치"></span>
+          <span class="it"><img src="__ICON_1227__" title="랜턴"></span>
+        </div>
+        <div class="is-desc">완장 덕에 초반이 무난해 후반을 위한 인장 쓰고, 생존에 더 집중하고 싶으시면 보호막 추천드려요.</div>
+      </div>
+      <div class="item-section">
+        <div class="is-label">목표 콤보: 동료 10 = 수호 10 &gt; 정밀 10</div>
+        <div class="icon-row">
+          <span class="it"><img src="__ICON_1030__"></span>
+          <span class="it"><img src="__ICON_1085__"></span>
+          <span class="it"><img src="__ICON_1152__"></span>
+          <span class="it"><img src="__ICON_1157__"></span>
+          <span class="it"><img src="__ICON_1159__"></span>
+          <span class="it"><img src="__ICON_1049__"></span>
+          <span class="it"><img src="__ICON_1111__"></span>
+          <span class="it"><img src="__ICON_1155__"></span>
+        </div>
+        <div class="is-desc">동료 및 수호 콤보 내 우선순위 높은 아티입니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ③ 팀원 패널 (F1) ═══════════ -->
+  <div class="panel" id="team">
+    <div class="panel-head">
+      <span class="title">👥 팀원 빌드</span>
+      <span class="hotkey">F1</span>
+      <span class="drag-hint">드래그로 이동</span>
+    </div>
+    <div class="team-tabs">
+      <span class="team-tab on">두덕리 농부</span>
+      <span class="team-tab">Asher</span>
+      <span class="team-tab">Maru</span>
+    </div>
+    <div class="team-body">
+      <div class="team-meta">
+        <span class="chip">무기 <b>재의 휘날림</b></span>
+        <span class="combo-badge"><img src="__COMBO_STURDY__">견고</span>
+        <span class="combo-badge"><img src="__COMBO_WINDSONG__">바람노래</span>
+      </div>
+      <div class="team-grid" id="teamGrid"></div>
+    </div>
+  </div>
+
+  <div class="ws-status">● 게임 연결됨 <small style="color:#4a7d5f">ws://localhost:5827</small></div>
+
+  <div class="hotkey-bar">
+    <span><b>Ctrl+D</b> 최적배치</span>
+    <span><b>Ctrl+B</b> 빌드</span>
+    <span><b>F1</b> 팀원</span>
+    <span><b>Shift+Tab</b> 풀오버레이</span>
+    <span><b>Ctrl+Shift+M</b> 미니맵</span>
+    <span><b>Esc</b> 닫기</span>
+  </div>
+
+</div></div>
+
+<script>
+// ── 아이콘 (빌드 스크립트가 데이터 URI 주입) ──
+const ICONS = {/*__ICONS_JS__*/};
+
+// ── 최적배치 미니 그리드: [x, y, iconKey, 최종강화수|null(=석판), 회전] ──
+const optItems = [
+  [0,0,'1098',2,0], [1,0,'1111',5,0], [2,0,'1156',3,0], [4,0,'2031',null,0],
+  [0,1,'1227',3,0], [1,1,'2029',null,0], [2,1,'1112',6,0], [3,1,'1155',4,0], [5,1,'1152',1,0],
+  [1,2,'1030',4,0], [2,2,'1085',3,0], [3,2,'2033',null,90], [4,2,'1157',5,0],
+  [3,3,'1159',2,0], [4,3,'1049',3,0],
+  [5,4,'1173',1,0]
+];
+const teamItems = [
+  [0,0,'1152',2,0], [1,0,'1085',4,0], [2,1,'2029',null,0], [1,1,'1156',3,0],
+  [3,1,'1157',5,0], [2,2,'1227',2,0], [4,2,'1111',3,0], [3,3,'2031',null,0], [4,3,'1049',2,0]
+];
+
+function renderGrid(elId, items, cols, rows) {
+  const grid = document.getElementById(elId);
+  const map = {};
+  items.forEach(function(it) { map[it[0] + ',' + it[1]] = it; });
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    const it = map[x + ',' + y];
+    if (it) {
+      const key = it[2], lv = it[3], rot = it[4];
+      if (lv === null) c.classList.add('tablet');
+      if (rot === 90) c.classList.add('rot90');
+      const img = document.createElement('img');
+      img.src = ICONS[key] || '';
+      c.appendChild(img);
+      if (lv !== null) {
+        const b = document.createElement('span');
+        b.className = 'lv'; b.textContent = lv;
+        c.appendChild(b);
+      }
+    }
+    grid.appendChild(c);
+  }
+}
+renderGrid('optGrid', optItems, 6, 5);
+renderGrid('teamGrid', teamItems, 6, 5);
+
+// ── 시안 컨트롤 토글 ──
+const stage = document.getElementById('stage');
+function bindToggle(id, cls, invert) {
+  document.getElementById(id).addEventListener('change', function(e) {
+    stage.classList.toggle(cls, invert ? !e.target.checked : e.target.checked);
+  });
+}
+bindToggle('ckOpt', 'stage-noopt', true);
+bindToggle('ckBuilds', 'stage-nobuilds', true);
+bindToggle('ckDetail', 'stage-detail', false);
+bindToggle('ckTeam', 'stage-team', false);
+bindToggle('ckCalc', 'stage-calc', false);
+document.querySelector('.bc-open').addEventListener('click', function() {
+  document.getElementById('ckDetail').checked = true;
+  stage.classList.add('stage-detail');
+});
+document.querySelector('.back-btn').addEventListener('click', function() {
+  document.getElementById('ckDetail').checked = false;
+  stage.classList.remove('stage-detail');
+});
+
+// ── 1920x1080 스테이지 스케일 ──
+function fit() {
+  const w = window.innerWidth, h = window.innerHeight - 52;
+  const s = Math.min(w / 1920, h / 1080);
+  stage.style.transform = 'translateX(-50%) scale(' + s + ')';
+}
+window.addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
