@@ -10,6 +10,12 @@ const log = require('./logger').create('main');
 process.on('uncaughtException', err => log.exception('uncaught', err));
 process.on('unhandledRejection', err => log.exception('unhandledRejection', err));
 
+// 플러그인의 자동 실행과 수동 실행이 겹쳐도 오버레이는 하나만 뜬다
+if (!app.requestSingleInstanceLock()) {
+  log.info('app', '이미 실행 중인 인스턴스가 있어 종료합니다');
+  app.quit();
+}
+
 // GPU 셰이더 디스크 캐시 로그 억제
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-http-cache');

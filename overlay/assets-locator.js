@@ -108,6 +108,15 @@ function locateAssets(appRoot, log) {
     return { dir: devAssets, source: 'dev', gameDir: null };
   }
 
+  // 2.5. 설치 배치: 게임 폴더 안 BepInEx/plugins/SephiriaTools/Overlay/ 에서
+  //      실행되면 플러그인 덤프가 바로 옆(../assets)에 있다. 레지스트리 조회 불필요.
+  try {
+    const installedAssets = path.join(path.dirname(process.execPath), '..', 'assets');
+    if (fs.existsSync(path.join(installedAssets, 'database.json'))) {
+      return { dir: installedAssets, source: 'installed', gameDir: null };
+    }
+  } catch { /* 방어 */ }
+
   // 3. 게임 폴더의 플러그인 덤프
   const gameDir = findGameDir(log);
   if (gameDir) {
