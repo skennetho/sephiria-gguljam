@@ -172,13 +172,20 @@ const PAGE_SIZE = 10;   // 위키 사이트와 동일
 ipcMain.handle('fetch-builds', async (_e, opts = {}) => {
   // 실측한 API 의미: like=asc 가 인기순(좋아요 많은 순), like=desc 가 최신순.
   // 이름과 반대라 헷갈리기 쉬우니 주의.
+  // 파라미터 구성은 사이트 번들의 조립 코드와 동일하게 맞췄다:
+  //   title=<검색어> + isWriter(true=작성자 검색, false=제목 검색),
+  //   costume/weapon/miracle/combo 는 슬러그.
   const params = new URLSearchParams({
     page: String(Math.max(1, opts.page || 1)),
     limit: String(PAGE_SIZE),
     like: opts.sort === 'latest' ? 'desc' : 'asc',
     isLatestVersion: opts.latestOnly ? 'true' : 'false',
+    isWriter: String(!!opts.isWriter),
   });
-  if (opts.weapon) params.set('weapon', opts.weapon);
+  if (opts.text) params.set('title', opts.text);
+  for (const k of ['costume', 'weapon', 'miracle', 'combo']) {
+    if (opts[k]) params.set(k, opts[k]);
+  }
 
   const url = `https://www.sephiria.wiki/api/builds?${params}`;
 

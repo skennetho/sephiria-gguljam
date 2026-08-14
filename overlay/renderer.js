@@ -48,6 +48,18 @@ function readJson(relPath) {
 let slugMap = null;
 try { slugMap = readJson(path.join('wiki', 'slugs.json')); } catch { /* 없으면 슬러그 그대로 표시 */ }
 
+// 위키 콤보 슬러그 -> 로컬 아이콘 키
+const WIKI_COMBO_KEY = {
+  yinggalbul: 'EMBER', ice_weapon: 'FROST', glacier: 'GLACIER',
+  magic_engineering: 'MAGITECH', shadow: 'SHADOW', guardian: 'GUARDIAN',
+  spring_song: 'WINDSONG', mystery: 'MYSTIC', planet: 'PLANET',
+  colleague: 'COMPANION', precision: 'PRECISION', extrium: 'DARKCLOUD',
+  firmness: 'STURDY', lake: 'LAKE', sun_sword: 'FLAMESWORD',
+  academy: 'ACADEMY', curse: 'CURSE', bargaining: 'SAVVY',
+  element: 'ELEMENTAL', alchemy: 'ALCHEMY'
+};
+
+
 // ── 상태 ──────────────────────────────────────────────
 let ws = null;
 let reconnectTimer = null;
@@ -85,6 +97,10 @@ let buildTab = 'all';           // all | fav
 let buildPage = 1;
 let buildTotal = 0;
 let buildPageSize = 10;
+
+// 상세검색 필터 (위키의 '빌드 검색하기' 다이얼로그와 동일한 항목)
+// text 는 isWriter 에 따라 작성자 검색 / 제목 검색으로 해석된다 (API: title + isWriter)
+let searchFilters = { text: '', isWriter: true, costume: '', weapon: '', miracle: '', combo: '' };
 
 // 즐겨찾기는 편의 기능이라 잃어버려도 상관없다. localStorage 로 충분하다.
 const FAV_KEY = 'sephiria.favBuilds';
@@ -734,20 +750,19 @@ async function loadBuilds() {
 
   const sort = document.getElementById('build-sort').value;
   const latestOnly = document.getElementById('build-latest-only').checked;
-  const weapon = document.getElementById('build-weapon').value;
 
   try {
     // 위키는 봇 UA 를 403 처리하므로 main 프로세스가 대신 받아온다.
     // 즐겨찾기가 아닌 목록은 항상 네트워크에서 최신을 가져온다 (연타 방지 캐시 60초).
     const r = await ipcRenderer.invoke('fetch-builds', {
-      page: buildPage, sort, latestOnly, weapon,
+      page: buildPage, sort, latestOnly, ...searchFilters,
     });
     builds = r.builds;
     buildTotal = r.total;
     buildPageSize = r.pageSize || 10;
     log.info('builds', '목록 수신', {
       개수: builds.length, 전체: buildTotal, page: buildPage,
-      sort, latestOnly, weapon: weapon || '전체',
+      sort, latestOnly, 필터: JSON.stringify(searchFilters),
     });
     renderBuildList();
   } catch (err) {
@@ -765,7 +780,12 @@ function renderPager() {
   const isFav = buildTab === 'fav';
   pager.classList.toggle('hidden', isFav);
   filters.classList.toggle('hidden', isFav);
-  if (isFav) return;
+  document.getElementById('adv-search').classList.add('hidden');
+  if (isFav) {
+    document.getElementById('active-filters').classList.add('hidden');
+    return;
+  }
+  renderActiveFilters();
 
   const totalPages = Math.max(1, Math.ceil(buildTotal / buildPageSize));
   document.getElementById('pager-info').textContent = `${buildPage} / ${totalPages}`;
@@ -773,22 +793,181 @@ function renderPager() {
   document.getElementById('pager-next').disabled = buildPage >= totalPages;
 }
 
-/** 무기 필터 목록을 위키 데이터로 채운다 (한글명 가나다순). */
-function populateWeaponFilter() {
-  const sel = document.getElementById('build-weapon');
-  const weapons = (slugMap && slugMap.weapons) || {};
-  const entries = Object.entries(weapons)
-    .sort((a, b) => a[1].localeCompare(b[1], 'ko'));
-  for (const [slug, kor] of entries) {
-    const opt = document.createElement('option');
-    opt.value = slug;
-    opt.textContent = kor;
-    sel.appendChild(opt);
+// ── 상세검색 ──────────────────────────────────────────
+//
+// 위키의 '빌드 검색하기' 다이얼로그와 같은 항목: 작성자/제목 검색어,
+// 코스튬·무기·기적·핵심 콤보. 선택기는 아이콘과 함께 보여준다.
+// 네이티브 <select> 는 아이콘을 못 넣으므로 직접 그린다 (필드 아래로 펼쳐지는 방식).
+
+// 핵심 콤보 API 값은 위키 슬러그다. 우리 콤보 id(아이콘 키) -> 위키 슬러그 역매핑.
+const COMBO_TO_WIKI = Object.fromEntries(
+  Object.entries(WIKI_COMBO_KEY).map(([slug, key]) => [key, slug]));
+
+/** 선택기 옵션 목록. value 는 API 로 보낼 값. */
+function pickerOptions(cat) {
+  if (cat === 'combo') {
+    return comboList.map(c => ({
+      value: COMBO_TO_WIKI[c.id] || c.id.toLowerCase(),
+      name: c.name,
+      icon: `${ASSETS}/combos/${c.id}.png`,
+    }));
   }
-  log.info('builds', '무기 필터 채움', { 개수: entries.length });
+  const entries = Object.entries((slugMap && slugMap[cat]) || {});
+  return entries
+    .map(([slug, kor]) => ({ value: slug, name: kor, icon: slugIcon(cat, slug) }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 }
 
-/** 인벤토리가 갱신될 때 상세 화면의 '보유 중' 표시만 제자리에서 바꾼다. */
+const PICKER_PLACEHOLDER = {
+  costume: '코스튬 선택', weapons: '무기 선택', miracle: '기적 선택', combo: '핵심 콤보 선택',
+};
+
+// 화면 표시용 선택 상태 (value -> {name, icon})
+const pickerSelection = {};
+
+function setupPicker(cat) {
+  const btn = document.getElementById(`picker-${cat}`);
+  const pop = document.getElementById(`pop-${cat}`);
+
+  btn.addEventListener('click', guard(`picker:${cat}`, () => {
+    const wasOpen = !pop.classList.contains('hidden');
+    // 다른 선택기는 닫는다
+    document.querySelectorAll('.picker-pop').forEach(el => el.classList.add('hidden'));
+    if (wasOpen) return;
+
+    renderPickerPop(cat, pop);
+    pop.classList.remove('hidden');
+  }));
+}
+
+function renderPickerPop(cat, pop) {
+  const options = pickerOptions(cat);
+  pop.innerHTML = '';
+
+  // 항목이 많으면(무기 158종) 이름 필터를 붙인다
+  let filterInput = null;
+  if (options.length > 30) {
+    filterInput = document.createElement('input');
+    filterInput.className = 'picker-filter';
+    filterInput.placeholder = '이름으로 찾기…';
+    pop.appendChild(filterInput);
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'picker-grid';
+  pop.appendChild(grid);
+
+  const renderTiles = q => {
+    grid.innerHTML = '';
+
+    const clear = document.createElement('div');
+    clear.className = 'picker-opt clear';
+    clear.textContent = '전체 (해제)';
+    clear.addEventListener('click', () => selectPickerValue(cat, null));
+    grid.appendChild(clear);
+
+    for (const opt of options) {
+      if (q && !opt.name.toLowerCase().includes(q)) continue;
+      const el = document.createElement('div');
+      el.className = 'picker-opt';
+      el.innerHTML = `<img src="${opt.icon}" onerror="this.style.visibility='hidden'"><span>${esc(opt.name)}</span>`;
+      el.addEventListener('click', () => selectPickerValue(cat, opt));
+      grid.appendChild(el);
+    }
+  };
+
+  renderTiles('');
+  if (filterInput) {
+    filterInput.addEventListener('input', () => renderTiles(filterInput.value.trim().toLowerCase()));
+    filterInput.focus();
+  }
+}
+
+function selectPickerValue(cat, opt) {
+  pickerSelection[cat] = opt;
+  const btn = document.getElementById(`picker-${cat}`);
+  if (opt) {
+    btn.innerHTML = `<img src="${opt.icon}" onerror="this.remove()"> ${esc(opt.name)}`;
+    btn.classList.add('picked');
+  } else {
+    btn.textContent = PICKER_PLACEHOLDER[cat];
+    btn.classList.remove('picked');
+  }
+  document.getElementById(`pop-${cat}`).classList.add('hidden');
+}
+
+function setupAdvSearch() {
+  const panel = document.getElementById('adv-search');
+
+  document.getElementById('btn-adv-search').addEventListener('click',
+    guard('adv:open', () => panel.classList.remove('hidden')));
+  document.getElementById('adv-close').addEventListener('click',
+    guard('adv:close', () => panel.classList.add('hidden')));
+
+  for (const cat of ['costume', 'weapons', 'miracle', 'combo']) setupPicker(cat);
+
+  document.getElementById('adv-reset').addEventListener('click', guard('adv:reset', () => {
+    document.getElementById('adv-text').value = '';
+    document.getElementById('adv-mode').value = 'writer';
+    for (const cat of ['costume', 'weapons', 'miracle', 'combo']) selectPickerValue(cat, null);
+  }));
+
+  document.getElementById('adv-apply').addEventListener('click', guard('adv:apply', () => {
+    searchFilters = {
+      text: document.getElementById('adv-text').value.trim(),
+      isWriter: document.getElementById('adv-mode').value === 'writer',
+      costume: pickerSelection.costume ? pickerSelection.costume.value : '',
+      weapon: pickerSelection.weapons ? pickerSelection.weapons.value : '',
+      miracle: pickerSelection.miracle ? pickerSelection.miracle.value : '',
+      combo: pickerSelection.combo ? pickerSelection.combo.value : '',
+    };
+    panel.classList.add('hidden');
+    buildPage = 1;
+    loadBuilds();
+    renderActiveFilters();
+  }));
+}
+
+/** 적용 중인 필터를 목록 위에 아이콘 칩으로 보여준다. ✕ 로 개별 해제. */
+function renderActiveFilters() {
+  const row = document.getElementById('active-filters');
+  row.innerHTML = '';
+
+  const chips = [];
+  if (searchFilters.text) {
+    chips.push({ key: 'text', label: `${searchFilters.isWriter ? '작성자' : '제목'}: ${searchFilters.text}` });
+  }
+  const catMap = { costume: 'costume', weapon: 'weapons', miracle: 'miracle', combo: 'combo' };
+  for (const [fkey, cat] of Object.entries(catMap)) {
+    const v = searchFilters[fkey];
+    if (!v) continue;
+    const sel = pickerSelection[cat];
+    chips.push({ key: fkey, label: sel ? sel.name : v, icon: sel ? sel.icon : null });
+  }
+
+  row.classList.toggle('hidden', chips.length === 0);
+
+  for (const chip of chips) {
+    const el = document.createElement('span');
+    el.className = 'filter-chip';
+    el.innerHTML =
+      (chip.icon ? `<img src="${chip.icon}" onerror="this.remove()">` : '') +
+      `${esc(chip.label)}<b class="chip-x">✕</b>`;
+    el.querySelector('.chip-x').addEventListener('click', guard('chip:remove', () => {
+      if (chip.key === 'text') searchFilters.text = '';
+      else {
+        searchFilters[chip.key] = '';
+        selectPickerValue(catMap[chip.key], null);
+      }
+      buildPage = 1;
+      loadBuilds();
+      renderActiveFilters();
+    }));
+    row.appendChild(el);
+  }
+}
+
+/** 인벤토리가 갱신될 때 상세 화면의 '보유 중' 표시만 제자리에서 바꾼다. *//** 인벤토리가 갱신될 때 상세 화면의 '보유 중' 표시만 제자리에서 바꾼다. */
 function updateOwnedMarks() {
   const view = document.getElementById('build-detail-view');
   if (view.classList.contains('hidden')) return;
@@ -980,16 +1159,7 @@ function renderBuildDetail(b) {
   }));
 }
 
-// 위키 콤보 슬러그 -> 로컬 아이콘 키
-const WIKI_COMBO_KEY = {
-  yinggalbul: 'EMBER', ice_weapon: 'FROST', glacier: 'GLACIER',
-  magic_engineering: 'MAGITECH', shadow: 'SHADOW', guardian: 'GUARDIAN',
-  spring_song: 'WINDSONG', mystery: 'MYSTIC', planet: 'PLANET',
-  colleague: 'COMPANION', precision: 'PRECISION', extrium: 'DARKCLOUD',
-  firmness: 'STURDY', lake: 'LAKE', sun_sword: 'FLAMESWORD',
-  academy: 'ACADEMY', curse: 'CURSE', bargaining: 'SAVVY',
-  element: 'ELEMENTAL', alchemy: 'ALCHEMY'
-};
+// (WIKI_COMBO_KEY 선언은 파일 상단으로 이동)
 function comboKeyFromWikiSlug(slug) {
   return WIKI_COMBO_KEY[slug] || String(slug || '').toUpperCase();
 }
@@ -1351,7 +1521,6 @@ function setupControls() {
   const restartSearch = guard('builds:option', () => { buildPage = 1; loadBuilds(); });
   document.getElementById('build-sort').addEventListener('change', restartSearch);
   document.getElementById('build-latest-only').addEventListener('change', restartSearch);
-  document.getElementById('build-weapon').addEventListener('change', restartSearch);
 
   document.getElementById('pager-prev').addEventListener('click', guard('pager', () => {
     if (buildPage > 1) { buildPage--; loadBuilds(); }
@@ -1360,5 +1529,5 @@ function setupControls() {
     buildPage++; loadBuilds();
   }));
 
-  populateWeaponFilter();
+  setupAdvSearch();
 }

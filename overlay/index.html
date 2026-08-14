@@ -62,12 +62,59 @@
       <span class="build-tab" data-tab="fav">⭐ 즐겨찾기 <span id="fav-count" class="tab-count">0</span></span>
     </div>
     <div class="filter-row" id="build-filters">
-      <select id="build-weapon" class="filter-sel"><option value="">무기: 전체</option></select>
+      <button id="btn-adv-search" class="adv-open-btn">🔍 상세검색</button>
       <select id="build-sort" class="filter-sel">
         <option value="like">인기순</option>
         <option value="latest">최신순</option>
       </select>
       <label class="filter-chk"><input type="checkbox" id="build-latest-only"> 최신버전만</label>
+    </div>
+    <div id="active-filters" class="active-filters hidden"></div>
+
+    <!-- 상세검색 패널 (위키의 '빌드 검색하기' 다이얼로그와 같은 구성) -->
+    <div id="adv-search" class="adv-search hidden">
+      <div class="adv-head">
+        <span class="adv-title">빌드 검색하기</span>
+        <span id="adv-close" class="adv-close">✕</span>
+      </div>
+      <div class="adv-sub">검색을 통해 원하는 빌드를 찾아보세요!</div>
+
+      <div class="adv-field">
+        <label>검색어</label>
+        <div class="adv-text-row">
+          <select id="adv-mode" class="filter-sel">
+            <option value="writer">작성자</option>
+            <option value="title">제목</option>
+          </select>
+          <input id="adv-text" placeholder="검색어 입력">
+        </div>
+      </div>
+
+      <div class="adv-field">
+        <label>코스튬</label>
+        <div class="picker-btn" id="picker-costume" data-cat="costume">코스튬 선택</div>
+        <div class="picker-pop hidden" id="pop-costume"></div>
+      </div>
+      <div class="adv-field">
+        <label>무기</label>
+        <div class="picker-btn" id="picker-weapons" data-cat="weapons">무기 선택</div>
+        <div class="picker-pop hidden" id="pop-weapons"></div>
+      </div>
+      <div class="adv-field">
+        <label>기적</label>
+        <div class="picker-btn" id="picker-miracle" data-cat="miracle">기적 선택</div>
+        <div class="picker-pop hidden" id="pop-miracle"></div>
+      </div>
+      <div class="adv-field">
+        <label>핵심 콤보</label>
+        <div class="picker-btn" id="picker-combo" data-cat="combo">핵심 콤보 선택</div>
+        <div class="picker-pop hidden" id="pop-combo"></div>
+      </div>
+
+      <div class="adv-actions">
+        <button id="adv-reset" class="pager-btn">⟲ 초기화</button>
+        <button id="adv-apply" class="calc-btn">빌드 검색하기</button>
+      </div>
     </div>
     <div id="build-list" class="build-list"><div class="empty">불러오는 중…</div></div>
     <div id="build-pager" class="build-pager">
