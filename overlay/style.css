@@ -561,3 +561,13 @@ html, body {
 }
 .calc-btn.apply:hover:not(:disabled) { background: #1a4029; }
 .calc-btn.apply .spinner { border-color: #2b5c40; border-top-color: #5fdc94; }
+
+
+/* 마법서: 책 위에 담긴 마법 아이콘을 겹쳐 그린다 (게임 UI 와 동일한 표현) */
+.magic-overlay {
+  position: absolute; inset: 0; margin: auto;
+  width: 68% !important; height: 68% !important;
+  object-fit: contain; image-rendering: pixelated;
+  padding: 0 !important; pointer-events: none;
+}
+.icon-row .it { position: relative; }

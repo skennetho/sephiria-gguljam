@@ -598,6 +598,15 @@ function renderGridInto(gridEl, snap) {
         img.onerror = () => { img.style.visibility = 'hidden'; };
         cell.appendChild(img);
 
+        // 마법서는 게임 UI 처럼 책 위에 담긴 마법의 아이콘을 겹쳐 그린다
+        if (db && db.magicIcon) {
+          const overlay = document.createElement('img');
+          overlay.className = 'magic-overlay';
+          overlay.src = `${ASSETS}/icons/${db.magicIcon}`;
+          overlay.onerror = () => overlay.remove();
+          cell.appendChild(overlay);
+        }
+
         if (!isTablet) {
           const lv = document.createElement('span');
           lv.className = 'lv';
@@ -1206,9 +1215,12 @@ function renderBuildDetail(b) {
       const src = local
         ? `${ASSETS}/icons/${local.id}.png`
         : `https://img.sephiria.wiki/artifacts/${it.value}.png`;
+      const magicOverlay = local && local.magicIcon
+        ? `<img class="magic-overlay" src="${ASSETS}/icons/${local.magicIcon}" onerror="this.remove()">`
+        : '';
       return `<span class="it${owned ? ' owned' : ''}" data-slug="${esc(it.value)}"` +
              `${local ? ` data-id="${local.id}"` : ''}>` +
-             `<img src="${src}"></span>`;
+             `<img src="${src}">${magicOverlay}</span>`;
     }).join('');
 
     return `<div class="item-section">` +

@@ -208,7 +208,7 @@ namespace SephiriaTools
             }
             sb.Append("]");
 
-            AppendPrefabDetails(sb, item);
+            AppendPrefabDetails(sb, item, iconsDir);
 
             sb.Append("}");
         }
@@ -217,7 +217,7 @@ namespace SephiriaTools
         /// resourcePrefab 에 붙은 Charm_Basic / StoneTablet 컴포넌트에서
         /// 최대 강화수·발동조건·석판 쿼리를 읽는다. 런타임 인스턴스가 없어도 된다.
         /// </summary>
-        private static void AppendPrefabDetails(StringBuilder sb, ItemEntity item)
+        private static void AppendPrefabDetails(StringBuilder sb, ItemEntity item, string iconsDir)
         {
             if (item.resourcePrefab == null) return;
 
@@ -232,6 +232,19 @@ namespace SephiriaTools
                     string criteria = charm.criteria != null ? charm.criteria.GetType().Name : null;
                     sb.Append($", \"criteria\": {(criteria == null ? "null" : "\"" + Esc(criteria) + "\"")}");
                     sb.Append($", \"isMagicBook\": {(charm is Charm_Magic ? "true" : "false")}");
+
+                    // 마법서는 게임 UI 처럼 책 위에 담긴 마법의 아이콘을 겹쳐 그려야 알아볼 수 있다.
+                    // 담긴 마법(ActiveSkillEntity)의 아이콘을 별도 파일로 내보낸다.
+                    var magic = charm as Charm_Magic;
+                    if (magic != null && magic.ContainedMagic != null && magic.ContainedMagic.icon != null)
+                    {
+                        string magicFile = item.id + "_magic.png";
+                        if (magic.ContainedMagic.icon.texture != null)
+                        {
+                            SaveSpriteToPNG(magic.ContainedMagic.icon, Path.Combine(iconsDir, magicFile));
+                        }
+                        sb.Append($", \"magicIcon\": \"{Esc(magicFile)}\"");
+                    }
                 }
 
                 var tablet = item.resourcePrefab.GetComponent<StoneTablet>();
