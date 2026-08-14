@@ -370,3 +370,74 @@ html, body {
 #panel-team .cell .lv { font-size: 10px; }
 #panel-team .cell img { padding: 3px; }
 .team-meta { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
+
+/* ── 상세 헤더 아이콘 (코스튬 / 무기 / 기적) ────────────── */
+.bd-icons { display: flex; gap: 10px; margin-bottom: 12px; }
+.bd-icon {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex: 1; min-width: 0;
+  background: #161b29; border: 1px solid #232a40; border-radius: 8px;
+  padding: 8px 4px;
+}
+.bd-icon img {
+  width: 44px; height: 44px; object-fit: contain; image-rendering: pixelated;
+}
+.bd-icon em {
+  font-style: normal; font-size: 11px; color: #dde3f0;
+  text-align: center; line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 100%;
+}
+.bd-icon small { font-size: 10px; color: #5a6685; }
+.bd-icon.missing img { display: none; }
+
+/* ── 과일꼬치 ───────────────────────────────────────────── */
+.skewer-row {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  background: #161b29; border: 1px solid #232a40; border-radius: 8px;
+  padding: 7px 10px; margin-bottom: 12px;
+}
+.skewer-label { font-size: 12px; color: #8b93ad; margin-right: 2px; }
+.skewer-item {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #232b42; border-radius: 5px; padding: 3px 8px;
+  font-size: 12px; color: #a9b2c9;
+}
+.skewer-item img { width: 16px; height: 16px; image-rendering: pixelated; }
+.skewer-item b { color: #ffd75e; font-weight: bold; }
+
+/* ── 아티팩트 호버 툴팁 ─────────────────────────────────── */
+.artifact-tooltip {
+  position: fixed; z-index: 9999; width: 300px;
+  background: rgba(12, 15, 24, 0.98);
+  border: 1px solid #3d5a80; border-radius: 8px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.7);
+  padding: 10px 12px; pointer-events: none;
+  font-size: 12px; line-height: 1.6;
+}
+.artifact-tooltip.hidden { display: none; }
+
+.tt-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.tt-icon {
+  width: 44px; height: 44px; object-fit: contain; image-rendering: pixelated;
+  background: #181d2c; border: 1px solid #262e45; border-radius: 6px; padding: 3px;
+  flex-shrink: 0;
+}
+.tt-name { font-size: 14px; font-weight: bold; color: #eaf0ff; }
+.tt-sub { font-size: 11px; color: #8b93ad; }
+.tt-owned { color: #5fdc94; }
+
+.tt-combos { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.tt-combo {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #1d3a52; border: 1px solid #2c5a75; border-radius: 5px;
+  padding: 2px 7px; font-size: 11px; color: #8fdcff;
+}
+.tt-combo img { width: 15px; height: 15px; image-rendering: pixelated; }
+
+.tt-effect {
+  color: #dde3f0; background: #161b29;
+  border-left: 2px solid #3d5a80; border-radius: 4px;
+  padding: 7px 9px; margin-bottom: 6px;
+}
+.tt-flavor { color: #6f7891; font-size: 11px; font-style: italic; }

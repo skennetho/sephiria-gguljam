@@ -846,8 +846,14 @@ function renderBuildDetail(b) {
   }).join('');
 
   const skewer = (b.fruit_skewer || [])
-    .map(f => `${esc(comboById(comboKeyFromWikiSlug(f.key))?.name || f.key)} ${f.value}`)
-    .join(' · ');
+    .map(f => {
+      const icon = skewerIcon(f.key);
+      const sign = f.value > 0 ? '+' : '';
+      return `<span class="skewer-item">` +
+             (icon ? `<img src="${icon}" onerror="this.remove()">` : '') +
+             `${esc(skewerName(f.key))} <b>${sign}${f.value}</b></span>`;
+    })
+    .join('');
 
   const sections = (b.content || []).map(sec => {
     const icons = (sec.items || []).map(it => {
@@ -857,7 +863,8 @@ function renderBuildDetail(b) {
       const src = local
         ? `${ASSETS}/icons/${local.id}.png`
         : `https://img.sephiria.wiki/artifacts/${it.value}.png`;
-      return `<span class="it${owned ? ' owned' : ''}" title="${esc(kor)}${owned ? ' (보유 중)' : ''}">` +
+      return `<span class="it${owned ? ' owned' : ''}" data-slug="${esc(it.value)}"` +
+             `${local ? ` data-id="${local.id}"` : ''}>` +
              `<img src="${src}"></span>`;
     }).join('');
 
@@ -868,18 +875,26 @@ function renderBuildDetail(b) {
            `</div>`;
   }).join('');
 
+  const headIcons = [
+    ['costume', b.costume, '코스튬'],
+    ['weapons', b.weapon, '무기'],
+    ['miracle', b.miracle, '기적'],
+  ].filter(([, slug]) => slug).map(([cat, slug, label]) =>
+    `<span class="bd-icon"><img src="${slugIcon(cat, slug)}" ` +
+    `onerror="this.parentNode.classList.add('missing');this.remove()">` +
+    `<em>${esc(slugName(cat, slug))}</em>` +
+    `<small>${esc(label)}</small></span>`
+  ).join('');
+
   view.innerHTML =
-    `<button class="back-btn">← 목록으로</button>` +
+    `<div class="bd-head"><button class="back-btn">← 목록으로</button>` +
+    `<span class="fav-btn detail${isFav(b) ? ' on' : ''}">${isFav(b) ? '★' : '☆'}</span></div>` +
     `<div class="bd-title">${esc(b.title)}</div>` +
     `<div class="bd-writer">${esc(b.writer?.nickname || '')} · ♥ ${b.postLike ?? 0} · v${esc(b.version || '')}</div>` +
-    `<div class="chip-row">` +
-      `<span class="chip">코스튬 <b>${esc(slugName('costume', b.costume))}</b></span>` +
-      `<span class="chip">무기 <b>${esc(slugName('weapons', b.weapon))}</b></span>` +
-      `<span class="chip">기적 <b>${esc(slugName('miracle', b.miracle))}</b></span>` +
-    `</div>` +
+    `<div class="bd-icons">${headIcons}</div>` +
     (combos ? `<div class="combo-row">${combos}</div>` : '') +
     `<div class="stat-row">${abilities}</div>` +
-    (skewer ? `<div class="chip-row"><span class="chip">🍡 과일꼬치: <b>${esc(skewer)}</b></span></div>` : '') +
+    (skewer ? `<div class="skewer-row"><span class="skewer-label">🍡 과일꼬치</span>${skewer}</div>` : '') +
     (b.description ? `<div class="bd-desc">${sanitize(b.description)}</div>` : '') +
     sections;
 
@@ -1003,6 +1018,128 @@ function renderTeam() {
   grid.className = 'mini-grid';
   renderGridInto(grid, m.inventory);
   body.appendChild(grid);
+}
+
+// ── 과일꼬치 ──────────────────────────────────────────
+//
+// key 는 대부분 콤보 슬러그지만, 콤보가 아닌 특수 항목도 섞여 있다.
+// adaptive_drop_bonus 는 게임의 과일꼬치 패널에 있는 '적응형 드롭 보너스' 토글이다
+// (Assembly-CSharp 의 UI_FruitSkewerPanel 에 [Header("Adaptive Item Drop Bonus")]).
+// 위키 빌드 50개 기준 가장 많이 쓰이는 항목이라 반드시 이름을 붙여야 한다.
+
+const SKEWER_SPECIAL = {
+  adaptive_drop_bonus: { name: '적응형 드롭 보너스', icon: 'special/adaptive_drop_bonus.png' },
+};
+
+function skewerName(key) {
+  const special = SKEWER_SPECIAL[key];
+  if (special) return special.name;
+  const combo = comboById(comboKeyFromWikiSlug(key));
+  return (combo && combo.name) || key;
+}
+
+function skewerIcon(key) {
+  const special = SKEWER_SPECIAL[key];
+  if (special) return `${ASSETS}/wiki/icons/${special.icon}`;
+  const combo = comboById(comboKeyFromWikiSlug(key));
+  return combo ? `${ASSETS}/combos/${combo.id}.png` : null;
+}
+
+// ── 아티팩트 호버 툴팁 ────────────────────────────────
+//
+// title 속성은 뜨는 데 1초 넘게 걸리고 줄바꿈도 안 된다.
+// 아이템 효과와 콤보 소속을 바로 보려면 직접 그리는 편이 낫다.
+
+let tooltipEl = null;
+
+function ensureTooltip() {
+  if (tooltipEl) return tooltipEl;
+  tooltipEl = document.createElement('div');
+  tooltipEl.id = 'artifact-tooltip';
+  tooltipEl.className = 'artifact-tooltip hidden';
+  document.body.appendChild(tooltipEl);
+  return tooltipEl;
+}
+
+/** 위키 아티팩트 레코드 (효과 설명·등급·콤보 소속) */
+let wikiArtifacts = null;
+function artifactInfo(slug, id) {
+  if (wikiArtifacts === null) {
+    try {
+      wikiArtifacts = readJson(path.join('wiki', 'wikidata.json')).data.artifacts || {};
+    } catch { wikiArtifacts = {}; }
+  }
+  const w = wikiArtifacts[slug] || null;
+  const g = id != null ? itemById(Number(id)) : null;
+  return { wiki: w, game: g };
+}
+
+function showTooltip(el) {
+  const { wiki, game } = artifactInfo(el.dataset.slug, el.dataset.id);
+  if (!wiki && !game) return;
+
+  const tip = ensureTooltip();
+  const name = (game && game.name) || (wiki && wiki.label_kor) || el.dataset.slug;
+  const owned = el.classList.contains('owned');
+
+  const cats = (game && game.categories) || [];
+  const comboRow = cats.map(c => {
+    const combo = comboById(c);
+    return `<span class="tt-combo"><img src="${ASSETS}/combos/${c}.png" ` +
+           `onerror="this.remove()">${esc((combo && combo.name) || c)}</span>`;
+  }).join('');
+
+  // 위키 효과 설명의 "a/b/c/d" 는 강화 단계별 수치다
+  const effect = wiki && wiki.effect && wiki.effect.content
+    ? esc(wiki.effect.content).replace(/\n/g, '<br>')
+    : '';
+
+  tip.innerHTML =
+    `<div class="tt-head">` +
+    `<img class="tt-icon" src="${el.querySelector('img') ? el.querySelector('img').src : ''}" ` +
+    `onerror="this.remove()">` +
+    `<div><div class="tt-name">${esc(name)}</div>` +
+    `<div class="tt-sub">${wiki && wiki.tier ? esc(wiki.tier) : ''}` +
+    `${game && game.maxLevel != null ? ` · 최대 ${game.maxLevel}강` : ''}` +
+    `${owned ? ' · <b class="tt-owned">보유 중</b>' : ''}</div></div></div>` +
+    (comboRow ? `<div class="tt-combos">${comboRow}</div>` : '') +
+    (effect ? `<div class="tt-effect">${effect}</div>` : '') +
+    (wiki && wiki.description ? `<div class="tt-flavor">${esc(wiki.description)}</div>` : '');
+
+  tip.classList.remove('hidden');
+  positionTooltip(tip, el);
+}
+
+function positionTooltip(tip, el) {
+  const r = el.getBoundingClientRect();
+  const t = tip.getBoundingClientRect();
+  const margin = 8;
+
+  // 기본은 왼쪽 (빌드 패널이 화면 오른쪽에 있으므로)
+  let left = r.left - t.width - margin;
+  if (left < margin) left = r.right + margin;
+
+  let top = r.top;
+  if (top + t.height > window.innerHeight - margin) {
+    top = window.innerHeight - t.height - margin;
+  }
+  if (top < margin) top = margin;
+
+  tip.style.left = `${Math.round(left)}px`;
+  tip.style.top = `${Math.round(top)}px`;
+}
+
+function hideTooltip() {
+  if (tooltipEl) tooltipEl.classList.add('hidden');
+}
+
+/** 상세 화면을 다시 그릴 때마다 호출한다. */
+function bindArtifactTooltips(root) {
+  hideTooltip();
+  root.querySelectorAll('.it[data-slug]').forEach(el => {
+    el.addEventListener('mouseenter', guard('tooltip', () => showTooltip(el)));
+    el.addEventListener('mouseleave', hideTooltip);
+  });
 }
 
 // ── 패널 토글 / 단축키 ────────────────────────────────
