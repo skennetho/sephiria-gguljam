@@ -28,7 +28,13 @@ SephiriaPlugin/
 │
 ├── overlay/                      # Electron 인게임 오버레이 (주 UI)
 │   ├── main.js                   # 투명 윈도우, 전역 단축키, 위키 API 프록시
-│   ├── renderer.js               # 패널 UI & WebSocket 연결
+│   ├── renderer.js               # 부트스트랩 (모듈 초기화 순서)
+│   ├── src/                      # 렌더러 모듈
+│   │   ├── gamedata.js           #   아이템 DB·슬러그/콤보 매핑
+│   │   ├── ws.js                 #   플러그인 연결 + 메시지 구독
+│   │   ├── optimizer-panel.js    #   최적배치 (새로고침·계산·반영)
+│   │   ├── builds-panel.js       #   위키 빌드 (검색·즐겨찾기·상세)
+│   │   ├── team-panel.js / grid.js / tooltip.js / shell.js / util.js
 │   ├── optimizer.js              # 배치 최적화 엔진 (탐색·점수 계산)
 │   ├── optimizer.test.js         # 엔진 단위 테스트 (게임 없이 실행)
 │   ├── logger.js                 # 메인/렌더러 공용 파일 로거
