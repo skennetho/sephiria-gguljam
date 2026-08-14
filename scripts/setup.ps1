@@ -127,8 +127,8 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Run the game (Sephiria)" -ForegroundColor White
-Write-Host "  2. Open dashboard\index.html in your browser (or run .\scripts\run_overlay.ps1)" -ForegroundColor White
-Write-Host "  3. The dashboard/overlay connects to ws://localhost:5827 automatically" -ForegroundColor White
+Write-Host "  2. The overlay launches automatically with the game" -ForegroundColor White
+Write-Host "     (dev overlay: cd overlay; npx electron .)" -ForegroundColor White
 Write-Host ""
 Write-Host "Tip: to export icons straight into this repo, set AssetsDir in" -ForegroundColor DarkGray
 Write-Host "     $GameDir\BepInEx\config\com.sephiria.tools.cfg to:" -ForegroundColor DarkGray

@@ -172,12 +172,6 @@ html, body {
  */
 #build-detail-view { display: block; min-height: 0; flex: 1; overflow-y: auto; }
 
-.search-row { display: flex; gap: 8px; padding: 10px 14px 0; }
-.search-row input {
-  flex: 1; background: #181d2c; border: 1px solid #2a3147;
-  border-radius: 6px; color: #dde3f0; padding: 7px 10px;
-  font-size: 13px; font-family: inherit;
-}
 .filter-row { display: flex; gap: 8px; padding: 8px 14px; font-size: 12px; align-items: center; }
 .filter-sel {
   background: #181d2c; border: 1px solid #2a3147; border-radius: 6px;

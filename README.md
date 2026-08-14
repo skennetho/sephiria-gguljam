@@ -34,13 +34,13 @@ SephiriaPlugin/
 │   ├── logger.js                 # 메인/렌더러 공용 파일 로거
 │   └── index.html / style.css
 │
-├── dashboard/                    # (구) 브라우저 대시보드 — 오버레이로 대체됨
 │
 ├── scripts/
-│   ├── setup.ps1                 # BepInEx 설치 + 플러그인 빌드/배포
-│   └── run_overlay.ps1           # 오버레이 런처
+│   ├── setup.ps1                 # (개발용) BepInEx 설치 + 플러그인 빌드/배포
+│   ├── fetch-wiki-data.mjs       # 위키 데이터 수집
+│   ├── build-release.mjs         # 배포 zip 생성
+│   └── release/                  # 설치기·런처·안내문 (배포판에 포함)
 │
-├── SephiriaTools.bat             # 게임 + 오버레이 원클릭 실행
 └── libs/                         # setup.ps1이 내려받는 BepInEx (git 미추적)
 ```
 
@@ -69,13 +69,10 @@ cd SephiriaPlugin
 .\scripts\setup.ps1
 ```
 
-### 2단계: Awakened PoE Trade 오버레이 실행
+### 2단계: 게임 실행
 
-PowerShell에서 실행:
-```powershell
-.\scripts\run_overlay.ps1
-```
-
+게임을 켜면 오버레이가 자동으로 함께 뜹니다.
+(개발 중 수동 실행: `cd overlay && npx electron .`)
 ### 3단계: 단축키 사용 가이드
 
 | 단축키 | 기능 설명 |
