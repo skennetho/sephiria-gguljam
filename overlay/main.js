@@ -2,6 +2,16 @@
 //
 // 투명 + 항상 위 + 클릭 통과 창을 게임 위에 띄운다.
 // 게임은 '테두리 없는 창' 모드여야 한다 (독점 전체화면 위에는 어떤 오버레이도 뜨지 못한다).
+//
+// ⚠ 창을 띄워두는 것 자체에 프레임 비용이 있다.
+// 테두리 없는 전체화면에서 윈도우는 게임 화면을 DWM 합성 없이 디스플레이로
+// 직접 내보내는 '독립 플립(independent flip)' 경로를 쓴다. 그런데 화면을 덮는
+// 항상-위 창이 하나라도 있으면 이 경로가 깨지고 매 프레임 합성을 거치게 되어
+// 프레임이 크게 떨어진다. (창모드에서는 원래 합성 경로라 체감 차이가 없다)
+//
+// 그래서 패널이 하나도 열려 있지 않을 때는 창을 아예 숨긴다. 전역 단축키는
+// 창과 무관하게 동작하므로, 사용자가 Ctrl+D 등을 누르는 순간 다시 보여주면 된다.
+// 게임 플레이 중(패널 닫힘)에는 오버레이가 프레임에 전혀 영향을 주지 않는다.
 
 const { app, BrowserWindow, globalShortcut, ipcMain, screen } = require('electron');
 const log = require('./logger').create('main');
@@ -41,9 +51,12 @@ function createWindow() {
     // 어차피 패널 밖은 클릭이 통과하므로, 포커스는 사용자가 패널을 클릭했을 때만 넘어온다.
     focusable: true,
     hasShadow: false,
+    // 숨어 있는 동안에도 인벤토리 구독을 계속 받아야 패널을 열었을 때 최신이다
+    show: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      backgroundThrottling: false,
     },
   });
 
@@ -65,6 +78,12 @@ function createWindow() {
 
   registerHotkeys();
   trackDisplay();
+
+  // 시작했다는 걸 알 수 있게 잠깐 보여준 뒤 숨는다
+  mainWindow.once('ready-to-show', () => {
+    showOverlay();
+    setTimeout(() => { if (!panelsOpen) hideOverlay(); }, 4000);
+  });
 
   mainWindow.on('closed', () => { mainWindow = null; });
 }
@@ -149,6 +168,34 @@ function trackDisplay() {
   screen.on('display-added', fit);
   screen.on('display-removed', fit);
 }
+
+// ── 창 표시 제어 ───────────────────────────────────────
+//
+// 패널이 열려 있을 때만 창을 띄운다. 위의 독립 플립 설명 참고.
+
+let panelsOpen = false;
+
+function showOverlay() {
+  if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isVisible()) return;
+  // show() 는 게임에서 포커스를 뺏는다. 오버레이는 포커스 없이 떠야 한다.
+  mainWindow.showInactive();
+  mainWindow.setAlwaysOnTop(true, 'screen-saver');
+  log.info('window', '오버레이 표시');
+  // 보여줄 때는 항상 통과 상태로 시작한다. 커서가 패널에 들어오면 renderer 가 푼다.
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+}
+
+function hideOverlay() {
+  if (!mainWindow || mainWindow.isDestroyed() || !mainWindow.isVisible()) return;
+  mainWindow.hide();
+  log.info('window', '오버레이 숨김 (게임 프레임 보호)');
+}
+
+/** 렌더러가 열린 패널 수가 0 <-> 1 로 바뀔 때만 알려준다 */
+ipcMain.on('panels-open', (_e, open) => {
+  panelsOpen = !!open;
+  if (open) showOverlay(); else hideOverlay();
+});
 
 // ── 위키 빌드 프록시 ───────────────────────────────────
 // 위키가 봇 UA 를 403 처리하고 렌더러에서는 CORS 에 막히므로 메인에서 받아온다.

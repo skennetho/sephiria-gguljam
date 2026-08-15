@@ -19,11 +19,18 @@ let openPanelCount = 0;
 let dragging = false;
 
 function refreshOpenPanelCount() {
+  const prev = openPanelCount;
   openPanelCount = Object.values(PANELS)
     .filter(id => {
       const el = document.getElementById(id);
       return el && !el.classList.contains('hidden');
     }).length;
+
+  // 열림/닫힘이 뒤바뀔 때만 알린다. main 이 이 신호로 창을 띄우고 숨긴다
+  // (열린 패널이 없으면 창을 숨겨야 게임이 독립 플립 경로를 유지한다).
+  if ((prev === 0) !== (openPanelCount === 0)) {
+    ipcRenderer.send('panels-open', openPanelCount > 0);
+  }
 }
 
 function togglePanel(name) {
