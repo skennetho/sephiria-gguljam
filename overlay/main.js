@@ -4,7 +4,6 @@
 // 게임은 '테두리 없는 창' 모드여야 한다 (독점 전체화면 위에는 어떤 오버레이도 뜨지 못한다).
 
 const { app, BrowserWindow, globalShortcut, ipcMain, screen } = require('electron');
-const { exec } = require('child_process');
 const log = require('./logger').create('main');
 
 process.on('uncaughtException', err => log.exception('uncaught', err));
@@ -21,8 +20,6 @@ app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-http-cache');
 
 let mainWindow = null;
-let gamePollTimer = null;
-let hasSeenGame = false;
 
 // ── 창 생성 ────────────────────────────────────────────
 
@@ -67,12 +64,9 @@ function createWindow() {
   log.info('window', '오버레이 창 생성', { w: bounds.width, h: bounds.height });
 
   registerHotkeys();
-  startGameTracking();
+  trackDisplay();
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-    if (gamePollTimer) clearInterval(gamePollTimer);
-  });
+  mainWindow.on('closed', () => { mainWindow = null; });
 }
 
 // ── 전역 단축키 ────────────────────────────────────────
@@ -107,53 +101,53 @@ function registerHotkeys() {
   else log.info('hotkey', '전체 등록 완료', Object.keys(binds).join(', '));
 }
 
-// ── 게임 창 추적 ───────────────────────────────────────
-// 게임 창 위치/크기에 오버레이를 맞추고, 게임이 종료되면 같이 종료한다.
-// PowerShell 을 매번 새로 띄우면 비싸므로 간격을 넉넉히 둔다.
+// ── 게임 종료 감지 ─────────────────────────────────────
+//
+// 예전에는 3초마다 PowerShell 을 띄워 게임 창 위치를 읽었다. 그런데 그
+// 스크립트는 Add-Type 으로 C# 을 매번 런타임 컴파일해서 1회 766ms 가 걸렸다
+// (분당 15초의 작업). 이게 게임 프레임이 주기적으로 튀는 원인이었다.
+//
+// 대신 플러그인 WebSocket 연결 상태를 쓴다. 플러그인은 게임 프로세스 안에서
+// 돌기 때문에, 연결이 살아 있으면 게임이 켜져 있다는 뜻이다. 비용은 0이다.
+//
+// 창 위치 추적도 없앴다. 오버레이는 '테두리 없는 창' 모드를 전제로 하므로
+// 게임 창 = 디스플레이 전체다. 디스플레이 구성이 바뀌면 그때만 다시 맞춘다.
 
-const PS_GET_RECT = `
-$p = Get-Process -Name "Sephiria" -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($p -and $p.MainWindowHandle -ne 0) {
-  $sig = '[DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r); public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }'
-  $t = Add-Type -MemberDefinition $sig -Name W -Namespace Win32 -PassThru
-  $r = New-Object Win32.W+RECT
-  [void]$t::GetWindowRect($p.MainWindowHandle, [ref]$r)
-  "RECT:$($r.Left),$($r.Top),$($r.Right - $r.Left),$($r.Bottom - $r.Top)"
-} else { "NOT_RUNNING" }
-`.replace(/\r?\n/g, ' ');
+const GAME_GONE_GRACE_MS = 15000;
 
-let lastRect = '';
+let sawGame = false;      // 한 번이라도 플러그인에 연결된 적이 있는가
+let goneTimer = null;
 
-function startGameTracking() {
-  if (gamePollTimer) clearInterval(gamePollTimer);
+/** 렌더러가 WS 연결 상태가 바뀔 때마다 알려준다 */
+ipcMain.on('ws-state', (_e, connected) => {
+  log.info('game', connected ? '플러그인 연결됨 (게임 실행 중)' : '플러그인 연결 끊김');
 
-  const poll = () => {
+  if (connected) {
+    sawGame = true;
+    if (goneTimer) { clearTimeout(goneTimer); goneTimer = null; }
+    return;
+  }
+
+  // 연결이 끊겼다. 잠깐의 끊김(플러그인 재시작 등)일 수 있으니 유예를 둔다.
+  if (!sawGame || goneTimer) return;
+  goneTimer = setTimeout(() => {
+    goneTimer = null;
+    log.info('game', '플러그인 연결이 끊긴 채 유지됨 — 게임이 종료된 것으로 보고 닫습니다');
+    app.quit();
+  }, GAME_GONE_GRACE_MS);
+});
+
+/** 디스플레이 구성이 바뀌면 창 크기를 다시 맞춘다 */
+function trackDisplay() {
+  const fit = () => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
-
-    exec(`powershell -NoProfile -NonInteractive -Command "${PS_GET_RECT}"`, (err, stdout) => {
-      if (err || !stdout) return;
-      const out = stdout.trim();
-
-      if (out.startsWith('RECT:')) {
-        hasSeenGame = true;
-        if (out === lastRect) return;   // 변화 없으면 아무것도 하지 않는다
-        lastRect = out;
-
-        const [x, y, w, h] = out.slice(5).split(',').map(Number);
-        if ([x, y, w, h].some(Number.isNaN) || w <= 0 || h <= 0) return;
-
-        log.info('game', '게임 창 위치 갱신', { x, y, w, h });
-        mainWindow.setBounds({ x, y, width: w, height: h });
-        mainWindow.webContents.send('game-bounds', { x, y, width: w, height: h });
-      } else if (out === 'NOT_RUNNING' && hasSeenGame) {
-        log.info('game', 'Sephiria 종료 감지 — 오버레이도 닫습니다');
-        app.quit();
-      }
-    });
+    const { bounds } = screen.getPrimaryDisplay();
+    mainWindow.setBounds(bounds);
+    log.info('display', '창 크기 재조정', bounds);
   };
-
-  poll();
-  gamePollTimer = setInterval(poll, 3000);
+  screen.on('display-metrics-changed', fit);
+  screen.on('display-added', fit);
+  screen.on('display-removed', fit);
 }
 
 // ── 위키 빌드 프록시 ───────────────────────────────────

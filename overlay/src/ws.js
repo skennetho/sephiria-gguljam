@@ -6,6 +6,7 @@
 
 'use strict';
 
+const { ipcRenderer } = require('electron');
 const { log } = require('./util');
 
 const WS_URL = 'ws://localhost:5827';
@@ -13,6 +14,17 @@ const WS_URL = 'ws://localhost:5827';
 let ws = null;
 let reconnectTimer = null;
 const handlers = new Map();   // type -> [fn, ...]
+
+/**
+ * 전체 파싱 없이 앞부분에서 "type" 값만 꺼낸다.
+ * 플러그인은 항상 type 을 첫 필드로 직렬화한다. 못 찾으면 null 을 돌려
+ * 호출부가 정상 파싱 경로를 타게 한다.
+ */
+function peekType(raw) {
+  if (typeof raw !== 'string') return null;
+  const m = /^\{"type":"([a-z_]+)"/.exec(raw);
+  return m ? m[1] : null;
+}
 
 /** 메시지 타입 구독 */
 function on(type, fn) {
@@ -57,6 +69,11 @@ function connect() {
   };
 
   ws.onmessage = ev => {
+    // 플러그인은 맵 정보도 0.3초마다 보내지만 지금은 구독자가 없다.
+    // 타입만 먼저 훑어보고, 아무도 안 듣는 메시지는 파싱조차 하지 않는다.
+    const type = peekType(ev.data);
+    if (type && !handlers.has(type)) return;
+
     let msg;
     try { msg = JSON.parse(ev.data); }
     catch { log.error('ws', '수신 JSON 파싱 실패', String(ev.data).slice(0, 120)); return; }
@@ -79,6 +96,9 @@ function scheduleReconnect() {
 }
 
 function setStatus(connected) {
+  // main 프로세스가 이 신호로 게임 종료를 판단한다 (프로세스 폴링 대체)
+  ipcRenderer.send('ws-state', connected);
+
   const el = document.getElementById('ws-status');
   el.classList.toggle('connected', connected);
   el.classList.toggle('disconnected', !connected);

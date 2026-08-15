@@ -11,10 +11,26 @@ const PANELS = {
   team: 'panel-team',
 };
 
+// 열린 패널 수. 0이면 마우스 통과 판정을 통째로 건너뛸 수 있다.
+let openPanelCount = 0;
+
+// 패널을 드래그하는 중에는 마우스 통과를 절대 켜면 안 된다.
+// 켜는 순간 mouseup 을 못 받아 패널이 커서에 붙어버린다.
+let dragging = false;
+
+function refreshOpenPanelCount() {
+  openPanelCount = Object.values(PANELS)
+    .filter(id => {
+      const el = document.getElementById(id);
+      return el && !el.classList.contains('hidden');
+    }).length;
+}
+
 function togglePanel(name) {
   const el = document.getElementById(PANELS[name]);
   if (!el) { log.error('panel', '패널 없음', name); return; }
   el.classList.toggle('hidden');
+  refreshOpenPanelCount();
   log.info('panel', el.classList.contains('hidden') ? `${name} 닫음` : `${name} 열음`);
 }
 
@@ -31,21 +47,41 @@ function init(deps) {
     document.getElementById('hotkey-bar').classList.toggle('hidden');
   });
 
+  refreshOpenPanelCount();
   setupMousePassthrough();
   setupPanelDragging();
 }
 
 // ── 마우스 통과 ───────────────────────────────────────
+//
 // 패널 위에 있을 때만 클릭을 받고, 나머지 영역은 게임으로 흘려보낸다.
+// 통과 모드에서도 마우스 '이동' 은 계속 전달받으므로(forward: true) 커서가
+// 패널에 들어온 순간을 감지할 수 있다. 다만 게임 플레이 중에는 초당 수백 번
+// 들어오는 이벤트라, 프레임당 한 번으로 묶고 열린 패널이 없으면 아예 건너뛴다.
 
 function setupMousePassthrough() {
   let ignoring = true;
+  let pending = null;   // rAF 예약
+
+  const apply = next => {
+    if (next === ignoring) return;
+    ignoring = next;
+    ipcRenderer.send('set-ignore-mouse-events', ignoring, { forward: true });
+  };
+
+  const evaluate = target => {
+    if (dragging) { apply(false); return; }
+    if (openPanelCount === 0) { apply(true); return; }
+    apply(!target.closest('.interactive-ui:not(.hidden)'));
+  };
 
   document.addEventListener('mousemove', e => {
-    const overUi = !!e.target.closest('.interactive-ui:not(.hidden)');
-    if (overUi === !ignoring) return; // 상태 변화 없음
-    ignoring = !overUi;
-    ipcRenderer.send('set-ignore-mouse-events', ignoring, { forward: true });
+    if (pending) return;
+    const target = e.target;
+    pending = requestAnimationFrame(() => {
+      pending = null;
+      evaluate(target);
+    });
   });
 }
 
@@ -54,7 +90,7 @@ function setupMousePassthrough() {
 function setupPanelDragging() {
   document.querySelectorAll('[data-drag]').forEach(handle => {
     const panel = handle.closest('.panel');
-    let startX, startY, originLeft, originTop, dragging = false;
+    let startX, startY, originLeft, originTop;
 
     handle.addEventListener('mousedown', e => {
       dragging = true;
@@ -76,9 +112,10 @@ function setupPanelDragging() {
       panel.style.left = `${originLeft + (e.screenX - startX)}px`;
       panel.style.top = `${originTop + (e.screenY - startY)}px`;
     });
-
-    window.addEventListener('mouseup', () => { dragging = false; });
   });
+
+  // 어느 패널을 끌었든 여기서 한 번에 푼다
+  window.addEventListener('mouseup', () => { dragging = false; });
 }
 
 module.exports = { init };
