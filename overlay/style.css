@@ -291,9 +291,13 @@ html, body {
   min-height: 160px; max-height: 45vh; overflow-y: auto;
   margin-bottom: 12px;
 }
-.bd-desc p { margin: 0 0 6px; }
-/* 위키 본문은 빈 <p></p> 로 빈 줄을 만든다 — 웹과 같은 간격으로 */
-.bd-desc p:empty { min-height: 1.2em; }
+/*
+ * 위키 본문은 한 줄이 <p> 하나다. 빈 줄은 <p><br></p> 로 들어온다.
+ * 그래서 <p> 에 margin 을 주면 안 된다 — 붙어 있어야 할 줄들이 벌어져
+ * 글쓴이가 의도한 문단 묶음이 사라진다. 간격은 빈 줄이 알아서 만든다.
+ * (참고: p:empty 규칙을 쓴 적이 있는데 빈 줄은 <br> 을 품고 있어 매칭조차 안 됐다)
+ */
+.bd-desc p { margin: 0; }
 .bd-desc ul { margin: 0 0 6px 16px; }
 .item-section { margin-bottom: 12px; }
 .item-section .is-label { font-size: 13px; font-weight: bold; color: #dde3f0; margin-bottom: 6px; }
@@ -602,3 +606,16 @@ html, body {
   animation: livePulse 2s ease-in-out infinite;
 }
 @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+
+/* 원본글 열기 버튼 */
+.open-web-btn {
+  background: #1a2032; color: #8b93ad;
+  border: 1px solid #2a3147; border-radius: 6px;
+  padding: 4px 10px; font-size: 12px; cursor: pointer;
+  font-family: inherit; margin-left: 8px;
+}
+.open-web-btn:hover { border-color: #3d5a80; color: #8fdcff; }
+
+/* 무기 아이콘 아래 파생 원본(1티어) 표기 */
+.bd-icon em .root { color: #8b93ad; font-weight: normal; }

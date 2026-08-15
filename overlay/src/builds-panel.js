@@ -5,7 +5,7 @@
 
 'use strict';
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 const { log, guard, esc, sanitize } = require('./util');
 const {
   ASSETS, itemByName, comboById, combos,
@@ -99,6 +99,11 @@ function saveFavorites() {
 
 function buildKey(b) {
   return b.postUuid || String(b.id);
+}
+
+/** 위키 원본글 주소. postUuid 가 없으면 열 수 없다. */
+function buildUrl(b) {
+  return b.postUuid ? `https://www.sephiria.wiki/builds/${b.postUuid}` : null;
 }
 
 function isFav(b) {
@@ -336,15 +341,25 @@ function renderBuildDetail(b) {
     ['costume', b.costume, '코스튬'],
     ['weapons', b.weapon, '무기'],
     ['miracle', b.miracle, '기적'],
-  ].filter(([, slug]) => slug).map(([cat, slug, label]) =>
-    `<span class="bd-icon"><img src="${slugIcon(cat, slug)}" ` +
-    `onerror="this.parentNode.classList.add('missing');this.remove()">` +
-    `<em>${esc(slugName(cat, slug))}</em>` +
-    `<small>${esc(label)}</small></span>`
-  ).join('');
+  ].filter(([, slug]) => slug).map(([cat, slug, label]) => {
+    // 무기는 3티어(최종) 이름만 보면 어느 계열인지 알 수 없다.
+    // 파생 원본인 1티어(기본 무기 6종)를 괄호로 덧붙인다.
+    let name = esc(slugName(cat, slug));
+    if (cat === 'weapons') {
+      const root = weaponRootOf(slug);
+      if (root && root !== slug) {
+        name += ` <span class="root">(${esc(slugName('weapons', root))})</span>`;
+      }
+    }
+    return `<span class="bd-icon"><img src="${slugIcon(cat, slug)}" ` +
+      `onerror="this.parentNode.classList.add('missing');this.remove()">` +
+      `<em>${name}</em>` +
+      `<small>${esc(label)}</small></span>`;
+  }).join('');
 
   view.innerHTML =
     `<div class="bd-head"><button class="back-btn">← 목록으로</button>` +
+    (buildUrl(b) ? `<button class="open-web-btn" title="위키 원본글을 브라우저로 엽니다">🔗 원본글</button>` : '') +
     `<span class="fav-btn detail${isFav(b) ? ' on' : ''}">${isFav(b) ? '★' : '☆'}</span></div>` +
     `<div class="bd-title">${esc(b.title)}</div>` +
     `<div class="bd-writer">${esc(b.writer?.nickname || '')} · ♥ ${b.postLike ?? 0} · v${esc(b.version || '')}</div>` +
@@ -366,6 +381,15 @@ function renderBuildDetail(b) {
     toggleFav(b);
     renderBuildDetail(b);   // 별 모양 갱신
   }));
+
+  const openBtn = view.querySelector('.open-web-btn');
+  if (openBtn) {
+    openBtn.addEventListener('click', guard('build:open', () => {
+      const url = buildUrl(b);
+      log.info('builds', '원본글 열기', url);
+      shell.openExternal(url);
+    }));
+  }
 
   tooltip.resetTooltip();
 }
