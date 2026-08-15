@@ -556,6 +556,21 @@ html, body {
 .calc-btn.apply:hover:not(:disabled) { background: #1a4029; }
 .calc-btn.apply .spinner { border-color: #2b5c40; border-top-color: #5fdc94; }
 
+/* 되돌리기 (Undo) 버튼 */
+.calc-btn.undo {
+  margin-left: 0;
+  background: #2a2035; color: #d4a5ff; border-color: #5e3b75;
+}
+.calc-btn.undo:hover:not(:disabled) { background: #3b2b4c; }
+.calc-btn.undo:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: #181b26;
+  color: #636b8a;
+  border-color: #232738;
+}
+.calc-btn.undo .spinner { border-color: #5e3b75; border-top-color: #d4a5ff; }
+
 
 /* 마법서: 책 위에 담긴 마법 아이콘을 겹쳐 그린다 (게임 UI 와 동일한 표현) */
 .magic-overlay {
@@ -565,3 +580,25 @@ html, body {
   padding: 0 !important; pointer-events: none;
 }
 .icon-row .it { position: relative; }
+
+/* 상세검색 필드 보조 설명 */
+.field-hint { font-weight: normal; font-size: 11px; color: #5a6685; }
+
+/* 격자 하단: 보기 모드 전환 + 설명 */
+.grid-foot { padding: 2px 0 8px; }
+.view-seg {
+  display: flex; gap: 0; margin: 0 auto 6px; width: fit-content;
+  border: 1px solid #2c5a75; border-radius: 6px; overflow: hidden;
+}
+.view-seg div {
+  padding: 4px 12px; font-size: 12px; color: #5a6685;
+  cursor: pointer; background: #161b29;
+}
+.view-seg div.on { background: #1d3a52; color: #8fdcff; font-weight: bold; }
+.view-seg div.disabled { opacity: 0.4; cursor: default; }
+.live-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: #5fdc94; margin-right: 4px; vertical-align: middle;
+  animation: livePulse 2s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }

@@ -5,9 +5,11 @@
 //  - optimize: 계산 (플러그인에 스냅샷 요청 -> 엔진 탐색)
 //  - apply:    반영 (계산 결과를 게임 인벤토리에 전송)
 //
-// inventory 는 플러그인이 계속 보내주는 최신 상태이고, displayed 는 격자에
-// 실제로 그려지는 스냅샷이다. 이 패널의 목적은 실시간 감시가 아니라
-// '목표 배치를 보고 따라하는 것'이라 새로고침/계산완료 때만 교체한다.
+// 격자에는 두 가지 보기 모드가 있다 (view-seg 토글):
+//  - current   : 게임 인벤토리를 실시간으로 따라간다 (플러그인이 500ms 마다 방송)
+//  - optimized : 계산 결과를 고정해서 보여준다. 배치를 따라하는 동안
+//                화면이 바뀌면 안 되므로 인벤토리 변화를 반영하지 않는다.
+// 계산이 끝나면 optimized 로 전환되고, 사용자가 언제든 토글로 되돌아올 수 있다.
 
 'use strict';
 
@@ -29,17 +31,51 @@ let optimizeErrorMsg = '';
 let calcSeq = 0;             // 재시작 시 옛 응답을 버리는 일련번호
 
 let lastSearch = null;       // { ctx, placement, rotations } — 반영하기가 쓴다
+let lastOptimizedLayout = null; // 계산 결과 격자 스냅샷 (보기 모드 토글용)
 let applyState = 'idle';     // idle | applying | error
 let applySeq = 0;
 let applyTimer = null;
 let applyErrorMsg = '';
 
-let pendingRefresh = null;   // { timer }
+let undoState = null;        // { moves, items, appliedAt } — 직전 반영을 되돌리기 위한 스냅샷
+let pendingUndoMoves = null; // 반영 요청 시점에 기록하는 직전 배치
+let pendingUndoItems = null; // 반영 요청 시점의 iid 목록
+let pendingApplyAction = 'apply'; // 'apply' | 'undo'
+
+let pendingRefresh = null;   // { timer, isPostActionSync }
 let refreshState = 'idle';   // idle | loading | error
 let refreshErrorMsg = '';
 
+// 실시간 모드에서 500ms 마다 DOM 을 새로 만들 필요는 없다.
+// 배치가 실제로 달라졌을 때만 다시 그린다.
+let lastGridSignature = '';
+
 let priority = [];           // 콤보 우선순위 (id 배열)
 let enhanceMode = 'combo';   // combo | even
+
+/**
+ * inventory_update 의 items 중 '격자에 놓인 것' 만 추린다.
+ *
+ * 인벤토리 스냅샷에는 포션 벨트(y = 100) 처럼 격자 밖 슬롯도 섞여 있다.
+ * 최적화 스냅샷(optimize_data)은 격자만 담으므로, 둘을 비교할 때는
+ * 반드시 같은 기준으로 맞춰야 한다. (되돌리기가 즉시 풀리던 원인)
+ */
+function gridItemsOf(snap) {
+  if (!snap || !snap.items) return [];
+  const w = snap.width || 6;
+  const storage = snap.storage || (w * (snap.height || 6));
+  return snap.items.filter(it =>
+    it.x >= 0 && it.x < w && it.y >= 0 && (it.y * w + it.x) < storage);
+}
+
+/** 되돌리기(Undo) 상태를 엄격하게 무효화한다 */
+function invalidateUndo(reason) {
+  if (undoState) {
+    undoState = null;
+    log.info('undo', '되돌리기 비활성화 (' + (reason || '상태 변경') + ')');
+    renderStatus();
+  }
+}
 
 /** 다른 모듈이 최신 인벤토리를 읽을 때 (빌드 패널의 보유 표시 등) */
 function currentInventory() {
@@ -51,6 +87,7 @@ function currentInventory() {
 function init() {
   renderPriority();
   renderGrid();
+  renderViewToggle();
 
   ws.on('inventory_update', onInventoryUpdate);
   ws.on('optimize_data', onOptimizeData);
@@ -58,16 +95,32 @@ function init() {
   ws.on('apply_result', onApplyResult);
 
   document.getElementById('btn-calc')
-    .addEventListener('click', guard('btn:calc', requestOptimize));
+    .addEventListener('click', guard('btn:calc', () => {
+      invalidateUndo('새 계산 클릭');
+      requestOptimize();
+    }));
 
   // 주의: 이 바인딩이 이전 리팩터링에서 유실된 적이 있다 (새로고침 버튼 무반응).
   document.getElementById('btn-refresh')
-    .addEventListener('click', guard('btn:refresh', requestRefresh));
+    .addEventListener('click', guard('btn:refresh', () => {
+      invalidateUndo('새로고침 클릭');
+      requestRefresh();
+    }));
 
   document.getElementById('btn-apply')
     .addEventListener('click', guard('btn:apply', requestApply));
 
+  document.getElementById('btn-undo')
+    .addEventListener('click', guard('btn:undo', requestUndo));
+
+  document.getElementById('view-seg').addEventListener('click', guard('view', e => {
+    const el = e.target.closest('div[data-view]');
+    if (!el || el.classList.contains('disabled')) return;
+    setViewMode(el.dataset.view);
+  }));
+
   document.getElementById('btn-add-combo').addEventListener('click', () => {
+    invalidateUndo('콤보 추가 클릭');
     const picker = document.getElementById('combo-picker');
     picker.classList.toggle('hidden');
     if (!picker.classList.contains('hidden')) renderComboPicker();
@@ -75,6 +128,7 @@ function init() {
 
   document.querySelectorAll('#mode-seg div').forEach(seg => {
     seg.addEventListener('click', () => {
+      invalidateUndo('강화 모드 변경');
       document.querySelectorAll('#mode-seg div').forEach(s => s.classList.remove('on'));
       seg.classList.add('on');
       enhanceMode = seg.dataset.mode;
@@ -99,15 +153,39 @@ function onInventoryUpdate(data) {
     });
   }
 
+  // 되돌리기(Undo) 유효성 검사: 격자 아이템 구성이 달라졌다면 무효화한다.
+  // 격자 밖 슬롯(포션 벨트 등)은 최적화 대상이 아니므로 비교에서 뺀다 —
+  // 예전엔 전체 items 와 비교해서 반영 직후 항상 풀렸다.
+  if (undoState && data && data.items) {
+    const curIids = new Set(gridItemsOf(data).map(it => it.instanceID || it.iid));
+    const match = undoState.items.length === curIids.size &&
+      undoState.items.every(id => curIids.has(id));
+    if (!match) {
+      invalidateUndo('격자 아이템 구성 변경 감지');
+    }
+  }
+
   // 새로고침을 기다리고 있었다면 지금 완료시킨다
   if (pendingRefresh) {
     clearTimeout(pendingRefresh.timer);
     pendingRefresh = null;
     applyRefresh();
     log.info('refresh', '완료 (서버 응답 수신)');
-  } else if (first && displayedKind === 'none') {
+    return;
+  }
+
+  if (first && displayedKind === 'none') {
     // 최초 1회는 자동으로 채워준다
     applyRefresh();
+    return;
+  }
+
+  // 실시간 모드: 게임에서 아이템을 옮기면 곧바로 격자에 반영된다.
+  // 계산 결과를 보는 중(optimized)이면 건드리지 않는다.
+  if (displayedKind === 'current') {
+    displayed = inventory;
+    renderGrid();
+    renderViewToggle();
   }
 }
 
@@ -117,6 +195,7 @@ function onOptimizeData(data) {
     log.info('optimize', '옛 스냅샷 무시', { 받음: data.seq, 현재: calcSeq });
     return;
   }
+  invalidateUndo('새 최적화 데이터 수신');
   runSearch(data);
 }
 
@@ -124,6 +203,7 @@ function onOptimizeError(data) {
   if (data && data.seq != null && data.seq !== calcSeq) return;
   optimizeState = 'error';
   optimizeErrorMsg = (data && data.message) || '계산 실패';
+  invalidateUndo('최적화 오류');
   log.error('optimize', '플러그인 오류', optimizeErrorMsg);
   renderStatus();
 }
@@ -133,14 +213,29 @@ function onApplyResult(data) {
   if (applyTimer) { clearTimeout(applyTimer); applyTimer = null; }
 
   if (data && data.ok) {
-    log.info('apply', '반영 완료', { 스왑: data.swaps, 회전: data.rotations });
+    if (pendingApplyAction === 'apply' && pendingUndoMoves) {
+      undoState = {
+        moves: pendingUndoMoves,
+        items: pendingUndoItems,
+        appliedAt: Date.now(),
+      };
+      log.info('apply', '반영 완료 — 되돌리기(Undo) 활성화', { 스왑: data.swaps, 회전: data.rotations });
+    } else if (pendingApplyAction === 'undo') {
+      undoState = null;
+      log.info('undo', '되돌리기 완료', { 스왑: data.swaps, 회전: data.rotations });
+    }
+    pendingUndoMoves = null;
+    pendingUndoItems = null;
     applyState = 'idle';
     // 반영 결과를 현재 배치로 다시 읽어와 확인시켜 준다
     requestRefresh();
   } else {
     applyState = 'error';
-    applyErrorMsg = (data && data.message) || '반영 실패';
-    log.error('apply', '반영 실패', applyErrorMsg);
+    applyErrorMsg = (data && data.message) || (pendingApplyAction === 'undo' ? '되돌리기 실패' : '반영 실패');
+    undoState = null;
+    pendingUndoMoves = null;
+    pendingUndoItems = null;
+    log.error('apply', '작업 실패', applyErrorMsg);
     renderStatus();
   }
 }
@@ -186,7 +281,9 @@ function runSearch(snap) {
 
     displayed = layoutFromSearch(ctx, best);
     displayedKind = 'optimized';
+    lastGridSignature = '';   // 모드가 바뀌었으니 다음 렌더를 강제한다
     lastSearch = { ctx, placement: best.placement, rotations: best.rotations };
+    lastOptimizedLayout = displayed;
     applyState = 'idle';
 
     lastOptimize = {
@@ -308,10 +405,12 @@ function applyRefresh() {
   displayed = inventory;
   displayedKind = 'current';
   refreshState = 'idle';
+  lastGridSignature = '';   // 모드 전환 직후엔 반드시 다시 그린다
 
   applyActiveCombosAsPriority();
   renderPriority();
   renderGrid();
+  renderViewToggle();
   renderStatus();
 
   log.info('refresh', '격자 갱신', {
@@ -388,8 +487,63 @@ function requestApply() {
     rot: it.kind === 'tablet' ? rotations[i] : 0,
   }));
 
+  // 직전 인벤토리 배치를 되돌리기(Undo)용으로 백업
+  pendingUndoMoves = ctx.items.map(it => ({
+    iid: it.iid,
+    idx: it.homeIdx,
+    rot: it.kind === 'tablet' ? it.rot : 0,
+  }));
+  pendingUndoItems = ctx.items.map(it => it.iid);
+  pendingApplyAction = 'apply';
+
   applySeq++;
   log.info('apply', '요청', { seq: applySeq, 아이템: moves.length });
+
+  const sent = ws.send({ type: 'apply', seq: applySeq, moves });
+  if (!sent) {
+    applyState = 'error';
+    applyErrorMsg = '게임에 연결되지 않았습니다';
+    pendingUndoMoves = null;
+    pendingUndoItems = null;
+    renderStatus();
+    return;
+  }
+
+  applyState = 'applying';
+  renderStatus();
+
+  applyTimer = setTimeout(() => {
+    applyTimer = null;
+    applyState = 'error';
+    applyErrorMsg = '응답이 없습니다 (게임 재시작 후 새 플러그인 필요할 수 있음)';
+    pendingUndoMoves = null;
+    pendingUndoItems = null;
+    log.error('apply', '타임아웃');
+    renderStatus();
+  }, 8000);
+}
+
+/**
+ * 직전 반영된 배치를 취소하고 이전 인벤토리 상태로 원복한다.
+ * 반영 직후에만 활성화되며, 1회 수행 후 즉시 소모된다.
+ */
+function requestUndo() {
+  if (!undoState || applyState === 'applying') {
+    log.warn('undo', '되돌릴 수 있는 상태가 아님');
+    return;
+  }
+
+  const moves = undoState.moves;
+  if (!moves || moves.length === 0) return;
+
+  // 되돌리기 상태 1회용 즉시 소모
+  undoState = null;
+  pendingUndoMoves = null;
+  pendingUndoItems = null;
+  pendingApplyAction = 'undo';
+
+  applySeq++;
+  log.info('undo', '되돌리기 요청', { seq: applySeq, 아이템: moves.length });
 
   const sent = ws.send({ type: 'apply', seq: applySeq, moves });
   if (!sent) {
@@ -405,8 +559,8 @@ function requestApply() {
   applyTimer = setTimeout(() => {
     applyTimer = null;
     applyState = 'error';
-    applyErrorMsg = '응답이 없습니다 (게임 재시작 후 새 플러그인 필요할 수 있음)';
-    log.error('apply', '타임아웃');
+    applyErrorMsg = '응답이 없습니다';
+    log.error('undo', '타임아웃');
     renderStatus();
   }, 8000);
 }
@@ -419,16 +573,68 @@ function renderGrid() {
 
   if (!displayed) {
     grid.style.gridTemplateColumns = '';
-    grid.innerHTML = '<div class="empty">게임에서 인벤토리를 연 뒤 새로고침을 누르세요</div>';
-    caption.textContent = '새로고침을 눌러 현재 인벤토리를 불러오세요';
+    grid.innerHTML = '<div class="empty">게임에서 인벤토리를 열면 자동으로 표시됩니다</div>';
+    caption.textContent = '인벤토리를 기다리는 중…';
+    lastGridSignature = '';
     return;
   }
 
-  caption.textContent = displayedKind === 'optimized'
-    ? '아이콘 = 목표 위치 · 노란 숫자 = 최종 강화수'
-    : '현재 배치 · 노란 숫자 = 현재 강화수';
+  if (displayedKind === 'optimized') {
+    caption.textContent = '아이콘 = 목표 위치 · 노란 숫자 = 최종 강화수';
+  } else {
+    caption.innerHTML = '<span class="live-dot"></span>실시간 · 노란 숫자 = 현재 강화수';
+  }
+
+  // 같은 배치를 500ms 마다 다시 그리지 않는다
+  const sig = gridSignature(displayed, displayedKind);
+  if (sig === lastGridSignature) return;
+  lastGridSignature = sig;
 
   renderGridInto(grid, displayed);
+}
+
+/** 격자 렌더 결과를 좌우하는 값만 모은 지문 */
+function gridSignature(snap, kind) {
+  const parts = [kind, snap.width, snap.storage];
+  for (const it of (snap.items || [])) {
+    parts.push(`${it.instanceID}:${it.x},${it.y}:${it.level}:${it.isActive ? 1 : 0}`);
+  }
+  return parts.join('|');
+}
+
+/** 보기 모드 토글의 활성/비활성 상태를 화면에 반영한다 */
+function renderViewToggle() {
+  const seg = document.getElementById('view-seg');
+  if (!seg) return;
+
+  const hasResult = !!lastSearch;
+  for (const el of seg.querySelectorAll('div')) {
+    const view = el.dataset.view;
+    el.classList.toggle('on', view === displayedKind);
+    // 계산 결과가 없으면 '계산 결과' 탭은 고를 수 없다
+    el.classList.toggle('disabled', view === 'optimized' && !hasResult);
+  }
+}
+
+/** 사용자가 보기 모드를 직접 바꿀 때 */
+function setViewMode(mode) {
+  if (mode === displayedKind) return;
+
+  if (mode === 'optimized') {
+    if (!lastSearch || !lastOptimizedLayout) return;
+    displayed = lastOptimizedLayout;
+    displayedKind = 'optimized';
+  } else {
+    if (!inventory) return;
+    displayed = inventory;
+    displayedKind = 'current';
+  }
+
+  lastGridSignature = '';
+  log.info('view', '보기 모드 전환', mode);
+  renderGrid();
+  renderViewToggle();
+  renderStatus();
 }
 
 function renderStatus() {
@@ -437,13 +643,14 @@ function renderStatus() {
   const btn = document.getElementById('btn-calc');
   const refreshBtn = document.getElementById('btn-refresh');
   const applyBtn = document.getElementById('btn-apply');
+  const undoBtn = document.getElementById('btn-undo');
 
   const CALC_LABEL = '▶ 계산 <small>(Ctrl+R)</small>';
 
   // 반영 버튼은 '계산 결과를 보고 있는 상태' 에서만 보인다
   const canApply = optimizeState === 'done' && lastSearch && displayedKind === 'optimized';
-  applyBtn.classList.toggle('hidden', !(canApply || applyState === 'applying'));
-  if (applyState === 'applying') {
+  applyBtn.classList.toggle('hidden', !(canApply || (applyState === 'applying' && pendingApplyAction === 'apply')));
+  if (applyState === 'applying' && pendingApplyAction === 'apply') {
     applyBtn.innerHTML = '<span class="spinner"></span> 반영 중';
     applyBtn.disabled = true;
   } else {
@@ -451,9 +658,20 @@ function renderStatus() {
     applyBtn.disabled = false;
   }
 
+  // 되돌리기 버튼: 직전 반영 성공 시에만 활성화 (엄격한 조건)
+  if (undoBtn) {
+    const canUndo = undoState !== null && applyState !== 'applying';
+    undoBtn.disabled = !canUndo;
+    if (applyState === 'applying' && pendingApplyAction === 'undo') {
+      undoBtn.innerHTML = '<span class="spinner"></span> 되돌리는 중';
+    } else {
+      undoBtn.innerHTML = '⤺ 되돌리기';
+    }
+  }
+
   if (applyState === 'error') {
     badge.className = 'status-badge error';
-    badge.textContent = applyErrorMsg || '반영 실패';
+    badge.textContent = applyErrorMsg || '작업 실패';
     note.classList.add('hidden');
     return;
   }
@@ -526,6 +744,7 @@ function renderPriority() {
 
     row.querySelector('.x').addEventListener('click', e => {
       e.stopPropagation();
+      invalidateUndo('콤보 우선순위 삭제');
       priority = priority.filter(p => p !== id);
       renderPriority();
     });
@@ -533,6 +752,7 @@ function renderPriority() {
     row.addEventListener('dragstart', () => row.classList.add('dragging'));
     row.addEventListener('dragend', () => {
       row.classList.remove('dragging');
+      invalidateUndo('콤보 우선순위 드래그 변경');
       priority = [...list.querySelectorAll('.prio-row')].map(r => r.dataset.id);
       renderPriority();
     });
@@ -572,6 +792,7 @@ function renderComboPicker() {
         `<img src="${ASSETS}/combos/${c.id}.png" onerror="this.style.visibility='hidden'">` +
         `<span>${c.name}</span>`;
       el.addEventListener('click', () => {
+        invalidateUndo('콤보 우선순위 추가');
         priority.push(c.id);
         picker.classList.add('hidden');
         renderPriority();

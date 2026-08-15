@@ -96,6 +96,10 @@ if (Test-Path (Join-Path $GameDir "winhttp.dll")) {
 $pluginDir = Join-Path $GameDir "BepInEx\plugins\SephiriaTools"
 New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
 Copy-Item (Join-Path $Here "plugin\SephiriaTools.dll") -Destination $pluginDir -Force
+if (Test-Path (Join-Path $Here "Uninstall.bat")) {
+    Copy-Item (Join-Path $Here "Uninstall.bat") -Destination $pluginDir -Force
+    Copy-Item (Join-Path $Here "uninstall.ps1") -Destination $pluginDir -Force
+}
 Write-Host "[OK] 플러그인 설치: $pluginDir" -ForegroundColor Green
 
 # ── 4. assets 시드 ────────────────────────────────────────────

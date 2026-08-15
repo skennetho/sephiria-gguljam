@@ -11,6 +11,7 @@ const {
   ASSETS, itemByName, comboById, combos,
   COMBO_TO_WIKI, comboKeyFromWikiSlug,
   slugName, slugIcon, slugCategories,
+  weaponsByTier, weaponRootOf,
   skewerName, skewerIcon, ABILITY_LABELS,
 } = require('./gamedata');
 const ws = require('./ws');
@@ -375,7 +376,13 @@ function renderBuildDetail(b) {
 // 코스튬·무기·기적·핵심 콤보. 선택기는 아이콘과 함께 보여준다.
 // 네이티브 <select> 는 아이콘을 못 넣으므로 직접 그린다 (필드 아래로 펼쳐지는 방식).
 
-/** 선택기 옵션 목록. value 는 API 로 보낼 값. */
+/**
+ * 선택기 옵션 목록. value 는 API 로 보낼 값.
+ *
+ * 무기는 두 단으로 나뉜다:
+ *  - weapons  = 1티어(무기 종류 6종). 이것만 골라도 충분히 좁혀진다.
+ *  - weapon3  = 3티어(최종 무기 102종). 종류를 골랐으면 그 계열만 보여준다.
+ */
 function pickerOptions(cat) {
   if (cat === 'combo') {
     return combos().map(c => ({
@@ -384,6 +391,19 @@ function pickerOptions(cat) {
       icon: `${ASSETS}/combos/${c.id}.png`,
     }));
   }
+
+  if (cat === 'weapons') {
+    return weaponsByTier(1)
+      .map(w => ({ value: w.value, name: w.name, icon: slugIcon('weapons', w.value) }));
+  }
+
+  if (cat === 'weapon3') {
+    const root = pickerSelection.weapons ? pickerSelection.weapons.value : null;
+    return weaponsByTier(3)
+      .filter(w => !root || weaponRootOf(w.value) === root)
+      .map(w => ({ value: w.value, name: w.name, icon: slugIcon('weapons', w.value) }));
+  }
+
   const entries = Object.entries(slugCategories(cat));
   return entries
     .map(([slug, kor]) => ({ value: slug, name: kor, icon: slugIcon(cat, slug) }))
@@ -391,8 +411,11 @@ function pickerOptions(cat) {
 }
 
 const PICKER_PLACEHOLDER = {
-  costume: '코스튬 선택', weapons: '무기 선택', miracle: '기적 선택', combo: '핵심 콤보 선택',
+  costume: '코스튬 선택', weapons: '무기 종류 선택', weapon3: '세부 무기 선택',
+  miracle: '기적 선택', combo: '핵심 콤보 선택',
 };
+
+const PICKER_CATS = ['costume', 'weapons', 'weapon3', 'miracle', 'combo'];
 
 // 화면 표시용 선택 상태 (cat -> {value, name, icon} | null)
 const pickerSelection = {};
@@ -457,6 +480,15 @@ function renderPickerPop(cat, pop) {
 
 function selectPickerValue(cat, opt) {
   pickerSelection[cat] = opt;
+
+  // 무기 종류를 바꾸면, 그 계열이 아닌 세부 무기 선택은 무효가 된다
+  if (cat === 'weapons') {
+    const sub = pickerSelection.weapon3;
+    const root = opt ? opt.value : null;
+    if (sub && root && weaponRootOf(sub.value) !== root) {
+      selectPickerValue('weapon3', null);
+    }
+  }
   const btn = document.getElementById(`picker-${cat}`);
   if (opt) {
     btn.innerHTML = `<img src="${opt.icon}" onerror="this.remove()"> ${esc(opt.name)}`;
@@ -476,12 +508,12 @@ function setupAdvSearch() {
   document.getElementById('adv-close').addEventListener('click',
     guard('adv:close', () => panel.classList.add('hidden')));
 
-  for (const cat of ['costume', 'weapons', 'miracle', 'combo']) setupPicker(cat);
+  for (const cat of PICKER_CATS) setupPicker(cat);
 
   document.getElementById('adv-reset').addEventListener('click', guard('adv:reset', () => {
     document.getElementById('adv-text').value = '';
     document.getElementById('adv-mode').value = 'writer';
-    for (const cat of ['costume', 'weapons', 'miracle', 'combo']) selectPickerValue(cat, null);
+    for (const cat of PICKER_CATS) selectPickerValue(cat, null);
   }));
 
   document.getElementById('adv-apply').addEventListener('click', guard('adv:apply', () => {
@@ -489,7 +521,9 @@ function setupAdvSearch() {
       text: document.getElementById('adv-text').value.trim(),
       isWriter: document.getElementById('adv-mode').value === 'writer',
       costume: pickerSelection.costume ? pickerSelection.costume.value : '',
-      weapon: pickerSelection.weapons ? pickerSelection.weapons.value : '',
+      // API 의 weapon= 은 티어를 가리지 않는다. 더 구체적인 세부 무기를 우선한다.
+      weapon: pickerSelection.weapon3 ? pickerSelection.weapon3.value
+            : pickerSelection.weapons ? pickerSelection.weapons.value : '',
       miracle: pickerSelection.miracle ? pickerSelection.miracle.value : '',
       combo: pickerSelection.combo ? pickerSelection.combo.value : '',
     };
@@ -513,7 +547,11 @@ function renderActiveFilters() {
   for (const [fkey, cat] of Object.entries(catMap)) {
     const v = searchFilters[fkey];
     if (!v) continue;
-    const sel = pickerSelection[cat];
+    // weapon 값은 종류(1티어) 또는 세부 무기(3티어) 중 하나에서 온다
+    const sel = fkey === 'weapon'
+      ? (pickerSelection.weapon3 && pickerSelection.weapon3.value === v
+          ? pickerSelection.weapon3 : pickerSelection.weapons)
+      : pickerSelection[cat];
     chips.push({ key: fkey, label: sel ? sel.name : v, icon: sel ? sel.icon : null });
   }
 
@@ -526,8 +564,13 @@ function renderActiveFilters() {
       (chip.icon ? `<img src="${chip.icon}" onerror="this.remove()">` : '') +
       `${esc(chip.label)}<b class="chip-x">✕</b>`;
     el.querySelector('.chip-x').addEventListener('click', guard('chip:remove', () => {
-      if (chip.key === 'text') searchFilters.text = '';
-      else {
+      if (chip.key === 'text') {
+        searchFilters.text = '';
+      } else if (chip.key === 'weapon') {
+        searchFilters.weapon = '';
+        selectPickerValue('weapon3', null);
+        selectPickerValue('weapons', null);
+      } else {
         searchFilters[chip.key] = '';
         selectPickerValue(catMap[chip.key], null);
       }

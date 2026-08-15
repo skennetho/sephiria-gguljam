@@ -25,12 +25,19 @@
     <button id="btn-refresh" class="calc-btn ghost" title="현재 인벤토리를 다시 읽어옵니다">⟳ 새로고침</button>
     <button id="btn-calc" class="calc-btn">▶ 계산 <small>(Ctrl+R)</small></button>
     <button id="btn-apply" class="calc-btn apply hidden" title="계산된 배치를 실제 인벤토리에 반영합니다">✔ 반영</button>
+    <button id="btn-undo" class="calc-btn undo" title="직전 반영을 취소하고 원래 배치로 되돌립니다" disabled>⤺ 되돌리기</button>
   </div>
   <div id="opt-stale-note" class="prev-note hidden">※ 아래는 직전 계산 결과입니다 — 완료되면 갱신됩니다</div>
 
   <div class="mini-grid-wrap">
     <div id="opt-grid" class="mini-grid"></div>
-    <div id="grid-caption" class="grid-caption">새로고침을 눌러 현재 인벤토리를 불러오세요</div>
+    <div class="grid-foot">
+      <div class="view-seg" id="view-seg">
+        <div data-view="current" class="on">👁 현재 인벤토리</div>
+        <div data-view="optimized" class="disabled">⚡ 계산 결과</div>
+      </div>
+      <div id="grid-caption" class="grid-caption">인벤토리를 기다리는 중…</div>
+    </div>
   </div>
 
   <div class="opt-section">
@@ -97,9 +104,14 @@
         <div class="picker-pop hidden" id="pop-costume"></div>
       </div>
       <div class="adv-field">
-        <label>무기</label>
-        <div class="picker-btn" id="picker-weapons" data-cat="weapons">무기 선택</div>
+        <label>무기 종류</label>
+        <div class="picker-btn" id="picker-weapons" data-cat="weapons">무기 종류 선택</div>
         <div class="picker-pop hidden" id="pop-weapons"></div>
+      </div>
+      <div class="adv-field">
+        <label>세부 무기 <span class="field-hint">(선택 — 종류보다 우선)</span></label>
+        <div class="picker-btn" id="picker-weapon3" data-cat="weapon3">세부 무기 선택</div>
+        <div class="picker-pop hidden" id="pop-weapon3"></div>
       </div>
       <div class="adv-field">
         <label>기적</label>

@@ -126,7 +126,7 @@ copyDir('assets', path.join(STAGE, 'assets-seed'), s => !s.endsWith('.bak'));
 
 step('설치기·런처·문서 복사');
 
-for (const f of ['install.ps1', 'Install.bat', 'Sephiria Tools.bat', 'README.txt']) {
+for (const f of ['install.ps1', 'Install.bat', 'uninstall.ps1', 'Uninstall.bat', 'Sephiria Tools.bat', 'README.txt']) {
   const src = path.join(ROOT, 'scripts', 'release', f);
   if (!fs.existsSync(src)) {
     console.error(`scripts/release/${f} 가 없습니다.`);

@@ -143,7 +143,7 @@ node scripts/build-release.mjs
 
 산출물: `dist/SephiriaTools-v<버전>.zip` (약 107MB). 버전은 `overlay/package.json` 의 `version`.
 
-zip 안에는 더블클릭 설치기(`Install.bat`)와 런처(`Sephiria Tools.bat`),
+zip 안에는 더블클릭 설치기(`Install.bat`)와 삭제기(`Uninstall.bat`), 런처(`Sephiria Tools.bat`),
 동봉 BepInEx, 플러그인 DLL, 초기 assets, 패키징된 오버레이가 들어간다.
 
 배포판의 assets 해석 순서 (`overlay/assets-locator.js`):

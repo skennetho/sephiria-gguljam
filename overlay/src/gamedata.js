@@ -97,9 +97,12 @@ function slugCategories(category) {
 }
 
 // 슬러그 -> 로컬 아이콘 경로 (assets/wiki/icons/<카테고리>/<슬러그>.png)
+let wikiData = null;
+try { wikiData = readJson(path.join('wiki', 'wikidata.json')).data; } catch { wikiData = null; }
+
 let wikiIcons = null;
 try {
-  const wd = readJson(path.join('wiki', 'wikidata.json')).data;
+  const wd = wikiData || {};
   wikiIcons = {};
   for (const [cat, items] of Object.entries(wd)) {
     wikiIcons[cat] = {};
@@ -117,6 +120,31 @@ function slugIcon(category, slug) {
   const local = wikiIcons && wikiIcons[category] && wikiIcons[category][slug];
   if (local) return local;
   return `https://img.sephiria.wiki/${category}/${slug}.png`;
+}
+
+// ── 무기 티어 ─────────────────────────────────────────
+//
+// 위키 무기는 3단 트리다: 1티어(무기 종류 6종) -> 2티어(50) -> 3티어(최종 102).
+// 검색 UI 는 두 단만 노출한다 — 종류(1티어)로 넓게 고르고, 필요하면
+// 세부 무기(3티어)로 좁힌다. 2티어는 중간 단계라 사용자에게 보여주지 않고
+// 부모 체인을 거슬러 올라갈 때만 쓴다. (실측: 3티어 102개 전부 체인 정상)
+// API 의 weapon= 은 1·2·3티어 슬러그를 모두 받는다.
+
+const weaponRecords = (wikiData && wikiData.weapons) || {};
+
+function weaponsByTier(tier) {
+  return Object.values(weaponRecords)
+    .filter(w => w.tier === tier)
+    .map(w => ({ value: w.value, name: w.label_kor, parent: w.parent }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+}
+
+/** 3티어 무기의 1티어(종류) 슬러그. 체인이 끊겼으면 null. */
+function weaponRootOf(slug) {
+  let cur = weaponRecords[slug];
+  let hops = 0;
+  while (cur && cur.tier !== 1 && hops++ < 5) cur = weaponRecords[cur.parent];
+  return cur && cur.tier === 1 ? cur.value : null;
 }
 
 // ── 과일꼬치 ──────────────────────────────────────────
@@ -174,6 +202,7 @@ module.exports = {
   loadItemDb, itemById, itemByName, comboById, combos,
   WIKI_COMBO_KEY, COMBO_TO_WIKI, comboKeyFromWikiSlug,
   slugName, slugIcon, slugCategories,
+  weaponsByTier, weaponRootOf,
   skewerName, skewerIcon,
   artifactInfo,
   RARITY_RANK, ABILITY_LABELS,

@@ -53,7 +53,10 @@
   - "게임 연결 끊김": 게임을 켠 뒤 잠시 기다리면 자동 재접속됩니다.
     계속되면 게임 폴더\BepInEx\LogOutput.log 를 확인하세요.
   - 오버레이 로그: 게임폴더\BepInEx\plugins\SephiriaTools\Overlay\overlay.log
-  - 제거: 게임 폴더에서 winhttp.dll, BepInEx 폴더 삭제
+■ 삭제 및 원복
+
+  Uninstall.bat 을 더블클릭하면 Sephiria Tools 가 삭제되고 게임이 원래 상태로 복원됩니다.
+  (수동 삭제: 게임 폴더에서 winhttp.dll 과 BepInEx 폴더 삭제)
 
 
 ■ 포함물 라이선스
