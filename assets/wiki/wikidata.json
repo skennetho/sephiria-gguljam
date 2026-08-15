@@ -1,6 +1,6 @@
 {
   "_source": "https://www.sephiria.wiki (scripts/fetch-wiki-data.mjs)",
-  "_generatedAt": "2026-08-14T09:28:49.182Z",
+  "_generatedAt": "2026-08-15T13:46:27.242Z",
   "_counts": {
     "artifacts": 267,
     "weapons": 158,
@@ -248,7 +248,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/endodits_questionnaire.png",
         "description": "양피지가 있으면 자동으로 펴주는 마법 도구.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/endodits_questionnaire.png"
       },
       "smoke_screen": {
         "id": 16,
@@ -1445,7 +1446,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/chakram.png",
         "description": "사탕수수 정도는 베어낼 수 있다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/chakram.png"
       },
       "gap": {
         "id": 94,
@@ -1667,7 +1669,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/flame_sword.png",
         "description": "정령의 환심을 사기 위해 비효율적으로 제작되었습니다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/flame_sword.png"
       },
       "waters": {
         "id": 108,
@@ -3952,7 +3955,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/plasma_helmet.png",
         "description": "착용자가 공포를 극복한다면, 막강한 힘을 휘두를 수 있습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/plasma_helmet.png"
       },
       "red_planet_observation_log": {
         "id": 253,
@@ -4191,7 +4195,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/tome_of_transmutation_lightning.png",
         "description": "소지자의 힘을 번개 속성으로 바꾸는 책, 처음의 무력감은 금방 사라집니다",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/tome_of_transmutation_lightning.png"
       },
       "tome_of_transmutation_ice": {
         "id": 269,
@@ -4204,7 +4209,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/tome_of_transmutation_ice.png",
         "description": "소지자의 힘을 얼음 속성으로 바꾸는 책, 처음의 무력감은 금방 사라집니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/tome_of_transmutation_ice.png"
       },
       "tome_of_transmutation_fire": {
         "id": 270,
@@ -4217,7 +4223,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/tome_of_transmutation_fire.png",
         "description": "소지자의 힘을 화염 속성으로 바꾸는 책, 처음의 무력감은 금방 사라집니다",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/tome_of_transmutation_fire.png"
       },
       "bento": {
         "id": 271,

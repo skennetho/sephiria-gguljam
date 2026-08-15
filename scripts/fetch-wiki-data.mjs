@@ -17,7 +17,7 @@
 // 결과물:  assets/wiki/wikidata.json
 
 import { writeFile, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -231,15 +231,27 @@ await writeFile(
 const ICON_DIR = join(OUT_DIR, 'icons');
 let downloaded = 0, skipped = 0, failed = 0;
 
-for (const [category, records] of Object.entries(data)) {
-  // 아티팩트 아이콘은 플러그인이 게임에서 직접 뽑으므로 받지 않는다
-  if (category === 'artifacts') continue;
+// 아티팩트는 원래 플러그인이 게임에서 직접 뽑아 쓴다 (실제 게임 애셋이라 더 낫다).
+// 다만 위키에는 있는데 플레이어의 게임 추출 DB(assets/database.json)엔 없는 항목이
+// 있다 — 아직 못 만나본 아이템이거나 최근 추가된 콘텐츠. 그런 항목은 오버레이가
+// 실행 중 위키 CDN 을 직접 히트하는데, 그마저 실패하면 깨진 아이콘으로 보인다.
+// 그래서 그 차집합만 위키에서 받아 로컬에 캐시해 안전망으로 둔다.
+let dbNames = new Set();
+try {
+  const db = JSON.parse(readFileSync(join(ROOT, 'assets', 'database.json'), 'utf8').replace(/^﻿/, ''));
+  dbNames = new Set((db.items || []).map(i => String(i.name || '').replace(/\s/g, '')));
+} catch { /* DB 없으면 전부 캐시 대상으로 취급 */ }
 
+for (const [category, records] of Object.entries(data)) {
   const dir = join(ICON_DIR, category);
   await mkdir(dir, { recursive: true });
 
   for (const rec of Object.values(records)) {
     if (!rec.image) continue;
+    // 아티팩트는 플레이어의 게임 DB에 이미 있는 항목이면 그쪽(실제 게임 애셋)을 쓴다
+    if (category === 'artifacts' && dbNames.has(String(rec.label_kor || '').replace(/\s/g, ''))) {
+      continue;
+    }
     const ext = (rec.image.match(/\.(png|webp|jpe?g)(?:$|\?)/i) || [, 'png'])[1];
     const dest = join(dir, `${rec.value}.${ext}`);
 

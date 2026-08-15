@@ -308,6 +308,8 @@ html, body {
 }
 .icon-row .it img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
 .icon-row .it.owned { border-color: #2b5c40; background: #12301f; }
+.icon-row .it.missing { display: flex; align-items: center; justify-content: center; }
+.icon-row .it.missing::after { content: '?'; color: #3d4966; font-size: 16px; }
 .is-desc {
   font-size: 12px; color: #7d869e; line-height: 1.6;
   /* API 가 주는 섹션 설명은 \n 이 든 일반 텍스트다 — 웹처럼 줄바꿈 유지 */
