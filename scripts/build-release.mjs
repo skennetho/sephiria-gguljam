@@ -58,8 +58,11 @@ function copyDir(src, dest, filter = () => true) {
 step('사전 점검');
 
 if (!fs.existsSync('libs/BepInEx/winhttp.dll')) {
-  console.error('libs/BepInEx 가 없습니다. scripts/setup.ps1 을 먼저 실행해 BepInEx 를 받아두세요.');
-  process.exit(1);
+  console.log('libs/BepInEx 가 없어 자동으로 BepInEx v5.4.23.2 를 다운로드합니다...');
+  fs.mkdirSync('libs/BepInEx', { recursive: true });
+  run(
+    'powershell -NoProfile -Command "Invoke-WebRequest -Uri https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.2/BepInEx_win_x64_5.4.23.2.zip -OutFile \'libs/BepInEx.zip\' -UseBasicParsing; Expand-Archive -Path \'libs/BepInEx.zip\' -DestinationPath \'libs/BepInEx\' -Force; Remove-Item \'libs/BepInEx.zip\'"'
+  );
 }
 if (!fs.existsSync('assets/database.json')) {
   console.error('assets/database.json 이 없습니다. 게임을 한 번 실행해 덤프를 만들어야 합니다.');
