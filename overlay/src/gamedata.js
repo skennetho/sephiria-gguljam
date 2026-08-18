@@ -43,15 +43,43 @@ function loadItemDb() {
   }
 }
 
+// ── 위키 슬러그 및 이름 매핑 ──────────────────────────
+
+const NAME_ALIASES = {
+  '엔도디토의문진': '엔도디트의문진',
+  '차크람': '전격차크람',
+  '플라즈마헬맷': '플라즈마헬멧',
+  '변환의서:화염': '변환의서:<tag=TEXT:Elemental_Fire>',
+  '변환의서:얼음': '변환의서:<tag=TEXT:Elemental_Ice>',
+  '변환의서:번개': '변환의서:<tag=TEXT:Elemental_Lightning>',
+};
+
+function normalizeName(name) {
+  if (!name) return '';
+  return String(name)
+    .replace(/<tag=TEXT:Elemental_Fire>/gi, '화염')
+    .replace(/<tag=TEXT:Elemental_Ice>/gi, '얼음')
+    .replace(/<tag=TEXT:Elemental_Lightning>/gi, '번개');
+}
+
 function itemById(id) {
-  return itemDb.items.find(i => i.id === id) || null;
+  const it = itemDb.items.find(i => i.id === id);
+  if (!it) return null;
+  return { ...it, displayName: normalizeName(it.name) };
 }
 
 /** 한글명(공백 무시)으로 게임 DB 아이템 찾기 — 위키 슬러그와의 매칭에 쓴다 */
 function itemByName(kor) {
-  const target = String(kor || '').replace(/\s/g, '');
+  let target = String(kor || '').replace(/\s/g, '');
   if (!target) return null;
-  return itemDb.items.find(i => (i.name || '').replace(/\s/g, '') === target) || null;
+  if (NAME_ALIASES[target]) target = NAME_ALIASES[target];
+
+  const it = itemDb.items.find(i => {
+    const dbName = (i.name || '').replace(/\s/g, '');
+    return dbName === target || normalizeName(dbName).replace(/\s/g, '') === target;
+  });
+  if (!it) return null;
+  return { ...it, displayName: normalizeName(it.name) };
 }
 
 function comboById(id) {
@@ -119,6 +147,8 @@ function slugIcon(category, slug) {
   if (!slug) return null;
   const local = wikiIcons && wikiIcons[category] && wikiIcons[category][slug];
   if (local) return local;
+  const rec = wikiData && wikiData[category] && wikiData[category][slug];
+  if (rec && rec.image) return rec.image;
   return `https://img.sephiria.wiki/${category}/${slug}.png`;
 }
 
@@ -147,6 +177,24 @@ function weaponRootOf(slug) {
   return cur && cur.tier === 1 ? cur.value : null;
 }
 
+function weaponByName(kor) {
+  const target = String(kor || '').replace(/\s/g, '');
+  if (!target) return null;
+  for (const w of Object.values(weaponRecords)) {
+    if ((w.label_kor || w.value_kor || '').replace(/\s/g, '') === target) return w;
+  }
+  return null;
+}
+
+function costumeByName(kor) {
+  const target = String(kor || '').replace(/\s/g, '');
+  if (!target) return null;
+  for (const c of Object.values((wikiData && wikiData.costume) || {})) {
+    if ((c.label_kor || '').replace(/\s/g, '') === target) return c;
+  }
+  return null;
+}
+
 // ── 과일꼬치 ──────────────────────────────────────────
 //
 // key 는 대부분 콤보 슬러그지만, 콤보가 아닌 특수 항목도 섞여 있다.
@@ -172,11 +220,50 @@ function skewerIcon(key) {
   return combo ? `${ASSETS}/combos/${combo.id}.png` : null;
 }
 
-// ── 위키 아티팩트 상세 (툴팁용) ───────────────────────
+// ── 엔티티 상세 (툴팁용: 아티팩트·무기·코스튬·기적) ─────────────
 
-let wikiArtifacts = null;
+/** 범용 엔티티 정보 (아티팩트/무기/코스튬/기적) */
+function entityInfo(category, slug, id, name) {
+  let cat = category || 'artifacts';
 
-/** 위키 아티팩트 레코드 (효과 설명·등급·콤보 소속) + 게임 DB 레코드 */
+  // 이름만 넘어왔을 때 슬러그 유추
+  if (!slug && name) {
+    if (cat === 'weapons') {
+      const w = weaponByName(name);
+      if (w) slug = w.value;
+    } else if (cat === 'costume') {
+      const c = costumeByName(name);
+      if (c) slug = c.value;
+    } else if (cat === 'artifacts') {
+      const g = itemByName(name);
+      if (g) id = g.id;
+    }
+  }
+
+  if (cat === 'artifacts') {
+    const w = (wikiData && wikiData.artifacts && wikiData.artifacts[slug]) || null;
+    const g = id != null ? itemById(Number(id)) : (slug ? itemByName(slugName('artifacts', slug)) : null);
+    return { category: 'artifacts', slug, wiki: w, game: g };
+  }
+
+  if (cat === 'weapons') {
+    const w = (wikiData && wikiData.weapons && wikiData.weapons[slug]) || (name ? weaponByName(name) : null);
+    return { category: 'weapons', slug: slug || (w && w.value), wiki: w, game: null };
+  }
+
+  if (cat === 'costume') {
+    const c = (wikiData && wikiData.costume && wikiData.costume[slug]) || (name ? costumeByName(name) : null);
+    return { category: 'costume', slug: slug || (c && c.value), wiki: c, game: null };
+  }
+
+  if (cat === 'miracle') {
+    const m = (wikiData && wikiData.miracle && wikiData.miracle[slug]) || null;
+    return { category: 'miracle', slug, wiki: m, game: null };
+  }
+
+  return { category: cat, slug, wiki: null, game: null };
+}
+
 function artifactInfo(slug, id) {
   if (wikiArtifacts === null) {
     try {

@@ -26,3 +26,7 @@ overlay/overlay.log*
 
 # 릴리스 산출물
 dist/
+
+# Scratch & 임시 파일
+scratch/
+node_modules/

@@ -450,15 +450,46 @@ html, body {
 }
 .tt-combo img { width: 15px; height: 15px; image-rendering: pixelated; }
 
+.tt-badge {
+  display: inline-block; padding: 1px 6px; border-radius: 4px;
+  font-size: 10px; font-weight: bold;
+}
+.tt-badge.tier    { background: #202b42; color: #a9b7db; border: 1px solid #334366; }
+.tt-badge.root    { background: #1b3542; color: #7ad1f5; border: 1px solid #2d5569; }
+.tt-badge.costume { background: #332338; color: #e5a4f7; border: 1px solid #573761; }
+.tt-badge.miracle { background: #3b2f1e; color: #f7d174; border: 1px solid #66502e; }
+
+.tt-unlock {
+  color: #ffd75e; background: rgba(255, 215, 94, 0.08);
+  border: 1px solid rgba(255, 215, 94, 0.25); border-radius: 4px;
+  padding: 4px 8px; margin-bottom: 6px; font-size: 11px;
+}
+
 .tt-effect {
   color: #dde3f0; background: #161b29;
   border-left: 2px solid #3d5a80; border-radius: 4px;
-  padding: 7px 9px; margin-bottom: 6px;
+  padding: 7px 9px; margin-bottom: 6px; font-size: 12px; line-height: 1.5;
 }
+.tt-weapon-effect { margin-bottom: 4px; }
+.tt-weapon-effect:last-child { margin-bottom: 0; }
+.tt-weapon-effect .kw, .tt-effect .kw { color: #ffd75e; font-weight: 600; }
+
+.tt-costume-effects { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; margin-bottom: 6px; }
+.tt-costume-pos {
+  color: #5fdc94; background: rgba(43, 92, 64, 0.3);
+  border-left: 2px solid #5fdc94; padding: 4px 8px; border-radius: 3px; font-size: 11px;
+}
+.tt-costume-neg {
+  color: #ff8a8a; background: rgba(107, 43, 43, 0.3);
+  border-left: 2px solid #ff8a8a; padding: 4px 8px; border-radius: 3px; font-size: 11px;
+}
+
 .tt-flavor {
   color: #6f7891; font-size: 11px; font-style: italic;
-  white-space: pre-line;
+  white-space: pre-line; margin-top: 4px;
 }
+
+.bc-icon, .bd-icon { cursor: pointer; }
 
 
 /* ── 빌드 목록 페이저 ───────────────────────────────────── */

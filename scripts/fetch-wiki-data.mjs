@@ -129,31 +129,36 @@ function extractRecords(flight) {
 }
 
 /**
- * flight 에 레코드가 없는 페이지(코스튬 등)를 위한 폴백.
- *
- * 마크업이 이런 모양이다:
- *   <img alt="pink_rabbit" src=".../costume/pink_rabbit.png"/>
- *   <div ...><div class="text-base">분홍 토끼</div>...
- * alt 는 슬러그라 쓸모가 없고, 뒤따르는 첫 한글 텍스트 노드가 이름이다.
+ * flight 에 레코드가 없는 페이지(코스튬 등)를 위한 카드 기반 파서.
  */
 function extractFromCards(html) {
+  const chunks = html.split('data-slot="card"');
   const out = [];
-  const re =
-    /<img\b[^>]*\bsrc="https:\/\/img\.sephiria\.wiki\/([^/]+)\/([^"?#]+?)\.(?:png|webp|jpe?g)"[^>]*>/g;
 
-  for (const m of html.matchAll(re)) {
-    const [tag, category, slug] = m;
-    // 이미지 뒤쪽 마크업에서 첫 한글 텍스트 노드를 찾는다
-    const tail = html.slice(m.index + tag.length, m.index + tag.length + 600);
-    const text = [...tail.matchAll(/>([^<>]+)</g)]
-      .map(t => t[1].trim())
-      .find(t => /[가-힣]/.test(t));
-    if (!text) continue;
-    out.push({
-      value: slug,
-      label_kor: text,
-      image: `https://img.sephiria.wiki/${category}/${slug}.png`,
-    });
+  for (let i = 1; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    const altMatch = chunk.match(/alt="([^"]+)"/);
+    const srcMatch = chunk.match(/src="([^"]+)"/);
+    const nameMatch = chunk.match(/<div[^>]*class="[^"]*text-base[^"]*">([^<]+)<\/div>/);
+    const unlockMatch = chunk.match(/<div[^>]*class="[^"]*opacity-50[^"]*">([^<]+)<\/div>/);
+    const descMatch = chunk.match(/<div[^>]*class="[^"]*opacity-60[^"]*">([^<]+)<\/div>/);
+
+    const greenEffects = [...chunk.matchAll(/<div[^>]*class="[^"]*text-green-500[^"]*">([^<]+)<\/div>/g)].map(e => e[1].trim());
+    const redEffects = [...chunk.matchAll(/<div[^>]*class="[^"]*text-red-500[^"]*">([^<]+)<\/div>/g)].map(e => e[1].trim());
+
+    if (altMatch && srcMatch && nameMatch) {
+      out.push({
+        value: altMatch[1],
+        label_kor: nameMatch[1].trim(),
+        image: srcMatch[1],
+        unlock: unlockMatch ? unlockMatch[1].trim() : '',
+        description: descMatch ? descMatch[1].trim() : '',
+        effects: {
+          positive: greenEffects,
+          negative: redEffects,
+        },
+      });
+    }
   }
   return out;
 }
@@ -225,22 +230,11 @@ await writeFile(
 );
 
 // ── 아이콘 내려받기 ────────────────────────────────────────
-// 오버레이가 오프라인에서도 뜨도록 CDN 이미지를 로컬에 캐시한다.
+// 오버레이가 오프라인에서도 뜨도록 CDN 이미지를 로컬에 100% 캐시한다.
 // 이미 있는 파일은 건너뛴다.
 
 const ICON_DIR = join(OUT_DIR, 'icons');
 let downloaded = 0, skipped = 0, failed = 0;
-
-// 아티팩트는 원래 플러그인이 게임에서 직접 뽑아 쓴다 (실제 게임 애셋이라 더 낫다).
-// 다만 위키에는 있는데 플레이어의 게임 추출 DB(assets/database.json)엔 없는 항목이
-// 있다 — 아직 못 만나본 아이템이거나 최근 추가된 콘텐츠. 그런 항목은 오버레이가
-// 실행 중 위키 CDN 을 직접 히트하는데, 그마저 실패하면 깨진 아이콘으로 보인다.
-// 그래서 그 차집합만 위키에서 받아 로컬에 캐시해 안전망으로 둔다.
-let dbNames = new Set();
-try {
-  const db = JSON.parse(readFileSync(join(ROOT, 'assets', 'database.json'), 'utf8').replace(/^﻿/, ''));
-  dbNames = new Set((db.items || []).map(i => String(i.name || '').replace(/\s/g, '')));
-} catch { /* DB 없으면 전부 캐시 대상으로 취급 */ }
 
 for (const [category, records] of Object.entries(data)) {
   const dir = join(ICON_DIR, category);
@@ -248,14 +242,14 @@ for (const [category, records] of Object.entries(data)) {
 
   for (const rec of Object.values(records)) {
     if (!rec.image) continue;
-    // 아티팩트는 플레이어의 게임 DB에 이미 있는 항목이면 그쪽(실제 게임 애셋)을 쓴다
-    if (category === 'artifacts' && dbNames.has(String(rec.label_kor || '').replace(/\s/g, ''))) {
-      continue;
-    }
     const ext = (rec.image.match(/\.(png|webp|jpe?g)(?:$|\?)/i) || [, 'png'])[1];
     const dest = join(dir, `${rec.value}.${ext}`);
 
-    if (existsSync(dest)) { skipped++; continue; }
+    if (existsSync(dest)) {
+      rec.localIcon = `${category}/${rec.value}.${ext}`;
+      skipped++;
+      continue;
+    }
 
     try {
       const res = await fetch(rec.image, { headers: { 'User-Agent': UA } });

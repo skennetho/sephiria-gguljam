@@ -19,9 +19,10 @@ namespace SephiriaTools
         private readonly SimpleWebSocketServer _server;
         private float _lastUpdateTime;
         private float _lastMapUpdateTime;
+        private float _lastTeamUpdateTime;
         private const float UPDATE_INTERVAL = 0.5f;
         private const float MAP_UPDATE_INTERVAL = 0.3f;
-
+        private const float TEAM_UPDATE_INTERVAL = 0.5f;
 
         private GridInventory _cachedInventory;
         private PlayerAvatar _cachedPlayer;
@@ -96,6 +97,25 @@ namespace SephiriaTools
                     Plugin.Log.LogError($"DataCollector Map Update error: {ex.Message}");
                 }
             }
+
+            // Real-time Multiplayer Team update
+            if (Time.time - _lastTeamUpdateTime >= TEAM_UPDATE_INTERVAL)
+            {
+                _lastTeamUpdateTime = Time.time;
+                try
+                {
+                    var teamSnapshot = CollectTeamSnapshot();
+                    if (teamSnapshot != null)
+                    {
+                        string json = JsonHelper.ToJson(teamSnapshot);
+                        _server.Broadcast(json);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Plugin.Log.LogError($"DataCollector Team Update error: {ex.Message}");
+                }
+            }
         }
 
         private void TriggerResourceExport()
@@ -106,9 +126,29 @@ namespace SephiriaTools
 
         private void EnsurePlayerReference()
         {
-            if (_cachedPlayer == null)
+            var allAvatars = UnityEngine.Object.FindObjectsByType<PlayerAvatar>(FindObjectsSortMode.None);
+            PlayerAvatar localAvatar = null;
+
+            if (allAvatars != null && allAvatars.Length > 0)
             {
-                _cachedPlayer = UnityEngine.Object.FindAnyObjectByType<PlayerAvatar>();
+                foreach (var av in allAvatars)
+                {
+                    if (av != null && av.isLocalPlayer)
+                    {
+                        localAvatar = av;
+                        break;
+                    }
+                }
+                if (localAvatar == null)
+                {
+                    localAvatar = allAvatars[0];
+                }
+            }
+
+            if (_cachedPlayer != localAvatar)
+            {
+                _cachedPlayer = localAvatar;
+                _cachedInventory = null;
             }
 
             if (_cachedPlayer != null && _cachedInventory == null)
@@ -251,26 +291,34 @@ namespace SephiriaTools
         private InventorySnapshot CollectSnapshot()
         {
             if (_cachedInventory == null) return null;
-
-            var data = new InventoryData
-            {
-                width = _cachedInventory.Width,
-                height = _cachedInventory.Height,
-                storage = _cachedInventory.CurrentInventoryStorage,
-                currentScore = GetCurrentScore()
-            };
-
-            CollectItems(data);
-            CollectSetEffects(data);
-
+            var data = CollectInventoryData(_cachedInventory);
+            if (data == null) return null;
             return new InventorySnapshot { data = data };
         }
 
-        private void CollectItems(InventoryData data)
+        private InventoryData CollectInventoryData(GridInventory inv)
+        {
+            if (inv == null) return null;
+
+            var data = new InventoryData
+            {
+                width = inv.Width,
+                height = inv.Height,
+                storage = inv.CurrentInventoryStorage,
+                currentScore = (inv == _cachedInventory) ? GetCurrentScore() : 0f
+            };
+
+            CollectItems(inv, data);
+            CollectSetEffects(inv, data);
+
+            return data;
+        }
+
+        private void CollectItems(GridInventory inv, InventoryData data)
         {
             try
             {
-                var matrix = _cachedInventory.inventoryMatrix;
+                var matrix = inv.inventoryMatrix;
                 if (matrix == null) return;
 
                 foreach (var kvp in matrix)
@@ -289,7 +337,7 @@ namespace SephiriaTools
                         name = GetItemName(item),
                         x = pos.x,
                         y = pos.y,
-                        level = GetItemLevel(pos),
+                        level = GetItemLevel(inv, pos),
                         maxLevel = charm != null ? charm.maxLevel : 0,
                         category = entity != null ? entity.type.ToString() : "Unknown",
                         color = GetItemColor(item),
@@ -309,11 +357,11 @@ namespace SephiriaTools
             }
         }
 
-        private void CollectSetEffects(InventoryData data)
+        private void CollectSetEffects(GridInventory inv, InventoryData data)
         {
             try
             {
-                var setEffectCount = _cachedInventory.currentSetEffectCount;
+                var setEffectCount = inv.currentSetEffectCount;
                 if (setEffectCount == null) return;
 
                 foreach (var kvp in setEffectCount)
@@ -332,6 +380,88 @@ namespace SephiriaTools
             }
         }
 
+        // ── Team Snapshot collection ──────────────────────────────
+
+        private TeamSnapshot CollectTeamSnapshot()
+        {
+            var teamData = new TeamData();
+            try
+            {
+                var allAvatars = UnityEngine.Object.FindObjectsByType<PlayerAvatar>(FindObjectsSortMode.None);
+                if (allAvatars == null || allAvatars.Length == 0) return new TeamSnapshot { data = teamData };
+
+                foreach (var avatar in allAvatars)
+                {
+                    if (avatar == null) continue;
+                    // Only collect teammates (non-local players)
+                    if (avatar == _cachedPlayer || avatar.isLocalPlayer) continue;
+
+                    var member = new TeamMemberInfo
+                    {
+                        name = GetAvatarDisplayName(avatar),
+                        weapon = GetAvatarWeaponName(avatar),
+                        isLocal = false
+                    };
+
+                    var inv = avatar.GetComponent<GridInventory>() ?? 
+                              avatar.GetComponent<UnitAvatar>()?.GetComponent<GridInventory>();
+
+                    if (inv != null)
+                    {
+                        member.inventory = CollectInventoryData(inv);
+                        if (inv.currentSetEffectCount != null)
+                        {
+                            foreach (var kvp in inv.currentSetEffectCount)
+                            {
+                                member.combos.Add(new ComboInfo
+                                {
+                                    id = kvp.Key,
+                                    name = kvp.Key,
+                                    count = kvp.Value
+                                });
+                            }
+                        }
+                    }
+
+                    teamData.members.Add(member);
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogWarning($"CollectTeamSnapshot error: {ex.Message}");
+            }
+
+            return new TeamSnapshot { data = teamData };
+        }
+
+        private string GetAvatarDisplayName(PlayerAvatar avatar)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(avatar.playerNameSource)) return avatar.playerNameSource;
+                if (!string.IsNullOrEmpty(avatar.Name)) return avatar.Name;
+                if (!string.IsNullOrEmpty(avatar.name)) return avatar.name;
+            }
+            catch { }
+            return "Teammate";
+        }
+
+        private string GetAvatarWeaponName(PlayerAvatar avatar)
+        {
+            try
+            {
+                var wc = avatar.GetComponent<WeaponControllerSimple>();
+                if (wc != null && wc.currentWeapon != null)
+                {
+                    if (!string.IsNullOrEmpty(wc.currentWeapon.Name))
+                        return wc.currentWeapon.Name;
+                    return wc.currentWeapon.name;
+                }
+            }
+            catch { }
+            return null;
+        }
+
         private string GetItemName(NewItemOwnInstance item)
         {
             try
@@ -344,12 +474,12 @@ namespace SephiriaTools
             }
         }
 
-        private int GetItemLevel(ItemPosition pos)
+        private int GetItemLevel(GridInventory inv, ItemPosition pos)
         {
             try
             {
-                if (_cachedInventory.levelMatrix != null &&
-                    _cachedInventory.levelMatrix.TryGetValue(pos, out int level))
+                if (inv != null && inv.levelMatrix != null &&
+                    inv.levelMatrix.TryGetValue(pos, out int level))
                     return level;
             }
             catch { }

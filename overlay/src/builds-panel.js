@@ -223,6 +223,8 @@ function buildCard(b) {
     if (!slug) continue;
     const box = document.createElement('span');
     box.className = 'bc-icon ' + cat;
+    box.dataset.cat = cat;
+    box.dataset.slug = slug;
     box.title = `${label}: ${slugName(cat, slug)}`;
     const img = document.createElement('img');
     img.src = slugIcon(cat, slug);
@@ -325,7 +327,7 @@ function renderBuildDetail(b) {
       const magicOverlay = local && local.magicIcon
         ? `<img class="magic-overlay" src="${ASSETS}/icons/${local.magicIcon}" onerror="this.remove()">`
         : '';
-      return `<span class="it${isOwned ? ' owned' : ''}" data-slug="${esc(it.value)}"` +
+      return `<span class="it${isOwned ? ' owned' : ''}" data-cat="artifacts" data-slug="${esc(it.value)}"` +
              `${local ? ` data-id="${local.id}"` : ''}>` +
              `<img src="${src}" onerror="this.parentNode.classList.add('missing');this.remove()">${magicOverlay}</span>`;
     }).join('');
@@ -351,7 +353,7 @@ function renderBuildDetail(b) {
         name += ` <span class="root">(${esc(slugName('weapons', root))})</span>`;
       }
     }
-    return `<span class="bd-icon"><img src="${slugIcon(cat, slug)}" ` +
+    return `<span class="bd-icon ${cat}" data-cat="${cat}" data-slug="${esc(slug)}"><img src="${slugIcon(cat, slug)}" ` +
       `onerror="this.parentNode.classList.add('missing');this.remove()">` +
       `<em>${name}</em>` +
       `<small>${esc(label)}</small></span>`;

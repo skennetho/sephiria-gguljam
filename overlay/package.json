@@ -1,14 +1,15 @@
 {
-  "name": "sephiria-tools-overlay",
+  "name": "sephiria-gguljam",
   "version": "0.1.0",
-  "description": "Sephiria 인게임 오버레이 - 배치 최적화, 위키 빌드 브라우저",
+  "description": "세피리아 인게임 인벤토리 최적화, 실시간 멀티플레이 팀원 빌드 및 위키 브라우저 오버레이",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "node optimizer.test.js"
   },
   "devDependencies": {
     "@electron/packager": "^20.3.0",
     "electron": "^31.0.0"
   },
-  "productName": "Sephiria Tools Overlay"
+  "productName": "sephiria-gguljam"
 }

@@ -1,6 +1,6 @@
 {
   "_source": "https://www.sephiria.wiki (scripts/fetch-wiki-data.mjs)",
-  "_generatedAt": "2026-08-15T13:46:27.242Z",
+  "_generatedAt": "2026-08-18T15:01:32.180Z",
   "_counts": {
     "artifacts": 267,
     "weapons": 158,
@@ -24,7 +24,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/reinforced_potion_lid.webp",
         "description": "약사의 피로와 새벽의 감성이 만든 특이한 물건",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/reinforced_potion_lid.webp"
       },
       "eye_crystal_necklace": {
         "id": 2,
@@ -40,7 +41,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/eye_crystal_necklace.png",
         "description": "싸락눈 중 가장 단순한 결정을 모티브로 했습니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/eye_crystal_necklace.png"
       },
       "mast_model": {
         "id": 3,
@@ -56,7 +58,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/mast_model.png",
         "description": "과거 커다란 홍수가 생겼을 때 배를 묶어서 살아남기를 도모한 자들이 있었다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/mast_model.png"
       },
       "lightning_bolt": {
         "id": 4,
@@ -72,7 +75,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lightning_bolt.png",
         "description": "라이트닝 볼트 마법이 적혀있는 책.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/lightning_bolt.png"
       },
       "wizard": {
         "id": 5,
@@ -88,7 +92,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/wizard.png",
         "description": "그들이 놀이용으로 사용하던 것.\n자신의 마법을 쏟아내어 원하는 면으로 떨어지게 한다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/wizard.png"
       },
       "dried_flower": {
         "id": 6,
@@ -104,7 +109,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/dried_flower.png",
         "description": "어디서든 씩씩하게 자라는 꽃을 정갈하게 말린 것.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/dried_flower.png"
       },
       "amulet": {
         "id": 7,
@@ -120,7 +126,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/amulet.webp",
         "description": "지닌 자의 잡념을 지워준다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/amulet.webp"
       },
       "windpool_shawl": {
         "id": 8,
@@ -136,7 +143,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/windpool_shawl.png",
         "description": "더 멋진 동물이 된 것 같은 기분을 주는 치장용 목도리.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/windpool_shawl.png"
       },
       "shield_technique_manual": {
         "id": 9,
@@ -152,7 +160,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/shield_technique_manual.png",
         "description": "'어린 동물에게 보여주지 마시오'라고 쓰여있다.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/shield_technique_manual.png"
       },
       "begonia_flavor_pocket": {
         "id": 10,
@@ -168,7 +177,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/begonia_flavor_pocket.png",
         "description": "가방에 넣어두면 자연스러운 꽃향기가 납니다.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/begonia_flavor_pocket.png"
       },
       "shield": {
         "id": 11,
@@ -184,7 +194,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/shield.webp",
         "description": "보호막 마법이 적혀있는 책.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/shield.webp"
       },
       "unclean_bandage": {
         "id": 12,
@@ -200,7 +211,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/unclean_bandage.png",
         "description": "춤추는 그을은 연기처럼.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/unclean_bandage.png"
       },
       "ice_bolt": {
         "id": 13,
@@ -216,7 +228,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ice_bolt.png",
         "description": "아이스 볼트 마법이 적혀있는 책.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/ice_bolt.png"
       },
       "compression_band": {
         "id": 14,
@@ -232,7 +245,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/compression_band.png",
         "description": "털을 감춰 더 빠르게 움직일 수 있게 한다…는 인식을 심어준다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/compression_band.png"
       },
       "endodits_questionnaire": {
         "id": 15,
@@ -265,7 +279,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/smoke_screen.png",
         "description": "연막 마법이 적혀있는 책.",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/smoke_screen.png"
       },
       "amulet_of_aspiration": {
         "id": 17,
@@ -281,7 +296,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/amulet_of_aspiration.png",
         "description": "바라건대 이 몸에 강인한 영혼을.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/amulet_of_aspiration.png"
       },
       "ohia_lehua": {
         "id": 18,
@@ -297,7 +313,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ohia_lehua.webp",
         "description": "이 꽃을 꺾으면 비가 내린다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/ohia_lehua.webp"
       },
       "silver_plate": {
         "id": 19,
@@ -313,7 +330,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/silver_plate.png",
         "description": "피가 그 열쇠다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/silver_plate.png"
       },
       "straw": {
         "id": 20,
@@ -329,7 +347,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/straw.png",
         "description": "마사지를 해주면 자신도 시원해지는 기분입니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/straw.png"
       },
       "chiri": {
         "id": 21,
@@ -345,7 +364,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/chiri.png",
         "description": "커스터드로 속을 채워넣은 빵.\n빠르게 먹지 않으면 흘러내린다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/chiri.png"
       },
       "cloth_armor": {
         "id": 22,
@@ -361,7 +381,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cloth_armor.png",
         "description": "두꺼운 재질이 보온이 필요 없는 동물에게도 따뜻함을 줍니다.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/cloth_armor.png"
       },
       "green_tooth": {
         "id": 23,
@@ -377,7 +398,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/green_tooth.png",
         "description": "어딘가에 부착하면 스스로 돌아가는 마법이 걸려있다.",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/green_tooth.png"
       },
       "blessing": {
         "id": 24,
@@ -390,7 +412,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/blessing.png",
         "description": "축복 마법이 적혀있는 책.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/blessing.png"
       },
       "calges": {
         "id": 25,
@@ -406,7 +429,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/calges_2.png",
         "description": "어딘가를 여는 것이 아닌 의식을 위해 만들어졌다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/calges.png"
       },
       "criton": {
         "id": 26,
@@ -422,7 +446,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/criton.png",
         "description": "탑에서 남용되어 화폐가 될 뻔한 물건.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/criton.png"
       },
       "fire_bolt": {
         "id": 27,
@@ -438,7 +463,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/fire_bolt.png",
         "description": "파이어 볼트 마법이 적혀있는 책.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/fire_bolt.png"
       },
       "pro": {
         "id": 28,
@@ -454,7 +480,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/pro.png",
         "description": "얼음 협곡 중심부에서 채취한 물질을 가공한 반지",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/pro.png"
       },
       "golden_leaf": {
         "id": 29,
@@ -470,7 +497,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/golden_leaf.png",
         "description": "상인 협회에서 만든 기념주화.",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/golden_leaf.png"
       },
       "amulet_of_power": {
         "id": 30,
@@ -486,7 +514,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/amulet_of_power.webp",
         "description": "믿음직스럽지 않게 '힘'이라 적혀 있다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/amulet_of_power.webp"
       },
       "thornbush": {
         "id": 31,
@@ -502,7 +531,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/thornbush.png",
         "description": "다가오지 말아요.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/thornbush.png"
       },
       "thorn_shell": {
         "id": 32,
@@ -518,7 +548,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/thorn_shell.png",
         "description": "스스로가 찔리지 않도록 팔을 잘 조절해야 합니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/thorn_shell.png"
       },
       "viscosity": {
         "id": 33,
@@ -534,7 +565,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/viscosity.png",
         "description": "가방에 넣어두면 가시가 삐져나올 것 같다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/viscosity.png"
       },
       "simple_contract": {
         "id": 34,
@@ -550,7 +582,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/simple_contract.png",
         "description": "주로 소환 마법에 사용되는, 마법을 담아둘 수 있는 신비한 종이.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/simple_contract.png"
       },
       "craving": {
         "id": 35,
@@ -566,7 +599,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/craving.png",
         "description": "쳐다보고 있으면 눈이 해롱해롱해집니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/craving.png"
       },
       "cloud_bottle": {
         "id": 36,
@@ -582,7 +616,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cloud_bottle.png",
         "description": "먹구름을 담아둔 특별한 마법 주머니.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/cloud_bottle.png"
       },
       "cloud_seed_arrowhead": {
         "id": 37,
@@ -598,7 +633,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cloud_seed_arrowhead.png",
         "description": "구름에 쏘면 비가 내린다고 한다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/cloud_seed_arrowhead.png"
       },
       "gold_cloak": {
         "id": 38,
@@ -614,7 +650,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/gold_cloak.png",
         "description": "이 망토는 왜 안쪽까지 금빛일까?",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/gold_cloak.png"
       },
       "golden_hand_bell": {
         "id": 39,
@@ -630,7 +667,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/golden_hand_bell.png",
         "description": "금빛 핸드벨.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/golden_hand_bell.png"
       },
       "broken_mirror": {
         "id": 40,
@@ -646,7 +684,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/broken_mirror.png",
         "description": "고쳐줄 수 있는 사람이 어딘가에 있을지도 몰라.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/broken_mirror.png"
       },
       "yellow_planet": {
         "id": 41,
@@ -662,7 +701,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/yellow_planet.png",
         "description": "도서관에 전시되어 있던 노란 행성.\n과거 하늘 밖을 보던 자들이 만들었다.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/yellow_planet.png"
       },
       "snowborne": {
         "id": 42,
@@ -678,7 +718,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/snowborne.png",
         "description": "푸른 불을 사용하던 용광로 옆에 놓여있었다 전해지고 있습니다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/snowborne.png"
       },
       "great_blessing": {
         "id": 43,
@@ -694,7 +735,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/great_blessing.png",
         "description": "대축복 마법이 적혀있는 책.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/great_blessing.png"
       },
       "ray_known": {
         "id": 44,
@@ -710,7 +752,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ray_known.png",
         "description": "아주 뜨겁고 밝은 별에서 나온 조각.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/ray_known.png"
       },
       "lip": {
         "id": 45,
@@ -726,7 +769,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lip.png",
         "description": "소유자의 움직임을 방해하지 않는 정교한 봉 파편.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/lip.png"
       },
       "magma_bead": {
         "id": 46,
@@ -742,7 +786,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/magma_bead.png",
         "description": "마그마의 기운을 머금은 구슬.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/magma_bead.png"
       },
       "magic_carrot": {
         "id": 47,
@@ -758,7 +803,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/magic_carrot.png",
         "description": "가끔 발견되는 특별한 당근.\n썩지 않지만 먹을 수 없다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/magic_carrot.png"
       },
       "kaleidoscope": {
         "id": 48,
@@ -774,7 +820,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/kaleidoscope.png",
         "description": "작은 알알들의 변화무쌍.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/kaleidoscope.png"
       },
       "fascinating_lure": {
         "id": 49,
@@ -791,7 +838,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/fascinating_lure.webp",
         "description": "물고기 사역마를 부리고 싶은 괴짜 마법사가 만들었습니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/fascinating_lure.webp"
       },
       "water_bag": {
         "id": 50,
@@ -807,7 +855,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/water_bag.png",
         "description": "밤 사이 이슬이 차오르고, 낮에는 봉오리가 닫힌다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/water_bag.png"
       },
       "mini_balista": {
         "id": 51,
@@ -824,7 +873,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/mini_balista.png",
         "description": "누군가는 대형화를 꿈꾸듯, 소형화를 꿈꾸는 자도 있었다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/mini_balista.png"
       },
       "vane": {
         "id": 52,
@@ -841,7 +891,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/vane.png",
         "description": "언령을 외우면 바람이 없어도 돌아가기 시작한다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/vane.png"
       },
       "firefly": {
         "id": 53,
@@ -857,7 +908,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/firefly.webp",
         "description": "차가운 빛을 뿜어내는 벌레.\n만지면 찌릿하다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/firefly.webp"
       },
       "balisong": {
         "id": 54,
@@ -873,7 +925,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/balisong.png",
         "description": "어느 마을의 이름을 따온 특이한 모양의 칼.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/balisong.png"
       },
       "ignition": {
         "id": 55,
@@ -889,7 +942,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ignition.png",
         "description": "발화 기름이 들어있는 통.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/ignition.png"
       },
       "shield_earring": {
         "id": 56,
@@ -905,7 +959,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/shield_earring.webp",
         "description": "검과 방패로 한 쌍의 귀고리가 완성된다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/shield_earring.webp"
       },
       "discarded_gold_ring": {
         "id": 57,
@@ -921,7 +976,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/discarded_gold_ring.png",
         "description": "한 때엔 누군가를 축복하기에 충분했던 반지.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/discarded_gold_ring.png"
       },
       "lightning_boomerang": {
         "id": 58,
@@ -937,7 +993,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lightningboomerang.png",
         "description": "번개 부메랑 마법이 적혀있는 책.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/lightning_boomerang.png"
       },
       "phoenix": {
         "id": 59,
@@ -953,7 +1010,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/phoenix.png",
         "description": "탑 밖에 세상이 있던 시절에도 특별했던 동물의 깃털. 열기가 사라지지 않는다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/phoenix.png"
       },
       "red_snake_eye": {
         "id": 60,
@@ -969,7 +1027,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/red_snake_eye.png",
         "description": "뜨거운 기운을 머금은 보석.\n어두운 곳에서도 길잡이가 되어준다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/red_snake_eye.png"
       },
       "red_dew": {
         "id": 61,
@@ -985,7 +1044,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/red_dew.webp",
         "description": "그들의 죄를 두고 가게 하자.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/red_dew.webp"
       },
       "piece_of_red_cloth": {
         "id": 62,
@@ -1001,7 +1061,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/piece_of_red_cloth.webp",
         "description": "광신도들이 소지하고 있는 붉은 천 조각.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/piece_of_red_cloth.webp"
       },
       "red_planet": {
         "id": 63,
@@ -1017,7 +1078,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/red_planet.webp",
         "description": "도서관에 전시되어 있던 붉은 행성.\n과거 하늘 밖을 보던 자들이 만들었다.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/red_planet.webp"
       },
       "ice_snow": {
         "id": 64,
@@ -1033,7 +1095,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ice_snow.png",
         "description": "인공적으로 만들어진 꽃.\n따뜻한 곳에 있어도 녹지 않는다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/ice_snow.png"
       },
       "glacier": {
         "id": 65,
@@ -1049,7 +1112,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/glacier.png",
         "description": "어느 눈덮인 섬에는 아직도 조상님들이 잠들어 있다죠.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/glacier.png"
       },
       "point": {
         "id": 66,
@@ -1065,7 +1129,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/point.webp",
         "description": "번개를 다루는 일족이 좋아하는 열매.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/point.webp"
       },
       "storm": {
         "id": 67,
@@ -1081,7 +1146,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/storm.webp",
         "description": "마을에서는 잘 사용하지 않는 물건.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/storm.webp"
       },
       "sapote": {
         "id": 68,
@@ -1097,7 +1163,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sapote.png",
         "description": "갈증이 날 때 씹으면 왜인지 모르게 괜찮아진다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/sapote.png"
       },
       "sharp_eye": {
         "id": 69,
@@ -1113,7 +1180,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sharp_eye.png",
         "description": "샤프 아이 마법이 적혀있는 책.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/sharp_eye.png"
       },
       "frost_dagger": {
         "id": 70,
@@ -1129,7 +1197,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/frost_dagger.png",
         "description": "서리 단검 마법이 적혀있는 책.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/frost_dagger.png"
       },
       "crossbow_quiver": {
         "id": 71,
@@ -1145,7 +1214,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/crossbow_quiver.webp",
         "description": "가볍고 튼튼한 나무를 덧대어 만들어졌습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/crossbow_quiver.webp"
       },
       "pure_cloak": {
         "id": 72,
@@ -1161,7 +1231,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/pure_cloak.png",
         "description": "마법에 따라 색이 변하는 망토.\n부드러운 천으로 만들었다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/pure_cloak.png"
       },
       "star_ruby": {
         "id": 73,
@@ -1177,7 +1248,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/star_ruby.png",
         "description": "새로운 삶을 위하여.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/star_ruby.png"
       },
       "star_aqua_marine": {
         "id": 74,
@@ -1193,7 +1265,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/star_aqua_marine.png",
         "description": "장렬한 복수를 위하여.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/star_aqua_marine.png"
       },
       "single_tree_charcoal": {
         "id": 75,
@@ -1209,7 +1282,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/single_tree_charcoal.webp",
         "description": "나무는 연료로, 잎은 깔창으로.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/single_tree_charcoal.webp"
       },
       "agbae_tree_fruit": {
         "id": 76,
@@ -1225,7 +1299,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/agbae_tree_fruit.png",
         "description": "작고 신맛이 강해서 마법 시약의 재료로 사용한다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/agbae_tree_fruit.png"
       },
       "ice_star": {
         "id": 77,
@@ -1241,7 +1316,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ice_star.png",
         "description": "눈 덮인 땅에서만 자란다고 전해지는 꽃.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/ice_star.png"
       },
       "sheet_music_bree": {
         "id": 78,
@@ -1257,7 +1333,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sheet_music_bree.png",
         "description": "느껴진다, 선율이. 불어온다, 하늘이.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/sheet_music_bree.png"
       },
       "obruss_blood": {
         "id": 80,
@@ -1273,7 +1350,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/obruss_blood.png",
         "description": "이 피를 마시면 흐르는 물을 건널 수 없는 병에 걸린다고 한다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/obruss_blood.png"
       },
       "keel_fragment": {
         "id": 82,
@@ -1289,7 +1367,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/keel_fragment.png",
         "description": "튼튼하고 무거워!",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/keel_fragment.png"
       },
       "ambergris": {
         "id": 83,
@@ -1305,7 +1384,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ambergris.webp",
         "description": "용의 타액이 굳어져 생긴 덩어리.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/ambergris.webp"
       },
       "glass_hammer": {
         "id": 84,
@@ -1321,7 +1401,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/glass_hammer.png",
         "description": "누군가를 기린다고 쓰여 있지만 잘 보이지 않습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/glass_hammer.png"
       },
       "silver_bracelet": {
         "id": 85,
@@ -1337,7 +1418,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/silver_bracelet.png",
         "description": "우리들의 유대를 위하여.\n-도서관 사서 21기-",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/silver_bracelet.png"
       },
       "leafy_leather": {
         "id": 86,
@@ -1353,7 +1435,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/leafy_leather.png",
         "description": "알 수 없는 생명체의 가죽.\n특이한 문양이 그려져 있다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/leafy_leather.png"
       },
       "small_magic": {
         "id": 87,
@@ -1369,7 +1452,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/small_magic.png",
         "description": "고둥이 원하는 때 마법을 들려준다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/small_magic.png"
       },
       "mark_of_warrior": {
         "id": 88,
@@ -1385,7 +1469,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/mark_of_warrior.png",
         "description": "어린 도마뱀들이 첫 사냥을 나갈 때 수여하는 특별한 증표.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/mark_of_warrior.png"
       },
       "rat_pendant": {
         "id": 89,
@@ -1401,7 +1486,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/rat_pendant.png",
         "description": "마법사임을 증명하는 목걸이.\n조금씩 모양이 달라서 증명하기 힘들다.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/rat_pendant.png"
       },
       "pearl_powder": {
         "id": 90,
@@ -1417,7 +1503,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/pearl_powder.png",
         "description": "인공적으로 만드는 데 성공했지만, 여전히 가품이 많다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/pearl_powder.png"
       },
       "cold_lock": {
         "id": 91,
@@ -1430,7 +1517,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cold_lock.png",
         "description": "여닫는 것을 목적으로 만들어진 것이 아니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/cold_lock.png"
       },
       "chakram": {
         "id": 92,
@@ -1463,7 +1551,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/gap.png",
         "description": "달랠 수 없는 영혼을 끌어내는 데 사용되는 검집.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/gap.png"
       },
       "kunai": {
         "id": 95,
@@ -1479,7 +1568,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/kunai.png",
         "description": "원예용으로 쓰기 참 좋지.\n-켄-",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/kunai.png"
       },
       "terros_soul_powder": {
         "id": 96,
@@ -1496,7 +1586,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/terros_soul_powder.png",
         "description": "고요 속에서 함께 춤추던 작은 나의 친구여.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/terros_soul_powder.png"
       },
       "fire_arrow": {
         "id": 97,
@@ -1512,7 +1603,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/fire_arrow.png",
         "description": "파이어 애로우 마법이 적혀있는 책.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/fire_arrow.png"
       },
       "palas_card": {
         "id": 98,
@@ -1528,7 +1620,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/palas_card.png",
         "description": "어떻게 섞어도 스페이드가 맨 위로 올라온다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/palas_card.png"
       },
       "blue_pearl": {
         "id": 99,
@@ -1541,7 +1634,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/blue_pearl.png",
         "description": "과거에 짠물이 가득하던 장소가 있었다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/blue_pearl.png"
       },
       "blue_planet": {
         "id": 100,
@@ -1557,7 +1651,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/blue_planet.png",
         "description": "도서관에 전시되어 있던 푸른 행성 모형.\n과거 하늘 밖을 보던 자들이 만들었다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/blue_planet.png"
       },
       "sky_blue_planet": {
         "id": 101,
@@ -1573,7 +1668,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sky_blue_planet.png",
         "description": "도서관에 전시되어 있던 하늘색 행성.\n과거 하늘 밖을 보던 자들이 만들었다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/sky_blue_planet.png"
       },
       "haste": {
         "id": 102,
@@ -1589,7 +1685,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/haste.png",
         "description": "헤이스트 마법이 적혀있는 책.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/haste.png"
       },
       "helenas_staircase": {
         "id": 103,
@@ -1605,7 +1702,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/helenas_staircase.png",
         "description": "탑을 두르는 계단이 있어야 고립되지 않을 거야.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/helenas_staircase.png"
       },
       "fluorescence": {
         "id": 104,
@@ -1621,7 +1719,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/fluorescence.png",
         "description": "어두운 곳에서 빛을 내는 물질로 수호자의 염원을 담았다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/fluorescence.png"
       },
       "amber": {
         "id": 105,
@@ -1637,7 +1736,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/amber.png",
         "description": "빠져나오기 위해 발버둥 치는 무언가가 들어있다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/amber.png"
       },
       "flame": {
         "id": 106,
@@ -1653,7 +1753,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/flame.png",
         "description": "불꽃 밖의 어둠을 보기 위한 안대.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/flame.png"
       },
       "flame_sword": {
         "id": 107,
@@ -1683,7 +1784,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/waters.png",
         "description": "회복의 물줄기 마법이 적혀있는 책.",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/waters.png"
       },
       "sword_earring": {
         "id": 109,
@@ -1699,7 +1801,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sword_earring.webp",
         "description": "검과 방패로 한 쌍의 귀고리가 완성된다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/sword_earring.webp"
       },
       "swordsmanship_textbook": {
         "id": 110,
@@ -1715,7 +1818,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/swordsmanship_textbook.png",
         "description": "'어린 동물에게 보여주지 마시오'라고 쓰여있다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/swordsmanship_textbook.png"
       },
       "flag_of_encouragement": {
         "id": 111,
@@ -1731,7 +1835,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/flag_of_encouragement.png",
         "description": "우리는 이렇게나 강하다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/flag_of_encouragement.png"
       },
       "warning": {
         "id": 112,
@@ -1744,7 +1849,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/warning.webp",
         "description": "상인연합 긴급 공문: 최근 동료가 의문의 동물에게 죽임을 당한 끔찍한 일이 일어났음. [닉네임]라는 이름의 동물을 조심하기를 바람.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/warning.webp"
       },
       "employment_sentence_coline": {
         "id": 113,
@@ -1760,7 +1866,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/employment_sentence_coline.png",
         "description": "스승님에게 받은 거야.\n계약이 종료되면 자동으로 이름이 지워지게 되어 있지.\n-콜린-",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/employment_sentence_coline.png"
       },
       "pride": {
         "id": 114,
@@ -1776,7 +1883,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/pride.png",
         "description": "중앙의 보석에선 불길한 빛이 흘러나온다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/pride.png"
       },
       "giraffe_horns": {
         "id": 115,
@@ -1792,7 +1900,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/giraffe_horns.png",
         "description": "다른 동물을 해칠 수 없게 가죽에 덮여져 있었습니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/giraffe_horns.png"
       },
       "pot_lid": {
         "id": 116,
@@ -1808,7 +1917,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/pot_lid.png",
         "description": "급할 때 방패로 사용하곤 합니다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/pot_lid.png"
       },
       "green_clothes": {
         "id": 117,
@@ -1824,7 +1934,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/green_clothes.png",
         "description": "지키는 자들은 녹색 옷을 입는다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/green_clothes.png"
       },
       "brain": {
         "id": 118,
@@ -1840,7 +1951,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/brain.png",
         "description": "뇌운을 쫒기 위해 만들어진 공학 도구.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/brain.png"
       },
       "multi_use_belt": {
         "id": 119,
@@ -1856,7 +1968,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/multi_use_belt.png",
         "description": "곳곳을 떠도는 여러분들의 필수 아이템!\n색깔별로 구분해 쉽게 보관하세요!\n-키키-",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/multi_use_belt.png"
       },
       "libra": {
         "id": 120,
@@ -1873,7 +1986,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/libra.png",
         "description": "절대로 균형을 맞출 수 없다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/libra.png"
       },
       "lizard_sheet": {
         "id": 121,
@@ -1889,7 +2003,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lizard_sheet.png",
         "description": "실력 좋은 도마뱀 장인이 만든 판금 갑옷.\n뛰어난 보호력을 자랑한다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/lizard_sheet.png"
       },
       "library_miniature": {
         "id": 122,
@@ -1905,7 +2020,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/library_miniature.png",
         "description": "한때에는 탑에 살던 모든 동물이 도서관의 종소리를 들을 수 있었다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/library_miniature.png"
       },
       "warm_stone": {
         "id": 123,
@@ -1921,7 +2037,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/warm_stone.png",
         "description": "따뜻하게 해 주지 않으면 원래 능력을 잃어버린다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/warm_stone.png"
       },
       "magic_glasses": {
         "id": 124,
@@ -1934,7 +2051,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/magic_glasses.png",
         "description": "안경을 쓰면 현자 강아지가 보이게 됩니다.\n도움이 되지는 않습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/magic_glasses.png"
       },
       "magic_gem": {
         "id": 125,
@@ -1950,7 +2068,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/magic_gem.png",
         "description": "공격 마법에 대한 책.\n앞페이지만 읽은 흔적이 있다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/magic_gem.png"
       },
       "model_beak": {
         "id": 126,
@@ -1966,7 +2085,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/model_beak.png",
         "description": "겁 많은 새가 과시용으로 사용하던 것.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/model_beak.png"
       },
       "dull_drop": {
         "id": 127,
@@ -1982,7 +2102,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/dull_drop.png",
         "description": "끝에 방울이 달린 칼.\n의식용으로 사용되었다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/dull_drop.png"
       },
       "colorless_cube": {
         "id": 128,
@@ -1998,7 +2119,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/colorless_cube.png",
         "description": "장비를 재료로 다시 분해할 때 땅바닥에 떨어지곤 합니다. 누군가는 기억의 결정이라고 부르기도 해요.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/colorless_cube.png"
       },
       "lightstone": {
         "id": 129,
@@ -2014,7 +2136,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lightstone.png",
         "description": "금속과 부딪히면 번개가 떨어지는 사실을 발견했지만, 위험하여 아무도 사용하지 않는다.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/lightstone.png"
       },
       "jewelry_armor": {
         "id": 130,
@@ -2030,7 +2153,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/jewelry_armor.png",
         "description": "의식용으로 사용되던 것.\n크기가 상당히 작다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/jewelry_armor.png"
       },
       "voluspa": {
         "id": 131,
@@ -2046,7 +2170,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/voluspa.png",
         "description": "한 때 이 귀걸이는 여러가지 질문을 주었다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/voluspa.png"
       },
       "broken_root": {
         "id": 132,
@@ -2062,7 +2187,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/broken.png",
         "description": "부서졌음에도 마르지 않았다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/broken_root.png"
       },
       "fire_circus": {
         "id": 133,
@@ -2078,7 +2204,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/fire_circus.png",
         "description": "불 서커스 마법이 적혀있는 책.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/fire_circus.png"
       },
       "red_thread": {
         "id": 134,
@@ -2094,7 +2221,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/red_thread.png",
         "description": "하나의 입구. 그리고 출구.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/red_thread.png"
       },
       "freezing_bug": {
         "id": 135,
@@ -2110,7 +2238,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/freezing_bug.png",
         "description": "만지면 정말 차가운 벌레.\n조련이 가능하다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/freezing_bug.png"
       },
       "pointed_bat": {
         "id": 136,
@@ -2126,7 +2255,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/pointed_bat.png",
         "description": "효과는 확실하지만, 휘두르는 동물의 망설임을 만든다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/pointed_bat.png"
       },
       "touch_of_life": {
         "id": 137,
@@ -2142,7 +2272,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/touch_of_life.png",
         "description": "얻는 것은 곧 무언가를 잃는다는 뜻이기도 하지.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/touch_of_life.png"
       },
       "serens_wanging_letter": {
         "id": 138,
@@ -2158,7 +2289,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/serens_wanging_letter.png",
         "description": "다급함이 느껴진다.\n그리고 알아볼 수 없어.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/serens_wanging_letter.png"
       },
       "agma_projection_sword": {
         "id": 139,
@@ -2174,7 +2306,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/agma_projection_sword.png",
         "description": "190번 째.\n형체는 검과 흡사하다.\n에너지는 대칭적인 형태로만 드러난다.\n칼날 자체는 나타나지 않는다.\n-아그마",
-        "level": 7
+        "level": 7,
+        "localIcon": "artifacts/agma_projection_sword.png"
       },
       "academy_brigendin": {
         "id": 140,
@@ -2191,7 +2324,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/academy_brigendin.png",
         "description": "아카데미 경비병들이 착용하는 갑옷.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/academy_brigendin.png"
       },
       "alfonsos_horn": {
         "id": 141,
@@ -2207,7 +2341,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/alfonsos_horn.webp",
         "description": "위대한 전사의 흔적에 스러진 혼들이 몰려온다.",
-        "level": 7
+        "level": 7,
+        "localIcon": "artifacts/alfonsos_horn.webp"
       },
       "arrow_lane": {
         "id": 142,
@@ -2223,7 +2358,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/arrow_lane.png",
         "description": "애로우 레인 마법이 적혀있는 책.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/arrow_lane.png"
       },
       "thin_cushion": {
         "id": 143,
@@ -2239,7 +2375,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/thin_cushion.png",
         "description": "스스로의 힘으로 원하는 바를 얻으리라.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/thin_cushion.png"
       },
       "frozen_egg": {
         "id": 144,
@@ -2255,7 +2392,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/frozen_egg.png",
         "description": "아무도 얼기 전 모습을 본 적이 없다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/frozen_egg.png"
       },
       "frozen_heart": {
         "id": 145,
@@ -2271,7 +2409,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/frozen_heart.png",
         "description": "때가 되면, 심장 속에서 박동이 시작됩니다.",
-        "level": 7
+        "level": 7,
+        "localIcon": "artifacts/frozen_heart.png"
       },
       "ice_seagull": {
         "id": 146,
@@ -2287,7 +2426,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ice_seagull.png",
         "description": "물, 바람, 공기가 이 으스스한 작품을 만들었습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/ice_seagull.png"
       },
       "oink_shaman_necklace": {
         "id": 147,
@@ -2303,7 +2443,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/oink_shaman_necklace.png",
         "description": "엄니, 뼈, 원석 등을 투박하게 엮은 목걸이.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/oink_shaman_necklace.png"
       },
       "bishopric": {
         "id": 148,
@@ -2319,7 +2460,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/bishopric.png",
         "description": "전설로 내려오던 종족의 뿔을 본떠 만들었다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/bishopric.png"
       },
       "artificial_spirit": {
         "id": 149,
@@ -2335,7 +2477,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/artificial_spirit.png",
         "description": "마법사를 도와주기 위해 만들어졌다.\n집중해야 소통할 수 있다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/artificial_spirit.png"
       },
       "combat_wizard_gloves": {
         "id": 150,
@@ -2351,7 +2494,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/combat_wizard_gloves.png",
         "description": "무겁고 두텁습니다.\n전투 마법사가 아니라 마법 전사의 물건이 아니었을까요?",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/combat_wizard_gloves.png"
       },
       "reloaded_wooden_box": {
         "id": 151,
@@ -2367,7 +2511,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/reloaded_wooden_box.png",
         "description": "빠르게 재장전 하기 위해 미리 화살을 채워둔 도구.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/reloaded_wooden_box.png"
       },
       "thunder": {
         "id": 152,
@@ -2383,7 +2528,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/thunder.png",
         "description": "천둥 갑옷 마법이 적혀있는 책.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/thunder.png"
       },
       "bronze_mirror": {
         "id": 153,
@@ -2399,7 +2545,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/bronze_mirror.png",
         "description": "과거의 염원이 강하게 남아있다.\n부서진 채로 보자기에 싸여 전해진다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/bronze_mirror.png"
       },
       "rabbit_village_guard_helm": {
         "id": 154,
@@ -2415,7 +2562,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/rabbit_village_guard_helm.webp",
         "description": "평균 크기 토끼의 얼굴에만 맞습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/rabbit_village_guard_helm.webp"
       },
       "blue_ring": {
         "id": 155,
@@ -2431,7 +2579,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/blue_ring.png",
         "description": "가방에서 꺼낼 때 가방 안을 보면 안 됩니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/blue_ring.png"
       },
       "fluffy": {
         "id": 156,
@@ -2447,7 +2596,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/fluffy.png",
         "description": "따뜻한 곳에 살던 친구들을 위해서야.\n색이 섞인 것도 이쁘지?\n-살론-",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/fluffy.png"
       },
       "white_twig": {
         "id": 157,
@@ -2463,7 +2613,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/white_twig.webp",
         "description": "희귀한 병에 걸려 색이 변했다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/white_twig.webp"
       },
       "white_egg_shell": {
         "id": 158,
@@ -2479,7 +2630,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/white_egg_shell.png",
         "description": "아주 오래되어 바스락거린다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/white_egg_shell.png"
       },
       "white_planet": {
         "id": 159,
@@ -2495,7 +2647,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/white_planet.png",
         "description": "도서관에 전시되어 있던 하얀 행성 모형.\n과거 하늘 밖을 보던 자들이 만들었다.",
-        "level": 7
+        "level": 7,
+        "localIcon": "artifacts/white_planet.png"
       },
       "heart_shaped_carrot": {
         "id": 160,
@@ -2511,7 +2664,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/heart_shaped_carrot.webp",
         "description": "특이한 모양의 당근으로 만든 아티팩트.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/heart_shaped_carrot.webp"
       },
       "bloodstone_ring": {
         "id": 161,
@@ -2527,7 +2681,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/bloodstone_ring.png",
         "description": "생명의 고동이 전해진다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/bloodstone_ring.png"
       },
       "black_tea": {
         "id": 162,
@@ -2540,7 +2695,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/black_tea.png",
         "description": "찻잎 빼기 귀찮다고 주머니 통째로 물에 넣으면 안 돼요!",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/black_tea.png"
       },
       "flame_root": {
         "id": 163,
@@ -2556,7 +2712,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/flame_root.png",
         "description": "발화 작용을 하는 신기한 풀의 뿌리.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/flame_root.png"
       },
       "flame_insect": {
         "id": 164,
@@ -2572,7 +2729,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/flame_insect.png",
         "description": "스스로 발화하는 능력을 가진 벌레.\n조련이 가능하다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/flame_insect.png"
       },
       "giant_telescope": {
         "id": 165,
@@ -2588,7 +2746,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/giant_telescope.png",
         "description": "하늘에 떠 있는 무언가를 보기 위해 발명된 도구.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/giant_telescope.png"
       },
       "black_scales": {
         "id": 166,
@@ -2604,7 +2763,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/black_scales.png",
         "description": "어느 동물의 비늘인지 알 수 없다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/black_scales.png"
       },
       "humility_crown": {
         "id": 167,
@@ -2620,7 +2780,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/humility_crown.png",
         "description": "중앙의 보석에서 편안한 빛이 흘러나온다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/humility_crown.png"
       },
       "clay_tablet": {
         "id": 168,
@@ -2636,7 +2797,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/clay_tablet.webp",
         "description": "만물의 연속을 담아서.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/clay_tablet.webp"
       },
       "riley_congregation_clock": {
         "id": 169,
@@ -2652,7 +2814,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/riley_congregation_clock.png",
         "description": "오른쪽으로 저항감이 느껴질 때까지 천천히 태엽을 돌려야 합니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/riley_congregation_clock.png"
       },
       "ruby_brooch": {
         "id": 170,
@@ -2669,7 +2832,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ruby_brooch.png",
         "description": "뜨겁다. 빛난다. 그리고 쏜다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/ruby_brooch.png"
       },
       "meteor_shower": {
         "id": 171,
@@ -2685,7 +2849,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/meteor_shower.png",
         "description": "메테오 샤워 마법이 적혀있는 책.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/meteor_shower.png"
       },
       "walter_work_monocle": {
         "id": 172,
@@ -2701,7 +2866,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/walter_work_monocle.png",
         "description": "가끔 마법용품의 완성도가 실제 마법에 영향을 줄 때가 있지.\n도수가 높으니까 사용할 때 반대쪽 눈은 꼭 감도록 해.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/walter_work_monocle.png"
       },
       "berut_sickle": {
         "id": 173,
@@ -2717,7 +2883,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/berut_sickle.png",
         "description": "악은 없다.\n무지함에서 오는 행동만이 존재한다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/berut_sickle.png"
       },
       "empty_handle": {
         "id": 174,
@@ -2733,7 +2900,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/empty_handle.png",
         "description": "위험에 대비하라.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/empty_handle.png"
       },
       "shining_hourglass": {
         "id": 175,
@@ -2749,7 +2917,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/shining_hourglass.png",
         "description": "모래에서 은은한 빛이 흘러나온다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/shining_hourglass.png"
       },
       "shield_mate": {
         "id": 176,
@@ -2765,7 +2934,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/shield_mate.png",
         "description": "방패를 더 안정적으로 사용할 수 있도록 설계된 건틀릿.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/shield_mate.png"
       },
       "ice_wings": {
         "id": 177,
@@ -2781,7 +2951,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ice_wings.png",
         "description": "과거 얼음 정령의 날개 모양입니다.\n양 날개는 서로 멀어지지도 가까워지지도 않습니다.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/ice_wings.png"
       },
       "six_leaf_clover": {
         "id": 178,
@@ -2797,7 +2968,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/six_leaf_clover.png",
         "description": "커다란 은방울 꽃 아래 수많은 클로버들 중 특별한 하나라고 전해진다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/six_leaf_clover.png"
       },
       "absolute_ring": {
         "id": 179,
@@ -2813,7 +2985,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/absolute_ring.png",
         "description": "과거의 찬란하던 그 때처럼 가진 자를 축복해주고 있다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/absolute_ring.png"
       },
       "chintamani_stone": {
         "id": 180,
@@ -2829,7 +3002,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/chintamani_stone.png",
         "description": "삿된 일이여, 돌아가라.\n삿된 기운이여, 물럿거라.",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/chintamani_stone.png"
       },
       "blue_claws": {
         "id": 181,
@@ -2845,7 +3019,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/blue_claws.png",
         "description": "과거 신을 차갑게 할 수 있었던 용의 발톱.\n사냥감을 사냥할수록 붉어진다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/blue_claws.png"
       },
       "blue_wrist_guard": {
         "id": 182,
@@ -2861,7 +3036,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/blue_wrist_guard.png",
         "description": "시간을 느리게 만들기 위해서 만들어진 수많은 실패작 중 하나.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/blue_wrist_guard.png"
       },
       "lightning_rod": {
         "id": 183,
@@ -2877,7 +3053,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lightning_rod.png",
         "description": "검의 모양을 하고 있지만, 부서지기 쉬운 재질로 만들어졌습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/lightning_rod.png"
       },
       "bloodstone_earrings": {
         "id": 184,
@@ -2890,7 +3067,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/bloodstone_earrings.png",
         "description": "어제 집 가는 길에 로브 쓴 분이 선물이라고 주더라고.\n이쁘지?",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/bloodstone_earrings.png"
       },
       "white_bread": {
         "id": 185,
@@ -2906,7 +3084,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/white_bread.png",
         "description": "바깥은 촉촉하고 안쪽은 바삭해요.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/white_bread.png"
       },
       "iridescent_feathers": {
         "id": 186,
@@ -2922,7 +3101,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/iridescent_feathers.png",
         "description": "무지개가 뜰 때 가끔 바람이 날려 온다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/iridescent_feathers.png"
       },
       "heitas_soul_powder": {
         "id": 187,
@@ -2939,7 +3119,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/heitas_soul_powder.png",
         "description": "세상이 요동치던 밤에 헤어진 나의 동지들아.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/heitas_soul_powder.png"
       },
       "meditation_books": {
         "id": 188,
@@ -2955,7 +3136,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/meditation_books.png",
         "description": "자신을 성장시키려 하지 말고, 지금 이 순간의 자신을 받아들여라.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/meditation_books.png"
       },
       "rock_elephant": {
         "id": 190,
@@ -2972,7 +3154,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/rock_elephant.png",
         "description": "뿔이 세밀하게 깎여있어 부서질 것 같지만, 아주 튼튼합니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/rock_elephant.png"
       },
       "solis_decree": {
         "id": 191,
@@ -2988,7 +3171,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/solis_decree.png",
         "description": "정령이 스스로 따르는 이에게 수여되는 쌍날검 모양 뱃지.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/solis_decree.png"
       },
       "cloud_shoulder_ornament": {
         "id": 192,
@@ -3004,7 +3188,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cloud_shoulder_ornament.png",
         "description": "고유의 효과를 지키기 위해 거의 가공하지 않았습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/cloud_shoulder_ornament.png"
       },
       "cloud_iron_earrings": {
         "id": 193,
@@ -3020,7 +3205,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cloud_iron_earrings.png",
         "description": "운철에 끌어당기는 힘은 없지만, 그렇게 되도록 세공되었습니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/cloud_iron_earrings.png"
       },
       "solis_decusa": {
         "id": 194,
@@ -3036,7 +3222,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/solis_decusa.png",
         "description": "정령을 능숙히 다루는 이에게 수여되는 쌍검 모양 뱃지",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/solis_decusa.png"
       },
       "solis_parvo": {
         "id": 195,
@@ -3052,7 +3239,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/solis_parvo.png",
         "description": "정령과 평등해진 이에게 수여되는 소검 모양 뱃지",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/solis_parvo.png"
       },
       "eternal_brazier": {
         "id": 196,
@@ -3068,7 +3256,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/eternal_brazier.png",
         "description": "태양의 형상을 본뜬 결정이 빛나고 있습니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/eternal_brazier.png"
       },
       "sunset_cloak": {
         "id": 197,
@@ -3084,7 +3273,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sunset_cloak.png",
         "description": "색을 담아내는 천으로 정확한 순간을 잡아냈습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/sunset_cloak.png"
       },
       "ancient_anvil": {
         "id": 198,
@@ -3100,7 +3290,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ancient_anvil.png",
         "description": "사용자에 맞춰 변하지만 지금은 그 동력을 잃었습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/ancient_anvil.png"
       },
       "solis_pratu": {
         "id": 199,
@@ -3116,7 +3307,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/solis_pratu.png",
         "description": "정령의 환심을 사기 위해 비효율적으로 제작된 단검 모양 뱃지",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/solis_pratu.png"
       },
       "shield_bag": {
         "id": 200,
@@ -3133,7 +3325,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/shield_bag.png",
         "description": "거북이도 찾는, 위험한 여행길의 필수품",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/shield_bag.png"
       },
       "tuning_fork": {
         "id": 201,
@@ -3150,7 +3343,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/tuning_fork.png",
         "description": "악기를 조율하는 데 사용하는 도구",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/tuning_fork.png"
       },
       "sealed_tejas": {
         "id": 202,
@@ -3167,7 +3361,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sealed_tejas.png",
         "description": "사나운 불의 정령이 봉인되어 있습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/sealed_tejas.png"
       },
       "ice_cloud_butterfly": {
         "id": 204,
@@ -3184,7 +3379,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ice_cloud_butterfly.png",
         "description": "나의 사랑하는 패밀리어. 이런 모습에서라도 내 곁에 있어줘.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/ice_cloud_butterfly.png"
       },
       "water_droplets_from_plitvice": {
         "id": 205,
@@ -3201,7 +3397,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/water_droplets_from_plitvice.png",
         "description": "얼음 요정이 호수 위에 춤을 출 때, 그 발 아래 생기는 결정 중 하나",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/water_droplets_from_plitvice.png"
       },
       "tactical_manual": {
         "id": 206,
@@ -3218,7 +3415,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/tactical_manual.png",
         "description": "도서관에 보관되고 있던 책. 언제 쓰였는지 알 수 없다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/tactical_manual.png"
       },
       "swaying_eyes": {
         "id": 207,
@@ -3235,7 +3433,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/swaying_eyes.png",
         "description": "형체가 없지만 분명히 잡히고, 가방에 넣어도 빠져나가지 않습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/swaying_eyes.png"
       },
       "sheet_music_storm": {
         "id": 208,
@@ -3252,7 +3451,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sheet_music_storm.png",
         "description": "느껴라, 찰나에 머무는 빛을.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/sheet_music_storm.png"
       },
       "sheet_music_galaxy": {
         "id": 209,
@@ -3269,7 +3469,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/sheet_music_galaxy.png",
         "description": "하늘의 어둠과 별을 엮어서.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/sheet_music_galaxy.png"
       },
       "brass_mirror_fragments": {
         "id": 210,
@@ -3285,7 +3486,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/brass_mirror_fragments.png",
         "description": "과거의 염원이 강하게 남아있다. 부서진 채로 보자기에 싸여 전해진다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/brass_mirror_fragments.png"
       },
       "stabbing_textbook": {
         "id": 211,
@@ -3301,7 +3503,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/stabbing_textbook.png",
         "description": "점과 점 사이를 잇는다는 감각을 느끼는 것이 찌르기의 극의이다.",
-        "level": 0
+        "level": 0,
+        "localIcon": "artifacts/stabbing_textbook.png"
       },
       "talisman_of_talent": {
         "id": 212,
@@ -3317,7 +3520,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/talisman_of_talent.png",
         "description": "손목을 고정해 주는 보호대 역할도 한다.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/talisman_of_talent.png"
       },
       "broken_sapphire": {
         "id": 213,
@@ -3333,7 +3537,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/broken_sapphire.png",
         "description": "있어서는 안 될 일을 반쯤 없던 일로 해준다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/broken_sapphire.png"
       },
       "cloak_of_the_green": {
         "id": 214,
@@ -3349,7 +3554,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cloak_of_the_green.png",
         "description": "자연의 기운이 깃들어 푸르른 곳에서 은밀하게 행동할 수 있습니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/cloak_of_the_green.png"
       },
       "wings": {
         "id": 215,
@@ -3365,7 +3571,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/wings.png",
         "description": "마법으로 구름을 엮어 만든 날개.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/wings.png"
       },
       "lightning_chakram": {
         "id": 216,
@@ -3381,7 +3588,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lightning_chakram.png",
         "description": "사탕수수 정도는 베어낼 수 있다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/lightning_chakram.png"
       },
       "lightning_struck_tree_branch": {
         "id": 217,
@@ -3397,7 +3605,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lightning_struck_tree_branch.png",
         "description": "무겁고 특이한 냄새가 난다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/lightning_struck_tree_branch.png"
       },
       "thunders_earrings": {
         "id": 218,
@@ -3413,7 +3622,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/thunders_earrings.png",
         "description": "도서관에서 개발한 신소재를 사용해 가볍습니다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/thunders_earrings.png"
       },
       "ahmads_soul_powder": {
         "id": 219,
@@ -3430,7 +3640,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ahmads_soul_powder.png",
         "description": "물결 없는 그곳. 누구도 상처 주지 않아도 되는 그곳에 다시 가고 싶어라.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/ahmads_soul_powder.png"
       },
       "stinging_bug": {
         "id": 220,
@@ -3446,7 +3657,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/stinging_bug.png",
         "description": "스스로 전기를 일으키는 벌레. 조련이 가능하다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/stinging_bug.png"
       },
       "frozen_bow": {
         "id": 221,
@@ -3462,7 +3674,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/frozen_bow.png",
         "description": "오랜 시간을 견뎌내면 활을 잡은 이에게만은 냉기를 뿌리지 않습니다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/frozen_bow.png"
       },
       "black_planet": {
         "id": 222,
@@ -3478,7 +3691,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/black_planet.png",
         "description": "도서관에 전시되어 있던 검은색 행성. 과거 하늘 밖을 보던 자들이 만들었다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/black_planet.png"
       },
       "ashen_planet": {
         "id": 223,
@@ -3494,7 +3708,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/ashen_planet.png",
         "description": "도서관에 전시되어 있던 잿빛 행성 모형. 과거 하늘 밖을 보던 자들이 만들었다.",
-        "level": 5
+        "level": 5,
+        "localIcon": "artifacts/ashen_planet.png"
       },
       "petrification": {
         "id": 224,
@@ -3510,7 +3725,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/petrification.png",
         "description": "꽃은 하늘에도 지상에도 지하에도 있다.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/petrification.png"
       },
       "hand_mirror": {
         "id": 225,
@@ -3526,7 +3742,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/hand_mirror.png",
         "description": "털 손질 그 이상을 원하는 동물들이 들고 다니는 도구",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/hand_mirror.png"
       },
       "white_paper": {
         "id": 226,
@@ -3538,7 +3755,8 @@
           "content": "[고유] 양쪽 칸에 배치된 아티팩트가 동일한 콤보인 경우, 해당 콤보 수치 1 증가\n모든 피해 증폭 +3/6%"
         },
         "image": "https://img.sephiria.wiki/artifacts/white_paper.png",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/white_paper.png"
       },
       "eternal_sun": {
         "id": 227,
@@ -3555,7 +3773,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/eternal_sun.png",
         "description": "푸른 달과 태양을 조각한 모형.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/eternal_sun.png"
       },
       "flux_mk2": {
         "id": 228,
@@ -3572,7 +3791,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/flux_mk2.png",
         "description": "낡은 장치. 뒷편에는 다음과 같이 쓰여 있다: '표준 규격 - 대부분의 개체와 호환됨'",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/flux_mk2.png"
       },
       "overall_armband": {
         "id": 229,
@@ -3588,7 +3808,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/overall_armband.png",
         "description": "이 완장은 오직 한 두더지만이 착용할 수 있습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/overall_armband.png"
       },
       "badge_of_devotion": {
         "id": 230,
@@ -3604,7 +3825,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/badge_of_devotion.png",
         "description": "단 하나를 위하여.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/badge_of_devotion.png"
       },
       "mysterious_weight": {
         "id": 231,
@@ -3619,7 +3841,8 @@
           "content": "[고유] 일반 공격 피해 +22/26/32/40/50% 증가\n공격 속도 -10/10/10/10/10%"
         },
         "image": "https://img.sephiria.wiki/artifacts/mysterious_weight.png",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/mysterious_weight.png"
       },
       "lucky_medal": {
         "id": 232,
@@ -3635,7 +3858,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lucky_medal.png",
         "description": "바닥에 떨어진 잎을 찾아내는 행운의 증표.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/lucky_medal.png"
       },
       "neutralizer_black": {
         "id": 233,
@@ -3651,7 +3875,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/neutralizer_black.png",
         "description": "연금술을 익힌 동물들이 자주 사용하는 약. 특별한 재료를 넣어 색이 탁해졌다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/neutralizer_black.png"
       },
       "green_ink_bottle_v2": {
         "id": 234,
@@ -3667,7 +3892,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/green_ink_bottle.png",
         "description": "이 병에 잉크를 넣으면 며칠 후 잉크가 사라집니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/green_ink_bottle_v2.png"
       },
       "shock_amplifier": {
         "id": 235,
@@ -3682,7 +3908,8 @@
           "content": "[고유] 고정 피해 +1/1/1/2/2/3/4/4/5/6/7/8/9/12/14"
         },
         "image": "https://img.sephiria.wiki/artifacts/shock_amplifier.png",
-        "level": 14
+        "level": 14,
+        "localIcon": "artifacts/shock_amplifier.png"
       },
       "crystal_of_harmony": {
         "id": 236,
@@ -3697,7 +3924,8 @@
           "content": "근처 8칸 아티팩트 레벨 1당 모든 피해 증폭 +1/2% 증가"
         },
         "image": "https://img.sephiria.wiki/artifacts/crystal_of_harmony.png",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/crystal_of_harmony.png"
       },
       "eternal_winter": {
         "id": 237,
@@ -3714,7 +3942,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/eternal_winter.png",
         "description": "흙 속에 묻혀있었어. 이 세상 물건이 아닌 것 같군. - 타가",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/eternal_winter.png"
       },
       "lightning_amulet": {
         "id": 238,
@@ -3730,7 +3959,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lightning_amulet.png",
         "description": "지닌 자의 폭발적인 분노를 잠재운다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/lightning_amulet.png"
       },
       "multicolored_candy_jar": {
         "id": 239,
@@ -3746,7 +3976,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/multicolored_candy_jar.png",
         "description": "항상 어린 동물의 손에 닿지 않는 곳에 존재합니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/multicolored_candy_jar.png"
       },
       "plump_fruits": {
         "id": 240,
@@ -3762,7 +3993,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/plump_fruits.png",
         "description": "보이는 것 보다 더 많이 물을 넣을 수 있습니다.",
-        "level": 1
+        "level": 1,
+        "localIcon": "artifacts/plump_fruits.png"
       },
       "defect_probe": {
         "id": 241,
@@ -3778,7 +4010,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/defect_probe.png",
         "description": "주로 훈련소 교관과 마법진 선생님이 사용했습니다.",
-        "level": 6
+        "level": 6,
+        "localIcon": "artifacts/defect_probe.png"
       },
       "wanderers_necklace": {
         "id": 242,
@@ -3794,7 +4027,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/wanderers_necklace.png",
         "description": "집이 없는 게 아니라 여행 중인 거야.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/wanderers_necklace.png"
       },
       "heart_of_the_beast": {
         "id": 243,
@@ -3810,7 +4044,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/heart_of_the_beast.png",
         "description": "동물을 본뜬 기계 인형을 만들기 위한 장치. 단단해 보이지만 내부가 비어있어 조심해야 합니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/heart_of_the_beast.png"
       },
       "stone_wheel": {
         "id": 244,
@@ -3826,7 +4061,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/stone_wheel.png",
         "description": "먼 과거, 실을 잣거나 제례에 사용되었습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/stone_wheel.png"
       },
       "lerids_battleb_racelet": {
         "id": 245,
@@ -3842,7 +4078,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/lerids_battleb_racelet.png",
         "description": "착용 후 발을 무겁게 하기 위해 노력해야 합니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/lerids_battleb_racelet.png"
       },
       "elastic_band": {
         "id": 246,
@@ -3858,7 +4095,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/elastic_band.png",
         "description": "뻣뻣한 동물들을 위해서 만들어졌습니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/elastic_band.png"
       },
       "unalloyed_gold_needle": {
         "id": 247,
@@ -3871,7 +4109,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/unalloyed_gold_needle.png",
         "description": "자성은 없지만, 언제나 북쪽을 가리키는 붉은 침을 품은 나침반.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/unalloyed_gold_needle.png"
       },
       "thunder_judgment": {
         "id": 248,
@@ -3887,7 +4126,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/thunder_judgment.png",
         "description": "천둥의 심판 마법이 적혀 있는 책",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/thunder_judgment.png"
       },
       "academy_fountain_pen": {
         "id": 249,
@@ -3904,7 +4144,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/academy_fountain_pen.png",
         "description": "비상시에 사용할 수 있는 호신 기능이 있습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/academy_fountain_pen.png"
       },
       "zorous_watering_can": {
         "id": 250,
@@ -3921,7 +4162,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/zorous_watering_can.png",
         "description": "식물에게 정확히 필요한 양의 물만 뿌려집니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/zorous_watering_can.png"
       },
       "snow_mountain_big_eared_bat": {
         "id": 251,
@@ -3938,7 +4180,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/snow_mountain_big_eared_bat.png",
         "description": "매우 빠르게 날 수 있지만, 느긋한 걸 좋아합니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/snow_mountain_big_eared_bat.png"
       },
       "plasma_helmet": {
         "id": 252,
@@ -3973,7 +4216,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/red_planet_observation_log.png",
         "description": "행성이 붉은빛으로 반짝였다는 내용 이후의 기록은 없습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/red_planet_observation_log.png"
       },
       "water_spirit": {
         "id": 254,
@@ -3990,7 +4234,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/water_spirit.png",
         "description": "평소에는 동그란 물구슬 안에서 놀고 있습니다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/water_spirit.png"
       },
       "frost_guillotine": {
         "id": 255,
@@ -4007,7 +4252,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/frost_guillotine.png",
         "description": "동물의 평등을 위해 만들어진 마법 장치",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/frost_guillotine.png"
       },
       "archive_sun": {
         "id": 256,
@@ -4024,7 +4270,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/archive_sun.png",
         "description": "수많은 기록과 연구가 태양의 정령을 현현시킨 순간을 기념한 모형.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/archive_sun.png"
       },
       "yakumo_kodachi": {
         "id": 257,
@@ -4040,7 +4287,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/yakumo_kodachi.png",
         "description": "구름 위를 나는 듯 가벼운 기운이어라.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/yakumo_kodachi.png"
       },
       "angry_potato": {
         "id": 258,
@@ -4056,7 +4304,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/angry_potato.png",
         "description": "물 대신 다양한 포션을 먹여 키운 감자.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/angry_potato.png"
       },
       "wanderer_blessing": {
         "id": 259,
@@ -4072,7 +4321,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/wanderer_blessing.png",
         "description": "나그네가 쓰다듬어 주었다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/wanderer_blessing.png"
       },
       "alchemist_flask": {
         "id": 260,
@@ -4088,7 +4338,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/alchemist_flask.png",
         "description": "단순하지만 수많은 실험을 통해 계량된 유리병",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/alchemist_flask.png"
       },
       "courage_amulet": {
         "id": 261,
@@ -4104,7 +4355,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/courage_amulet.png",
         "description": "소지하면 왠지 힘이 샘솟는 것 같다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/courage_amulet.png"
       },
       "whirlwind_stone": {
         "id": 262,
@@ -4117,7 +4369,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/whirlwind_stone.png",
         "description": "시간과 공간이 휘몰아치는 곳에서 왔다고 전해지는 돌",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/whirlwind_stone.png"
       },
       "toxic_spore_pouch": {
         "id": 263,
@@ -4130,7 +4383,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/toxic_spore_pouch.png",
         "description": "껍질이 딱딱해도 취급에 주의하세요.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/toxic_spore_pouch.png"
       },
       "topaz_badge": {
         "id": 264,
@@ -4143,7 +4397,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/topaz_badge.png",
         "description": "아카데미에서 총명을 보인 학생에게 주어지는 배지",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/topaz_badge.png"
       },
       "garnet_badge": {
         "id": 265,
@@ -4156,7 +4411,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/garnet_badge.png",
         "description": "아카데미에서 열정을 보인 학생에게 주어지는 배지",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/garnet_badge.png"
       },
       "diamond_badge": {
         "id": 266,
@@ -4169,7 +4425,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/diamond_badge.png",
         "description": "아카데미에서 인내를 보인 학생에게 주어지는 배지",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/diamond_badge.png"
       },
       "red_mushroom": {
         "id": 267,
@@ -4182,7 +4439,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/red_mushroom.png",
         "description": "스튜로 만들기에는 수상한 색을 띠고 있습니다.",
-        "level": 3
+        "level": 3,
+        "localIcon": "artifacts/red_mushroom.png"
       },
       "tome_of_transmutation_lightning": {
         "id": 268,
@@ -4237,7 +4495,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/bento.png",
         "description": "생당근, 삶은 당근, 구운 당근이 들어있는 것 같다.",
-        "level": 4
+        "level": 4,
+        "localIcon": "artifacts/bento.png"
       },
       "cursed_letter": {
         "id": 272,
@@ -4250,7 +4509,8 @@
         },
         "image": "https://img.sephiria.wiki/artifacts/cursed_letter.png",
         "description": "나흘째 떠나지 못한 편지. 찌릿찌릿한 원한이 느껴집니다.",
-        "level": 2
+        "level": 2,
+        "localIcon": "artifacts/cursed_letter.png"
       }
     },
     "weapons": {
@@ -7025,162 +7285,435 @@
         "value": "pink_rabbit",
         "label_kor": "분홍 토끼",
         "image": "https://img.sephiria.wiki/costume/pink_rabbit.png",
+        "unlock": "기본 코스튬",
+        "description": "특출난 것은 없지만 그것이 장점이 될 수도 있습니다.",
+        "effects": {
+          "positive": [
+            "경험치 드롭 +3%"
+          ],
+          "negative": []
+        },
         "localIcon": "costume/pink_rabbit.png"
       },
       "rabbit": {
         "value": "rabbit",
         "label_kor": "갑옷을 입은 토끼",
         "image": "https://img.sephiria.wiki/costume/rabbit.png",
+        "unlock": "기본 코스튬",
+        "description": "몸을 보호하기 위해선 꽁꽁 싸매는 것이 최고 아닐까요?",
+        "effects": {
+          "positive": [
+            "방어력 +10"
+          ],
+          "negative": [
+            "최대 HP -15"
+          ]
+        },
         "localIcon": "costume/rabbit.png"
       },
       "brown_rabbit": {
         "value": "brown_rabbit",
         "label_kor": "갈색 토끼",
         "image": "https://img.sephiria.wiki/costume/brown_rabbit.png",
+        "unlock": "기본 코스튬",
+        "description": "숲에 숨으면 동물들이 잘 못 찾지만, 매사에 성실합니다.",
+        "effects": {
+          "positive": [
+            "회피 +12"
+          ],
+          "negative": [
+            "치명타 확률 -4%"
+          ]
+        },
         "localIcon": "costume/brown_rabbit.png"
       },
       "braid": {
         "value": "braid",
         "label_kor": "땋은 머리 토끼",
         "image": "https://img.sephiria.wiki/costume/braid.png",
+        "unlock": "기본 코스튬",
+        "description": "땅에 흐르듯이 긴 머리카락을 가지고 있습니다.",
+        "effects": {
+          "positive": [
+            "공격 속도 +7%",
+            "이동 속도 +12%"
+          ],
+          "negative": [
+            "대시 회복 속도 -20%"
+          ]
+        },
         "localIcon": "costume/braid.png"
       },
       "orange_rabbit": {
         "value": "orange_rabbit",
         "label_kor": "주황색 토끼",
         "image": "https://img.sephiria.wiki/costume/orange_rabbit.png",
+        "unlock": "기본 코스튬",
+        "description": "알게 모르게 색이 조금씩 다릅니다. 본인만 신경 쓰고 있습니다.",
+        "effects": {
+          "positive": [
+            "+14% 디버프로 주는 피해량"
+          ],
+          "negative": [
+            "-8 방어력"
+          ]
+        },
         "localIcon": "costume/orange_rabbit.png"
       },
       "red_rabbit": {
         "value": "red_rabbit",
         "label_kor": "빨간망토 토끼",
         "image": "https://img.sephiria.wiki/costume/red_rabbit.png",
+        "unlock": "기본 코스튬",
+        "description": "늑대와의 운명적인 만남을 기다리고 있습니다.",
+        "effects": {
+          "positive": [
+            "+50% MP 회복 시의 효율"
+          ],
+          "negative": [
+            "최대 MP -10"
+          ]
+        },
         "localIcon": "costume/red_rabbit.png"
       },
       "white_rabbit": {
         "value": "white_rabbit",
         "label_kor": "흰색 토끼",
         "image": "https://img.sephiria.wiki/costume/white_rabbit.png",
+        "unlock": "기본 코스튬",
+        "description": "시력이 조금 나쁘지만 매력적입니다.",
+        "effects": {
+          "positive": [
+            "+12% 특수 공격 피해",
+            "+8 최대 MP"
+          ],
+          "negative": [
+            "-15 회피"
+          ]
+        },
         "localIcon": "costume/white_rabbit.png"
       },
       "wing_ear_rabbit": {
         "value": "wing_ear_rabbit",
         "label_kor": "날개 귀 토끼",
         "image": "https://img.sephiria.wiki/costume/wing_ear_rabbit.png",
+        "unlock": "기본 코스튬",
+        "description": "과거 고귀한 혈통으로 떠받들어졌습니다. 지금은 그저 눈길을 끄는 존재일 뿐입니다.",
+        "effects": {
+          "positive": [
+            "시작 아이템: 축복"
+          ],
+          "negative": [
+            "무기 피해량 -10%"
+          ]
+        },
         "localIcon": "costume/wing_ear_rabbit.png"
       },
       "red_cat": {
         "value": "red_cat",
         "label_kor": "붉은 옷 고양이",
         "image": "https://img.sephiria.wiki/costume/red_cat.png",
+        "unlock": "화염속성 피해 50 달성",
+        "description": "그늘진 얼굴이지만 모자챙이 넓을 뿐입니다.",
+        "effects": {
+          "positive": [
+            "시작 아이템 : 파이어 볼트",
+            "+15% 화염속성 피해 증폭"
+          ],
+          "negative": [
+            "-20% 물리 피해 증폭"
+          ]
+        },
         "localIcon": "costume/red_cat.png"
       },
       "red_fox": {
         "value": "red_fox",
         "label_kor": "붉은 여우",
         "image": "https://img.sephiria.wiki/costume/red_fox.png",
+        "unlock": "석판 10개 동시에 보유",
+        "description": "귀엽습니다. 그쵸?",
+        "effects": {
+          "positive": [
+            "인벤토리 슬롯 +6"
+          ],
+          "negative": [
+            "치유 저주: 받는 회복량이 -50% 감소"
+          ]
+        },
         "localIcon": "costume/red_fox.png"
       },
       "frog": {
         "value": "frog",
         "label_kor": "개구리",
         "image": "https://img.sephiria.wiki/costume/frog.png",
+        "unlock": "번개속성 피해 50 달성",
+        "description": "특이하게도 꼬리가 없습니다.",
+        "effects": {
+          "positive": [
+            "시작 아이템 : 라이트닝 볼트",
+            "+15% 번개속성 피해 증폭"
+          ],
+          "negative": [
+            "-20% 물리 피해 증폭"
+          ]
+        },
         "localIcon": "costume/frog.png"
       },
       "mole": {
         "value": "mole",
         "label_kor": "두더지",
         "image": "https://img.sephiria.wiki/costume/mole.png",
+        "unlock": "두더지 300마리 누적 처치",
+        "description": "당신은 평범한 일꾼입니다.",
+        "effects": {
+          "positive": [
+            "동료가 입히는 피해량 +10%"
+          ],
+          "negative": [
+            "방어력 -20",
+            "이동속도 -10%"
+          ]
+        },
         "localIcon": "costume/mole.png"
       },
       "white_wolf": {
         "value": "white_wolf",
         "label_kor": "하얀 늑대",
         "image": "https://img.sephiria.wiki/costume/white_wolf.png",
+        "unlock": "라타카 5회 처치",
+        "description": "꼬리를 소중히 여기고 있습니다.",
+        "effects": {
+          "positive": [
+            "무한 대시"
+          ],
+          "negative": [
+            "대시 무적 비활성화"
+          ]
+        },
         "localIcon": "costume/white_wolf.png"
       },
       "wizard_rabbit": {
         "value": "wizard_rabbit",
         "label_kor": "마법사 토끼",
         "image": "https://img.sephiria.wiki/costume/wizard_rabbit.png",
+        "unlock": "마법으로 적 50마리 처치",
+        "description": "마법 좀 하는 토끼입니다.",
+        "effects": {
+          "positive": [
+            "시작 아이템 : 아이스 볼트",
+            "+15% 얼음속성 피해 증폭"
+          ],
+          "negative": [
+            "-20% 물리 피해 증폭"
+          ]
+        },
         "localIcon": "costume/wizard_rabbit.png"
       },
       "skeleton": {
         "value": "skeleton",
         "label_kor": "스켈레톤",
         "image": "https://img.sephiria.wiki/costume/skeleton.png",
+        "unlock": "단일 판에서 잃은 체력 누적 333 달성",
+        "description": "...",
+        "effects": {
+          "positive": [
+            "시작 아이템 : &#x27;저주&#x27; 석판",
+            "가하는 피해가 20% 증폭"
+          ],
+          "negative": []
+        },
         "localIcon": "costume/skeleton.png"
       },
       "wings_lost_bat": {
         "value": "wings_lost_bat",
         "label_kor": "날개 잃은 박쥐",
         "image": "https://img.sephiria.wiki/costume/wings_lost_bat.png",
+        "unlock": "헌혈 이벤트 5회 완료",
+        "description": "햇빛을 얻는 대신 동굴을 잃었습니다. 동족들을 찾고 있습니다.",
+        "effects": {
+          "positive": [
+            "HP 흡수 +5"
+          ],
+          "negative": [
+            "대시 횟수가 1회로 고정됨"
+          ]
+        },
         "localIcon": "costume/wings_lost_bat.png"
       },
       "adventurer": {
         "value": "adventurer",
         "label_kor": "모험가 토끼",
         "image": "https://img.sephiria.wiki/costume/adventurer.png",
+        "unlock": "던그리드 구매",
+        "description": "모험을 꿈꿔온 당신은 여정을 완수하기 위해 만반의 준비를 합니다.",
+        "effects": {
+          "positive": [
+            "대시 횟수 +1",
+            "대시 회복 속도 +10%"
+          ],
+          "negative": [
+            "마법 가속 -50%"
+          ]
+        },
         "localIcon": "costume/adventurer.png"
       },
       "scholar_lizard": {
         "value": "scholar_lizard",
         "label_kor": "학자 도마뱀",
         "image": "https://img.sephiria.wiki/costume/scholar_lizard.png",
+        "unlock": "하드 모드 20단계 이상 클리어",
+        "description": "병약한 몸이지만 커다란 잠재력이 있습니다.",
+        "effects": {
+          "positive": [
+            "시작 아이템 : 세렌의 휘갈긴 편지"
+          ],
+          "negative": [
+            "마력 환류: 최대 MP가 80으로 고정되고, 줄어들지 않음",
+            "최대 HP가 20으로 고정됨"
+          ]
+        },
         "localIcon": "costume/scholar_lizard.png"
       },
       "ghost": {
         "value": "ghost",
         "label_kor": "유령",
         "image": "https://img.sephiria.wiki/costume/ghost.png",
+        "unlock": "한 모험에서 마법서를 5개 이상 획득",
+        "description": "희미한 목적이 당신을 이 탑에 묶어두고 있습니다.",
+        "effects": {
+          "positive": [
+            "시작 아이템 : 파이어 애로우",
+            "마법서가 MP를 소모하지 않음"
+          ],
+          "negative": [
+            "무기 피해량 -40%"
+          ]
+        },
         "localIcon": "costume/ghost.png"
       },
       "otter": {
         "value": "otter",
         "label_kor": "수달",
         "image": "https://img.sephiria.wiki/costume/otter.png",
+        "unlock": "치명타 피해 175%이상 달성",
+        "description": "풍부한 표정을 숨길 수 없습니다. 파도같은 감정도 감출 수 없습니다.",
+        "effects": {
+          "positive": [
+            "치명타 확률 +9%"
+          ],
+          "negative": [
+            "이동 속도 -8%"
+          ]
+        },
         "localIcon": "costume/otter.png"
       },
       "eagle": {
         "value": "eagle",
         "label_kor": "독수리",
         "image": "https://img.sephiria.wiki/costume/eagle.png",
+        "unlock": "대시 횟수를 8까지 올리세요.",
+        "description": "재빠르며 뒤를 돌아보지 않습니다.",
+        "effects": {
+          "positive": [
+            "대시 횟수 +2"
+          ],
+          "negative": [
+            "대시 회복 속도 -20%"
+          ]
+        },
         "localIcon": "costume/eagle.png"
       },
       "crocodile": {
         "value": "crocodile",
         "label_kor": "악어",
         "image": "https://img.sephiria.wiki/costume/crocodile.png",
+        "unlock": "수호 콤보를 10 달성한 상태로 게임을 클리어하세요.",
+        "description": "이루고자 하는 일을 위해 침묵할 수 있습니다.",
+        "effects": {
+          "positive": [
+            "방어력에 따른 피해 감소가 적용되지 않지만, 증가된 피해 감소율 만큼 주는 피해 증가"
+          ],
+          "negative": []
+        },
         "localIcon": "costume/crocodile.png"
       },
       "deer": {
         "value": "deer",
         "label_kor": "사슴",
         "image": "https://img.sephiria.wiki/costume/deer.png",
+        "unlock": "소원 분수를 사용하지 않고 게임을 클리어 하세요. (소원 분수가 잠금 해제되어 있어야 함)",
+        "description": "뿔에 신성력이 있다고 믿어져 왔습니다. 옛날 이야기지만요.",
+        "effects": {
+          "positive": [
+            "소원 분수 용량 +3"
+          ],
+          "negative": [
+            "치명타 확률 -90%"
+          ]
+        },
         "localIcon": "costume/deer.png"
       },
       "lucky_fairy": {
         "value": "lucky_fairy",
         "label_kor": "행운의 요정",
         "image": "https://img.sephiria.wiki/costume/lucky_fairy.png",
+        "unlock": "챕터4: 파편(을)를 완료하세요.",
+        "description": "아무도 요정의 정체에 대해 의심하지 않습니다. 본인조차도.",
+        "effects": {
+          "positive": [
+            "행운 +7"
+          ],
+          "negative": [
+            "인벤토리 슬롯 -3"
+          ]
+        },
         "localIcon": "costume/lucky_fairy.png"
       },
       "squirrel": {
         "value": "squirrel",
         "label_kor": "농부 다람쥐",
         "image": "https://img.sephiria.wiki/costume/squirrel.png",
+        "unlock": "과일 꼬치를 사용하지 않고 게임을 클리어 하세요.",
+        "description": "밭일보다 과수원 일을 좋아합니다.",
+        "effects": {
+          "positive": [
+            "과일 꼬치 상한 +2"
+          ],
+          "negative": [
+            "무기 피해량 -14%"
+          ]
+        },
         "localIcon": "costume/squirrel.png"
       },
       "turtle": {
         "value": "turtle",
         "label_kor": "거북이",
         "image": "https://img.sephiria.wiki/costume/turtle.png",
+        "unlock": "한 모험에서 최대 레벨을 달성한 아티팩트를 12개 소지하세요.",
+        "description": "외형만으로 나이를 전혀 가늠할 수 없습니다..",
+        "effects": {
+          "positive": [
+            "아티팩트 피해량 +15%"
+          ],
+          "negative": [
+            "무기 피해량 -15%"
+          ]
+        },
         "localIcon": "costume/turtle.png"
       },
       "forest_cat": {
         "value": "forest_cat",
         "label_kor": "숲 고양이",
         "image": "https://img.sephiria.wiki/costume/forest_cat.png",
+        "unlock": "2500 잎을 모으세요.",
+        "description": "곤란할 때면 오른손을 들어올리는 버릇이 있습니다.",
+        "effects": {
+          "positive": [
+            "탐험 시작 시 800 잎",
+            "+10% 이동 속도"
+          ],
+          "negative": []
+        },
         "localIcon": "costume/forest_cat.png"
       }
     }

@@ -1,11 +1,12 @@
 =====================================================
- Sephiria Tools - 배치 최적화 & 위키 빌드 오버레이
+ sephiria-gguljam - 인게임 최적화 & 위키 빌드 & 멀티플레이 오버레이
 =====================================================
 
-세피리아 게임 화면 위에 뜨는 오버레이입니다.
- - 아티팩트 최적 배치 계산 (석판 효과·발동조건 반영)
- - sephiria.wiki 빌드 브라우저 + 즐겨찾기
- - 게임을 읽기만 하며, 게임 파일이나 세이브를 변경하지 않습니다.
+세피리아(Sephiria)를 진짜 꿀잼으로 즐기는 인게임 오버레이 도구입니다.
+ - 아티팩트 최적 배치 계산 (석판 효과·발동조건 반영, 1-클릭 게임 자동 반영 & 되돌리기)
+ - sephiria.wiki 빌드 브라우저 + 즐겨찾기 (마우스 오버 시 무기·코스튬·아티팩트 상세 툴팁)
+ - 실시간 멀티플레이 팀원 인벤토리/무기/콤보 동기화 HUD (F1)
+ - 게임을 읽기만 하며, 치트나 세이브 변조가 아닙니다.
 
 
 ■ 설치 (최초 1회)
@@ -26,7 +27,7 @@
   그냥 게임을 켜면 됩니다.
    → 오버레이가 자동으로 함께 뜨고, 게임을 끄면 자동으로 닫힙니다.
    → 수동으로 다시 띄우려면(Ctrl+Q 로 닫은 뒤 등):
-      게임폴더\BepInEx\plugins\SephiriaTools\Overlay      Sephiria Tools Overlay.exe
+      게임폴더\BepInEx\plugins\SephiriaTools\Overlay\Sephiria Tools Overlay.exe
 
   자동 실행을 끄려면:
    게임폴더\BepInEx\config\com.sephiria.tools.cfg 에서
@@ -43,10 +44,10 @@
 
 ■ 단축키
 
-  Ctrl+D   최적 배치 패널 (새로고침 → 계산 → 배치 따라하기)
-  Ctrl+R   최적 배치 계산 실행
+  Ctrl+D   최적 배치 패널 (새로고침 → 계산 → 1-클릭 인게임 반영 / 되돌리기)
+  Ctrl+R   최적 배치 계산 즉시 실행
   Ctrl+B   위키 빌드 브라우저 (카드의 ☆ = 즐겨찾기)
-  F1       팀원 빌드 패널 (멀티플레이, 준비 중)
+  F1       실시간 팀원 빌드 패널 (멀티플레이 팀원 인벤토리/무기/콤보 동기화)
   Ctrl+H   하단 단축키 바 숨기기/보이기
   Ctrl+Q   오버레이 종료
   
@@ -57,9 +58,11 @@
   - "게임 연결 끊김": 게임을 켠 뒤 잠시 기다리면 자동 재접속됩니다.
     계속되면 게임 폴더\BepInEx\LogOutput.log 를 확인하세요.
   - 오버레이 로그: 게임폴더\BepInEx\plugins\SephiriaTools\Overlay\overlay.log
+
+
 ■ 삭제 및 원복
 
-  Uninstall.bat 을 더블클릭하면 Sephiria Tools 가 삭제되고 게임이 원래 상태로 복원됩니다.
+  Uninstall.bat 을 더블클릭하면 sephiria-gguljam 이 삭제되고 게임이 원래 상태로 복원됩니다.
   (수동 삭제: 게임 폴더에서 winhttp.dll 과 BepInEx 폴더 삭제)
 
 

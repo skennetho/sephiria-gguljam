@@ -46,7 +46,7 @@ function renderTeam() {
   const meta = document.createElement('div');
   meta.className = 'team-meta';
   const chips = [];
-  if (m.weapon) chips.push(`<span class="chip">무기 <b>${esc(m.weapon)}</b></span>`);
+  if (m.weapon) chips.push(`<span class="chip" data-cat="weapons" data-name="${esc(m.weapon)}" style="cursor:pointer">무기 <b>${esc(m.weapon)}</b></span>`);
   for (const c of (m.combos || [])) {
     const combo = comboById(c.id || c.name);
     chips.push(

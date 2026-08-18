@@ -20,6 +20,37 @@ namespace SephiriaTools
         public MapData data;
     }
 
+    [Serializable]
+    public class TeamSnapshot
+    {
+        public string type = "team_update";
+        public TeamData data;
+    }
+
+    [Serializable]
+    public class TeamData
+    {
+        public List<TeamMemberInfo> members = new List<TeamMemberInfo>();
+    }
+
+    [Serializable]
+    public class TeamMemberInfo
+    {
+        public string name;
+        public string weapon;
+        public bool isLocal;
+        public List<ComboInfo> combos = new List<ComboInfo>();
+        public InventoryData inventory;
+    }
+
+    [Serializable]
+    public class ComboInfo
+    {
+        public string id;
+        public string name;
+        public int count;
+    }
+
     // ── Inventory Data Models ──────────────────────────────────────
 
     [Serializable]
@@ -157,6 +188,19 @@ namespace SephiriaTools
             return sb.ToString();
         }
 
+        public static string ToJson(TeamSnapshot snapshot)
+        {
+            if (snapshot == null || snapshot.data == null) return "{}";
+            var sb = new StringBuilder(4096);
+            sb.Append('{');
+            AppendString(sb, "type", snapshot.type);
+            sb.Append(',');
+            sb.Append("\"data\":");
+            SerializeTeamData(sb, snapshot.data);
+            sb.Append('}');
+            return sb.ToString();
+        }
+
 
         public static DashboardCommand ParseCommand(string json)
         {
@@ -226,6 +270,42 @@ namespace SephiriaTools
             }
             sb.Append(']');
 
+            sb.Append('}');
+        }
+
+        private static void SerializeTeamData(StringBuilder sb, TeamData team)
+        {
+            sb.Append("{\"members\":[");
+            for (int i = 0; i < team.members.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                SerializeTeamMember(sb, team.members[i]);
+            }
+            sb.Append("]}");
+        }
+
+        private static void SerializeTeamMember(StringBuilder sb, TeamMemberInfo m)
+        {
+            sb.Append('{');
+            AppendString(sb, "name", m.name); sb.Append(',');
+            AppendString(sb, "weapon", m.weapon); sb.Append(',');
+            AppendBool(sb, "isLocal", m.isLocal); sb.Append(',');
+            sb.Append("\"combos\":[");
+            for (int i = 0; i < m.combos.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append('{');
+                AppendString(sb, "id", m.combos[i].id); sb.Append(',');
+                AppendString(sb, "name", m.combos[i].name); sb.Append(',');
+                AppendInt(sb, "count", m.combos[i].count);
+                sb.Append('}');
+            }
+            sb.Append("],");
+            sb.Append("\"inventory\":");
+            if (m.inventory != null)
+                SerializeInventoryData(sb, m.inventory);
+            else
+                sb.Append("null");
             sb.Append('}');
         }
 

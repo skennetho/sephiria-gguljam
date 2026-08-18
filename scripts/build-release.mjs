@@ -33,7 +33,7 @@ process.chdir(ROOT);
 
 const pkg = JSON.parse(fs.readFileSync('overlay/package.json', 'utf8'));
 const VERSION = pkg.version;
-const NAME = `SephiriaTools-v${VERSION}`;
+const NAME = `sephiria-gguljam-v${VERSION}`;
 const DIST = path.join(ROOT, 'dist');
 const STAGE = path.join(DIST, NAME);
 
