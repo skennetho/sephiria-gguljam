@@ -77,7 +77,22 @@ run('node overlay/optimizer.test.js');
 // ── 2. 플러그인 빌드 ────────────────────────────────────────────
 
 step('플러그인 빌드');
-run('dotnet build -c Release', { cwd: path.join(ROOT, 'SephiriaPlugin') });
+const prebuiltDll = path.join(ROOT, 'prebuilt', 'SephiriaTools.dll');
+const builtDll = path.join(ROOT, 'SephiriaPlugin', 'bin', 'Release', 'SephiriaTools.dll');
+
+try {
+  run('dotnet build -c Release', { cwd: path.join(ROOT, 'SephiriaPlugin') });
+  if (fs.existsSync(builtDll)) {
+    fs.mkdirSync(path.join(ROOT, 'prebuilt'), { recursive: true });
+    fs.copyFileSync(builtDll, prebuiltDll);
+  }
+} catch (err) {
+  if (fs.existsSync(prebuiltDll)) {
+    console.log('게임 어셈블리가 없어 prebuilt/SephiriaTools.dll 을 사용합니다.');
+  } else {
+    throw err;
+  }
+}
 
 // ── 3. 스테이징 초기화 ──────────────────────────────────────────
 
@@ -117,9 +132,8 @@ copyDir(path.join(ROOT, 'assets'), path.join(STAGE, 'Overlay', 'assets-bundled')
 step('플러그인 / BepInEx / assets 시드 복사');
 
 fs.mkdirSync(path.join(STAGE, 'plugin'), { recursive: true });
-fs.copyFileSync(
-  'SephiriaPlugin/bin/Release/SephiriaTools.dll',
-  path.join(STAGE, 'plugin', 'SephiriaTools.dll'));
+const targetPluginDll = fs.existsSync(builtDll) ? builtDll : prebuiltDll;
+fs.copyFileSync(targetPluginDll, path.join(STAGE, 'plugin', 'SephiriaTools.dll'));
 
 copyDir('libs/BepInEx', path.join(STAGE, 'BepInEx'));
 
