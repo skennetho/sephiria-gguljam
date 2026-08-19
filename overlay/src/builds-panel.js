@@ -5,6 +5,8 @@
 
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { ipcRenderer, shell } = require('electron');
 const { log, guard, esc, sanitize } = require('./util');
 const {
@@ -76,12 +78,42 @@ function init() {
   loadBuilds();
 }
 
-// ── 즐겨찾기 ──────────────────────────────────────────
+// ── 즐겨찾기 (localStorage + 파일 백업 이중 영구 보존) ──
+
+function getFavoriteBackupPaths() {
+  const paths = [];
+  const appData = process.env.APPDATA || '';
+  if (appData) {
+    paths.push(path.join(appData, 'sephiria-gguljam', 'favorites.json'));
+    paths.push(path.join(appData, 'Sephiria Tools Overlay', 'favorites.json'));
+  }
+  try {
+    const pluginRoot = path.join(path.dirname(process.execPath), '..');
+    paths.push(path.join(pluginRoot, 'favorites.json'));
+  } catch {}
+  return paths;
+}
 
 function loadFavorites() {
   try {
     const raw = localStorage.getItem(FAV_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
+    let arr = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(arr) || arr.length === 0) {
+      // localStorage 가 비어 있다면 백업 파일(기존 저장본)에서 마이그레이션 복원
+      for (const p of getFavoriteBackupPaths()) {
+        if (fs.existsSync(p)) {
+          try {
+            const data = JSON.parse(fs.readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+            if (Array.isArray(data) && data.length > 0) {
+              arr = data;
+              log.info('fav', `백업 파일(${p})에서 즐겨찾기 ${arr.length}개 자동 복원`);
+              localStorage.setItem(FAV_KEY, JSON.stringify(arr));
+              break;
+            }
+          } catch {}
+        }
+      }
+    }
     return new Map(arr.map(b => [b.postUuid || String(b.id), b]));
   } catch (err) {
     log.warn('fav', '즐겨찾기 로드 실패 — 비우고 시작', err.message);
@@ -91,8 +123,19 @@ function loadFavorites() {
 
 function saveFavorites() {
   try {
-    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites.values()]));
+    const list = [...favorites.values()];
+    const jsonStr = JSON.stringify(list, null, 2);
+    localStorage.setItem(FAV_KEY, jsonStr);
     log.info('fav', '저장', { 개수: favorites.size });
+
+    // 파일 시스템 백업에도 동시 저장 (폴더명 변경 및 캐시 초기화 대비)
+    for (const p of getFavoriteBackupPaths()) {
+      try {
+        const dir = path.dirname(p);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(p, jsonStr, 'utf8');
+      } catch {}
+    }
   } catch (err) {
     log.warn('fav', '저장 실패', err.message);
   }
