@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SephiriaTools
 {
-    [BepInPlugin("com.sephiria.tools", "SephiriaTools", "1.0.0")]
+    [BepInPlugin("com.sephiria.tools", "SephiriaTools", "0.2.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance { get; private set; }
