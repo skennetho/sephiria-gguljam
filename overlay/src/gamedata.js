@@ -90,6 +90,33 @@ function combos() {
   return comboList;
 }
 
+// ── 콤보 및 시너지 ─────────────────────────────────────
+
+const COMBO_KOREAN_NAMES = {
+  EMBER: '잉걸불',
+  FROST: '얼음무구',
+  GLACIER: '빙하',
+  MAGITECH: '마법공학',
+  SHADOW: '그림자',
+  GUARDIAN: '수호',
+  WINDSONG: '바람노래',
+  MYSTIC: '신비',
+  PLANET: '행성',
+  COMPANION: '동료',
+  PRECISION: '정밀',
+  DARKCLOUD: '먹구름',
+  STURDY: '견고',
+  LAKE: '호수',
+  FLAMESWORD: '태양검',
+  ACADEMY: '아카데미',
+  CURSE: '저주',
+  SAVVY: '교섭',
+  ELEMENTAL: '원소',
+  ALCHEMY: '연금술',
+  PARTY: '파티',
+  WEAPON: '대장간',
+};
+
 // ── 위키 슬러그 매핑 ──────────────────────────────────
 
 // 슬러그 -> 한글명 (assets/wiki/slugs.json)
@@ -104,7 +131,7 @@ const WIKI_COMBO_KEY = {
   colleague: 'COMPANION', precision: 'PRECISION', extrium: 'DARKCLOUD',
   firmness: 'STURDY', lake: 'LAKE', sun_sword: 'FLAMESWORD',
   academy: 'ACADEMY', curse: 'CURSE', bargaining: 'SAVVY',
-  element: 'ELEMENTAL', alchemy: 'ALCHEMY'
+  element: 'ELEMENTAL', alchemy: 'ALCHEMY', party: 'PARTY', weapon: 'WEAPON'
 };
 
 // 핵심 콤보 API 값은 위키 슬러그다. 우리 콤보 id(아이콘 키) -> 위키 슬러그 역매핑.
@@ -112,7 +139,78 @@ const COMBO_TO_WIKI = Object.fromEntries(
   Object.entries(WIKI_COMBO_KEY).map(([slug, key]) => [key, slug]));
 
 function comboKeyFromWikiSlug(slug) {
-  return WIKI_COMBO_KEY[slug] || String(slug || '').toUpperCase();
+  if (!slug) return '';
+  const lower = String(slug).toLowerCase().trim();
+  return WIKI_COMBO_KEY[lower] || String(slug).toUpperCase();
+}
+
+/**
+ * 콤보의 ID, 한글명, 아이콘 경로를 일관되게 추출하는 중앙 함수
+ * 슬러그(yinggalbul), ID(EMBER), 한글명(잉걸불) 모두 지원
+ */
+function comboInfo(keyOrSlug) {
+  if (!keyOrSlug) return null;
+  const raw = String(keyOrSlug).trim();
+  const lower = raw.toLowerCase();
+
+  let key = WIKI_COMBO_KEY[lower];
+  if (!key) {
+    const upper = raw.toUpperCase();
+    if (COMBO_KOREAN_NAMES[upper] || comboById(upper)) {
+      key = upper;
+    }
+  }
+  if (!key) {
+    for (const [k, kor] of Object.entries(COMBO_KOREAN_NAMES)) {
+      if (kor === raw || kor === lower) {
+        key = k;
+        break;
+      }
+    }
+  }
+  if (!key) key = raw.toUpperCase();
+
+  const c = comboById(key);
+  const name = (c && c.name) || COMBO_KOREAN_NAMES[key] || raw;
+  const icon = `${ASSETS}/combos/${key}.png`;
+  const wikiSlug = COMBO_TO_WIKI[key] || lower;
+
+  return {
+    id: key,
+    name,
+    icon,
+    wikiSlug,
+    combo: c
+  };
+}
+
+function comboName(keyOrSlug) {
+  const info = comboInfo(keyOrSlug);
+  return info ? info.name : String(keyOrSlug || '');
+}
+
+function comboIcon(keyOrSlug) {
+  const info = comboInfo(keyOrSlug);
+  return info ? info.icon : `${ASSETS}/combos/${keyOrSlug}.png`;
+}
+
+/**
+ * 콤보 뱃지(아이콘 + 한글명 필수) 공통 렌더링 함수
+ */
+function renderComboBadge(keyOrSlug, options = {}) {
+  const info = comboInfo(keyOrSlug);
+  if (!info) return '';
+  const cls = options.className || 'combo-badge';
+  const showName = options.showName !== false;
+  const countStr = options.count != null && options.count !== '' ? ` <b class="cb-count">${options.count}</b>` : '';
+  const extra = options.extraHtml || '';
+
+  return `<span class="${cls}" data-combo="${info.id}">` +
+         `<img src="${info.icon}" alt="${info.name}" onerror="this.style.visibility='hidden'">` +
+         (showName ? `<span class="combo-name">${info.name}</span>` : '') +
+         countStr +
+         extra +
+         `</span>`;
 }
 
 function slugName(category, slug) {
@@ -153,12 +251,6 @@ function slugIcon(category, slug) {
 }
 
 // ── 무기 티어 ─────────────────────────────────────────
-//
-// 위키 무기는 3단 트리다: 1티어(무기 종류 6종) -> 2티어(50) -> 3티어(최종 102).
-// 검색 UI 는 두 단만 노출한다 — 종류(1티어)로 넓게 고르고, 필요하면
-// 세부 무기(3티어)로 좁힌다. 2티어는 중간 단계라 사용자에게 보여주지 않고
-// 부모 체인을 거슬러 올라갈 때만 쓴다. (실측: 3티어 102개 전부 체인 정상)
-// API 의 weapon= 은 1·2·3티어 슬러그를 모두 받는다.
 
 const weaponRecords = (wikiData && wikiData.weapons) || {};
 
@@ -196,11 +288,6 @@ function costumeByName(kor) {
 }
 
 // ── 과일꼬치 ──────────────────────────────────────────
-//
-// key 는 대부분 콤보 슬러그지만, 콤보가 아닌 특수 항목도 섞여 있다.
-// adaptive_drop_bonus 는 게임의 과일꼬치 패널에 있는 '적응형 드롭 보너스' 토글이다
-// (Assembly-CSharp 의 UI_FruitSkewerPanel 에 [Header("Adaptive Item Drop Bonus")]).
-// 위키 빌드 50개 기준 가장 많이 쓰이는 항목이라 반드시 이름을 붙여야 한다.
 
 const SKEWER_SPECIAL = {
   adaptive_drop_bonus: { name: '적응형 드롭 보너스', icon: 'special/adaptive_drop_bonus.png' },
@@ -209,15 +296,13 @@ const SKEWER_SPECIAL = {
 function skewerName(key) {
   const special = SKEWER_SPECIAL[key];
   if (special) return special.name;
-  const combo = comboById(comboKeyFromWikiSlug(key));
-  return (combo && combo.name) || key;
+  return comboName(key);
 }
 
 function skewerIcon(key) {
   const special = SKEWER_SPECIAL[key];
   if (special) return `${ASSETS}/wiki/icons/${special.icon}`;
-  const combo = comboById(comboKeyFromWikiSlug(key));
-  return combo ? `${ASSETS}/combos/${combo.id}.png` : null;
+  return comboIcon(key);
 }
 
 // ── 엔티티 상세 (툴팁용: 아티팩트·무기·코스튬·기적) ─────────────
@@ -279,18 +364,20 @@ function artifactInfo(slug, id) {
 
 const RARITY_RANK = { Common: 0, Uncommon: 1, Rare: 2, Unique: 3, Epic: 3, Legend: 4 };
 
+// 실제 세피리아 인게임 6대 재능 (기본 제거)
 const ABILITY_LABELS = {
-  base: '기본', will: '의지', anger: '분노', rapid: '신속',
+  will: '의지', anger: '분노', rapid: '신속',
   wisdom: '지혜', patience: '인내', survival: '생존'
 };
 
 module.exports = {
   ASSETS, ASSETS_DIR, readJson,
   loadItemDb, itemById, itemByName, comboById, combos,
+  COMBO_KOREAN_NAMES, comboInfo, comboName, comboIcon, renderComboBadge,
   WIKI_COMBO_KEY, COMBO_TO_WIKI, comboKeyFromWikiSlug,
   slugName, slugIcon, slugCategories,
-  weaponsByTier, weaponRootOf,
+  weaponsByTier, weaponRootOf, weaponByName, costumeByName,
   skewerName, skewerIcon,
-  artifactInfo,
+  entityInfo, artifactInfo,
   RARITY_RANK, ABILITY_LABELS,
 };

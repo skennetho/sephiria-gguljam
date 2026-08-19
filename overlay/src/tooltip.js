@@ -7,7 +7,7 @@
 'use strict';
 
 const { log, guard, esc } = require('./util');
-const { ASSETS, entityInfo, comboById, comboKeyFromWikiSlug, slugIcon, slugName, weaponRootOf } = require('./gamedata');
+const { ASSETS, entityInfo, comboInfo, comboName, comboIcon, renderComboBadge, slugIcon, slugName, weaponRootOf } = require('./gamedata');
 
 let tooltipEl = null;
 let tooltipPinned = false;
@@ -132,10 +132,7 @@ function renderArtifactTooltip(wiki, game, el) {
 
   const cats = (game && game.categories) || (wiki && wiki.effect && wiki.effect.sets) || [];
   const comboRow = cats.map(c => {
-    const key = comboKeyFromWikiSlug(c);
-    const combo = comboById(key) || comboById(c);
-    return `<span class="tt-combo"><img src="${ASSETS}/combos/${key}.png" ` +
-           `onerror="this.remove()">${esc((combo && combo.name) || key || c)}</span>`;
+    return renderComboBadge(c, { className: 'tt-combo' });
   }).join('');
 
   const effect = wiki && wiki.effect && wiki.effect.content

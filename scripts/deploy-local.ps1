@@ -3,7 +3,10 @@ $ErrorActionPreference = 'Stop'
 
 $steamGameRoot = "C:\Program Files (x86)\Steam\steamapps\common\Sephiria"
 $pluginDir = "$steamGameRoot\BepInEx\plugins\SephiriaTools"
-$distDir = "C:\Users\user\git_default\SephiriaPlugin\dist\SephiriaTools-v0.1.0"
+$distDir = "C:\Users\user\git_default\SephiriaPlugin\dist\sephiria-gguljam-v0.1.0"
+if (-not (Test-Path $distDir)) {
+    $distDir = "C:\Users\user\git_default\SephiriaPlugin\dist\SephiriaTools-v0.1.0"
+}
 
 # 프로세스 확인
 $proc = Get-Process -Name 'Sephiria','Sephiria Tools Overlay' -ErrorAction SilentlyContinue

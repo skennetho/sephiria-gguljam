@@ -10,6 +10,7 @@ const { log, guard, esc, sanitize } = require('./util');
 const {
   ASSETS, itemByName, comboById, combos,
   COMBO_TO_WIKI, comboKeyFromWikiSlug,
+  comboInfo, comboName, comboIcon, renderComboBadge,
   slugName, slugIcon, slugCategories,
   weaponsByTier, weaponRootOf,
   skewerName, skewerIcon, ABILITY_LABELS,
@@ -233,28 +234,23 @@ function buildCard(b) {
     iconRow.appendChild(box);
   }
 
-  // 목표 콤보도 아이콘으로
-  const comboRow = document.createElement('span');
-  comboRow.className = 'bc-combos';
-  for (const c of (b.combo || [])) {
-    const key = comboKeyFromWikiSlug(c);
-    const img = document.createElement('img');
-    img.src = `${ASSETS}/combos/${key}.png`;
-    img.title = (comboById(key) || {}).name || c;
-    img.onerror = () => img.remove();
-    comboRow.appendChild(img);
-  }
+  // 대표 콤보 뱃지 (아이콘 + 한글명 필수)
+  const comboBadgesHtml = (b.combo || [])
+    .map(c => renderComboBadge(c, { className: 'bc-combo-tag' }))
+    .join('');
 
   const body = document.createElement('div');
   body.className = 'bc-body';
   body.innerHTML =
+    `<div class="bc-title-row">` +
     `<div class="bc-title">${esc(b.title)}</div>` +
+    `</div>` +
+    (comboBadgesHtml ? `<div class="bc-combos-row">${comboBadgesHtml}</div>` : '') +
     `<div class="bc-meta">` +
     `<span>${esc((b.writer && b.writer.nickname) || '')}</span>` +
     `<span class="bc-like">♥ ${b.postLike != null ? b.postLike : 0}</span>` +
     `<span>v${esc(b.version || '')}</span>` +
     `</div>`;
-  body.querySelector('.bc-meta').appendChild(comboRow);
 
   card.appendChild(fav);
   card.appendChild(iconRow);
@@ -293,17 +289,18 @@ function renderBuildDetail(b) {
   const view = document.getElementById('build-detail-view');
   const owned = ownedNameSet();
 
-  const abilities = Object.entries(ABILITY_LABELS).map(([k, label]) => {
-    const v = b.ability?.[k] ?? 0;
-    return `<div class="stat-box"><div class="sn">${label}</div>` +
-           `<div class="sv${v === 0 ? ' zero' : ''}">${v}</div></div>`;
-  }).join('');
+  // 6대 재능 (기본 제외)
+  const abilities = Object.entries(ABILITY_LABELS)
+    .filter(([k]) => k !== 'base')
+    .map(([k, label]) => {
+      const v = b.ability?.[k] ?? 0;
+      return `<div class="stat-box"><div class="sn">${label}</div>` +
+             `<div class="sv${v === 0 ? ' zero' : ''}">${v}</div></div>`;
+    }).join('');
 
+  // 대표 콤보 뱃지
   const comboBadges = (b.combo || []).map(id => {
-    const key = comboKeyFromWikiSlug(id);
-    return `<span class="combo-badge">` +
-           `<img src="${ASSETS}/combos/${key}.png" onerror="this.style.visibility='hidden'">` +
-           `${esc(comboById(key)?.name || id)}</span>`;
+    return renderComboBadge(id, { className: 'combo-badge' });
   }).join('');
 
   const skewer = (b.fruit_skewer || [])
@@ -363,10 +360,11 @@ function renderBuildDetail(b) {
     `<div class="bd-head"><button class="back-btn">← 목록으로</button>` +
     (buildUrl(b) ? `<button class="open-web-btn" title="위키 원본글을 브라우저로 엽니다">🔗 원본글</button>` : '') +
     `<span class="fav-btn detail${isFav(b) ? ' on' : ''}">${isFav(b) ? '★' : '☆'}</span></div>` +
-    `<div class="bd-title">${esc(b.title)}</div>` +
+    `<div class="bd-title-row"><div class="bd-title">${esc(b.title)}</div>` +
+    (comboBadges ? `<div class="bd-title-combos">${comboBadges}</div>` : '') +
+    `</div>` +
     `<div class="bd-writer">${esc(b.writer?.nickname || '')} · ♥ ${b.postLike ?? 0} · v${esc(b.version || '')}</div>` +
     `<div class="bd-icons">${headIcons}</div>` +
-    (comboBadges ? `<div class="combo-row">${comboBadges}</div>` : '') +
     `<div class="stat-row">${abilities}</div>` +
     (skewer ? `<div class="skewer-row"><span class="skewer-label">🍡 과일꼬치</span>${skewer}</div>` : '') +
     (b.description ? `<div class="bd-desc">${sanitize(b.description)}</div>` : '') +
@@ -413,8 +411,8 @@ function pickerOptions(cat) {
   if (cat === 'combo') {
     return combos().map(c => ({
       value: COMBO_TO_WIKI[c.id] || c.id.toLowerCase(),
-      name: c.name,
-      icon: `${ASSETS}/combos/${c.id}.png`,
+      name: comboName(c.id),
+      icon: comboIcon(c.id),
     }));
   }
 

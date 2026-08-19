@@ -6,7 +6,7 @@
 'use strict';
 
 const { esc } = require('./util');
-const { ASSETS, comboById } = require('./gamedata');
+const { ASSETS, renderComboBadge } = require('./gamedata');
 const ws = require('./ws');
 const { renderGridInto } = require('./grid');
 
@@ -48,12 +48,10 @@ function renderTeam() {
   const chips = [];
   if (m.weapon) chips.push(`<span class="chip" data-cat="weapons" data-name="${esc(m.weapon)}" style="cursor:pointer">무기 <b>${esc(m.weapon)}</b></span>`);
   for (const c of (m.combos || [])) {
-    const combo = comboById(c.id || c.name);
-    chips.push(
-      `<span class="combo-badge">` +
-      `<img src="${ASSETS}/combos/${c.id || c.name}.png" onerror="this.style.visibility='hidden'">` +
-      `${esc((combo && combo.name) || c.id || c.name)} ${c.count != null ? c.count : ''}</span>`
-    );
+    chips.push(renderComboBadge(c.id || c.name, {
+      count: c.count,
+      className: 'combo-badge'
+    }));
   }
   meta.innerHTML = chips.join('');
   body.appendChild(meta);

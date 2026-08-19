@@ -14,8 +14,8 @@
 'use strict';
 
 const engine = require('../optimizer');
-const { log, guard, formatAgo } = require('./util');
-const { itemById, comboById, combos, ASSETS, RARITY_RANK } = require('./gamedata');
+const { log, guard, formatAgo, esc } = require('./util');
+const { itemById, comboById, combos, comboName, comboIcon, renderComboBadge, ASSETS, RARITY_RANK } = require('./gamedata');
 const ws = require('./ws');
 const { renderGridInto } = require('./grid');
 
@@ -732,15 +732,14 @@ function renderPriority() {
   list.innerHTML = '';
 
   priority.forEach((id, idx) => {
-    const c = comboById(id);
     const row = document.createElement('div');
     row.className = 'prio-row';
     row.draggable = true;
     row.dataset.id = id;
     row.innerHTML =
       `<span class="handle">≡</span><span class="rank">${idx + 1}</span>` +
-      `<img src="${ASSETS}/combos/${id}.png" onerror="this.style.visibility='hidden'">` +
-      `<span>${c ? c.name : id}</span><span class="x">✕</span>`;
+      `<img src="${comboIcon(id)}" onerror="this.style.visibility='hidden'">` +
+      `<span>${esc(comboName(id))}</span><span class="x">✕</span>`;
 
     row.querySelector('.x').addEventListener('click', e => {
       e.stopPropagation();
@@ -789,8 +788,8 @@ function renderComboPicker() {
       const el = document.createElement('div');
       el.className = 'combo-opt';
       el.innerHTML =
-        `<img src="${ASSETS}/combos/${c.id}.png" onerror="this.style.visibility='hidden'">` +
-        `<span>${c.name}</span>`;
+        `<img src="${comboIcon(c.id)}" onerror="this.style.visibility='hidden'">` +
+        `<span>${esc(comboName(c.id))}</span>`;
       el.addEventListener('click', () => {
         invalidateUndo('콤보 우선순위 추가');
         priority.push(c.id);
