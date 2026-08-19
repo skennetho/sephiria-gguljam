@@ -20,10 +20,15 @@ namespace SephiriaTools
         private readonly int _port;
         private TcpListener _listener;
         private Thread _acceptThread;
+        private Thread _sendThread;
         private volatile bool _running;
 
         private readonly List<WebSocketClient> _clients = new List<WebSocketClient>();
         private readonly object _clientLock = new object();
+
+        // [perf] 송신 큐 — Broadcast() 는 큐에 넣기만 하고 즉시 반환한다.
+        // 실제 소켓 Write/Flush 는 백그라운드 _sendThread 에서 처리한다.
+        private readonly ConcurrentQueue<byte[]> _sendQueue = new ConcurrentQueue<byte[]>();
 
         // Incoming commands from dashboard, dispatched on Unity main thread
         private readonly ConcurrentQueue<string> _incomingCommands = new ConcurrentQueue<string>();
@@ -51,6 +56,14 @@ namespace SephiriaTools
                 Name = "SephiriaTools-WS"
             };
             _acceptThread.Start();
+
+            // [perf] 백그라운드 송신 스레드 — 메인 스레드의 I/O 블로킹을 완전히 제거한다
+            _sendThread = new Thread(SendLoop)
+            {
+                IsBackground = true,
+                Name = "SephiriaTools-WSSend"
+            };
+            _sendThread.Start();
         }
 
         public void Stop()
@@ -76,24 +89,46 @@ namespace SephiriaTools
             }
         }
 
-        /// <summary>Send a message to all connected clients.</summary>
+        /// <summary>
+        /// [perf] 메인 스레드에서 호출 — 프레임을 인코딩해서 큐에 넣고 즉시 반환한다.
+        /// 실제 네트워크 I/O 는 SendLoop() 백그라운드 스레드에서 처리한다.
+        /// </summary>
         public void Broadcast(string message)
         {
             byte[] frame = EncodeFrame(message);
+            _sendQueue.Enqueue(frame);
+        }
 
-            lock (_clientLock)
+        /// <summary>
+        /// 백그라운드 송신 루프 — 큐에서 프레임을 꺼내 모든 클라이언트에 전송한다.
+        /// TCP 버퍼 지연이나 Electron 측 렌더링 지연이 발생해도
+        /// Unity 메인 스레드에는 전혀 영향을 주지 않는다.
+        /// </summary>
+        private void SendLoop()
+        {
+            while (_running)
             {
-                for (int i = _clients.Count - 1; i >= 0; i--)
+                if (_sendQueue.TryDequeue(out byte[] frame))
                 {
-                    try
+                    lock (_clientLock)
                     {
-                        _clients[i].Send(frame);
+                        for (int i = _clients.Count - 1; i >= 0; i--)
+                        {
+                            try
+                            {
+                                _clients[i].Send(frame);
+                            }
+                            catch
+                            {
+                                _clients[i].Close();
+                                _clients.RemoveAt(i);
+                            }
+                        }
                     }
-                    catch
-                    {
-                        _clients[i].Close();
-                        _clients.RemoveAt(i);
-                    }
+                }
+                else
+                {
+                    Thread.Sleep(2);
                 }
             }
         }

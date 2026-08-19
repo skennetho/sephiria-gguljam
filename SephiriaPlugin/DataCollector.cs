@@ -18,15 +18,19 @@ namespace SephiriaTools
     {
         private readonly SimpleWebSocketServer _server;
         private float _lastUpdateTime;
-        private float _lastMapUpdateTime;
+        private float _lastMapUpdateTime; // refresh 커맨드에서 사용
         private float _lastTeamUpdateTime;
         private const float UPDATE_INTERVAL = 0.5f;
-        private const float MAP_UPDATE_INTERVAL = 0.3f;
+        private const float MAP_UPDATE_INTERVAL = 0.3f; // refresh 커맨드에서 참조 — 맵 수집은 Update 에서 비활성화됨
         private const float TEAM_UPDATE_INTERVAL = 0.5f;
 
         private GridInventory _cachedInventory;
         private PlayerAvatar _cachedPlayer;
         private FloorGenerator _cachedFloorGenerator;
+
+        // [perf] 플레이어 캐시 TTL — 캐시 히트 시 FindObjectsByType 전수조사를 건너뛴다
+        private float _playerCacheAge;
+        private const float PLAYER_CACHE_TTL = 5.0f;
 
         // Reflection caches for non-public fields
         private FieldInfo _floorDataField;
@@ -63,9 +67,9 @@ namespace SephiriaTools
                         {
                             string json = JsonHelper.ToJson(snapshot);
                             _server.Broadcast(json);
-
-                            // Trigger offline database dump once inventory is active
-                            TriggerResourceExport();
+                            // [perf] TriggerResourceExport() 제거 — 0.5초마다 GPU ReadPixels + 디스크 I/O를
+                            // 메인 스레드에서 실행하면 프리징이 발생한다.
+                            // 리소스 내보내기는 Plugin.cs 의 Start() + 3초 주기 재시도로 충분하다.
                         }
                     }
                 }
@@ -75,28 +79,30 @@ namespace SephiriaTools
                 }
             }
 
-            // Real-time Map & Player position update
-            if (Time.time - _lastMapUpdateTime >= MAP_UPDATE_INTERVAL)
-            {
-                _lastMapUpdateTime = Time.time;
-                try
-                {
-                    EnsurePlayerReference();
-                    if (_cachedPlayer != null)
-                    {
-                        var mapSnapshot = CollectMapSnapshot();
-                        if (mapSnapshot != null)
-                        {
-                            string json = JsonHelper.ToJson(mapSnapshot);
-                            _server.Broadcast(json);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Plugin.Log.LogError($"DataCollector Map Update error: {ex.Message}");
-                }
-            }
+            // [perf] 맵 수집 비활성화 — 오버레이에 구독자가 없어 수신 즉시 버려지는 데이터를
+            // 0.3초마다 리플렉션 전수조사 + JSON 직렬화 + 소켓 전송하는 것은 순수 낭비다.
+            // 향후 맵 기능을 쓸 때 다시 활성화한다.
+            // if (Time.time - _lastMapUpdateTime >= MAP_UPDATE_INTERVAL)
+            // {
+            //     _lastMapUpdateTime = Time.time;
+            //     try
+            //     {
+            //         EnsurePlayerReference();
+            //         if (_cachedPlayer != null)
+            //         {
+            //             var mapSnapshot = CollectMapSnapshot();
+            //             if (mapSnapshot != null)
+            //             {
+            //                 string json = JsonHelper.ToJson(mapSnapshot);
+            //                 _server.Broadcast(json);
+            //             }
+            //         }
+            //     }
+            //     catch (Exception ex)
+            //     {
+            //         Plugin.Log.LogError($"DataCollector Map Update error: {ex.Message}");
+            //     }
+            // }
 
             // Real-time Multiplayer Team update
             if (Time.time - _lastTeamUpdateTime >= TEAM_UPDATE_INTERVAL)
@@ -118,14 +124,20 @@ namespace SephiriaTools
             }
         }
 
-        private void TriggerResourceExport()
-        {
-            // Single source of truth for the export destination lives in Plugin.TryExport().
-            Plugin.Instance?.TryExport();
-        }
 
         private void EnsurePlayerReference()
         {
+            // [perf] 캐시된 플레이어가 아직 살아 있으면 FindObjectsByType 전수조사를 건너뛴다.
+            // Unity 의 == 오버로드가 Destroy 된 객체를 null 로 판정하므로 이 체크로 충분하다.
+            // 멀티플레이에서 호스트 변경 등으로 로컬 플레이어가 바뀌는 극히 드문 경우에만
+            // 캐시가 무효화되므로, 5초에 한 번만 전수조사를 하는 것으로도 충분히 빠르다.
+            if (_cachedPlayer != null && _cachedInventory != null)
+            {
+                _playerCacheAge += Time.deltaTime;
+                if (_playerCacheAge < PLAYER_CACHE_TTL) return;
+            }
+            _playerCacheAge = 0f;
+
             var allAvatars = UnityEngine.Object.FindObjectsByType<PlayerAvatar>(FindObjectsSortMode.None);
             PlayerAvatar localAvatar = null;
 
@@ -554,14 +566,10 @@ namespace SephiriaTools
 
         private float GetCurrentScore()
         {
-            try
-            {
-                return _cachedInventory.EvaluateCurrentAutoArrangeScore();
-            }
-            catch
-            {
-                return 0f;
-            }
+            // [perf] EvaluateCurrentAutoArrangeScore() 는 모든 참/석판/시너지/발동조건을
+            // 전수 검사하는 무거운 시뮬레이션이다. 오버레이의 optimizer.js 가 자체 JS 엔진으로
+            // 최적화를 계산하므로 이 값은 불필요하다. 메인 스레드 부하를 줄이기 위해 제거한다.
+            return 0f;
         }
 
         // ── Command handling ───────────────────────────────────────
