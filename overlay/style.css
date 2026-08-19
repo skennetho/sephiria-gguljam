@@ -397,12 +397,29 @@ html, body {
 .hotkey-bar {
   position: absolute; bottom: 16px; left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 18, 28, 0.88);
-  border: 1px solid #2a3147; border-radius: 16px;
-  padding: 7px 18px; font-size: 12px; color: #8b93ad;
-  display: flex; gap: 16px;
+  background: rgba(15, 18, 28, 0.94);
+  border: 1px solid #2a3147; border-radius: 20px;
+  padding: 6px 14px; font-size: 12px; color: #8b93ad;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  z-index: 9999;
 }
-.hotkey-bar b { color: #8fdcff; font-weight: normal; }
+.hotkey-btn {
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.hotkey-btn:hover {
+  background: #232b42;
+  border-color: #3b4968;
+  color: #eaf0ff;
+  transform: translateY(-1px);
+}
+.hotkey-bar b { color: #8fdcff; font-weight: normal; margin-right: 4px; }
 
 /* 스크롤바 */
 ::-webkit-scrollbar { width: 8px; }

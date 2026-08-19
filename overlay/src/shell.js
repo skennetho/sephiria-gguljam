@@ -67,6 +67,22 @@ function init(deps) {
     }
   }));
 
+  // 단축키 바 마우스 퀵버튼 클릭 이벤트
+  document.querySelectorAll('#hotkey-bar .hotkey-btn[data-panel]').forEach(btn => {
+    btn.addEventListener('click', guard('hotkey-bar-click', e => {
+      e.stopPropagation();
+      const panel = btn.getAttribute('data-panel');
+      if (panel) togglePanel(panel);
+    }));
+  });
+  const btnToggleBar = document.getElementById('btn-toggle-bar');
+  if (btnToggleBar) {
+    btnToggleBar.addEventListener('click', guard('hotkey-bar-close', e => {
+      e.stopPropagation();
+      document.getElementById('hotkey-bar').classList.add('hidden');
+    }));
+  }
+
   refreshOpenPanelCount();
   setupMousePassthrough();
   setupPanelDragging();

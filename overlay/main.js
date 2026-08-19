@@ -77,12 +77,9 @@ function createWindow() {
   log.info('window', '오버레이 창 생성', { w: bounds.width, h: bounds.height });
 
   registerHotkeys();
-  trackDisplay();
-
-  // 시작했다는 걸 알 수 있게 잠깐 보여준 뒤 숨는다
+  // 시작 시 오버레이를 표시하고 상시 활성 유지 (마우스 통과)
   mainWindow.once('ready-to-show', () => {
     showOverlay();
-    setTimeout(() => { if (!panelsOpen) hideOverlay(); }, 4000);
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
@@ -192,9 +189,11 @@ function showOverlay() {
 }
 
 function hideOverlay() {
-  if (!mainWindow || mainWindow.isDestroyed() || !mainWindow.isVisible()) return;
-  mainWindow.hide();
-  log.info('window', '오버레이 숨김 (게임 프레임 보호)');
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  // 창 자체를 hide() 하면 Windows 가 전역 단축키 전달을 차단하므로,
+  // 투명 창을 유지하면서 마우스 통과만 100% 켠다.
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  log.info('window', '패널 모두 닫힘 (마우스 통과 유지)');
 }
 
 /** 렌더러가 열린 패널 수가 0 <-> 1 로 바뀔 때만 알려준다 */
