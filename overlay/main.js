@@ -91,7 +91,10 @@ function createWindow() {
 // ── 전역 단축키 ────────────────────────────────────────
 
 function send(channel) {
-  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    showOverlay();
+    mainWindow.webContents.send(channel);
+  }
 }
 
 function registerHotkeys() {

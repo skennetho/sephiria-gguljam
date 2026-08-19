@@ -9,7 +9,7 @@
 const { ipcRenderer } = require('electron');
 const { log } = require('./util');
 
-const WS_URL = 'ws://localhost:5827';
+const WS_URL = 'ws://127.0.0.1:5827';
 
 let ws = null;
 let reconnectTimer = null;
