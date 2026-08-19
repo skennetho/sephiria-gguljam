@@ -566,13 +566,7 @@ namespace SephiriaTools
 
         private float GetCurrentScore()
         {
-            // [perf] EvaluateCurrentAutoArrangeScore() 는 모든 참/석판/시너지/발동조건을
-            // 전수 검사하는 무거운 시뮬레이션이다. 오버레이의 optimizer.js 가 자체 JS 엔진으로
-            // 최적화를 계산하므로 이 값은 불필요하다. 메인 스레드 부하를 줄이기 위해 제거한다.
             return 0f;
         }
-
-        // ── Command handling ───────────────────────────────────────
-
     }
 }

@@ -37,6 +37,14 @@ namespace SephiriaTools
                         HandleApply(json, cmd.seq);
                         break;
 
+                    case "apply_preset":
+                        HandleApplyPreset(json);
+                        break;
+
+                    case "get_presets":
+                        HandleGetPresets();
+                        break;
+
                     default:
                         // undo / kill_game / restart_game 은 의도적으로 없다.
                         // 게임을 변경하는 경로는 사용자가 명시적으로 요청한 apply 하나뿐이며,
@@ -214,6 +222,59 @@ namespace SephiriaTools
                 Plugin.Log.LogError($"optimize_data 생성 오류: {ex.Message}");
                 _server.Broadcast("{\"type\":\"optimize_error\",\"data\":{\"seq\":" + seq +
                                   ",\"message\":\"" + ex.Message.Replace("\"", "'") + "\"}}");
+            }
+        }
+
+        private void HandleApplyPreset(string json)
+        {
+            try
+            {
+                int slot = 0;
+                string code = "";
+                string title = "Wiki Preset";
+
+                var mSlot = System.Text.RegularExpressions.Regex.Match(json, "\"slot\":\\s*(\\d+)");
+                if (mSlot.Success) int.TryParse(mSlot.Groups[1].Value, out slot);
+
+                var mCode = System.Text.RegularExpressions.Regex.Match(json, "\"presetCode\":\\s*\"([^\"]+)\"");
+                if (mCode.Success) code = mCode.Groups[1].Value;
+
+                var mTitle = System.Text.RegularExpressions.Regex.Match(json, "\"title\":\\s*\"([^\"]+)\"");
+                if (mTitle.Success) title = mTitle.Groups[1].Value;
+
+                string error;
+                bool ok = PresetHandler.ApplyPreset(slot, code, title, out error);
+                string res = $"{{\"type\":\"apply_preset_result\",\"data\":{{\"ok\":{(ok ? "true" : "false")},\"slot\":{slot},\"title\":\"{title.Replace("\"", "'")}\",\"message\":\"{(error ?? "").Replace("\"", "'")}\"}}}}";
+                _server.Broadcast(res);
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError($"HandleApplyPreset error: {ex.Message}");
+                _server.Broadcast($"{{\"type\":\"apply_preset_result\",\"data\":{{\"ok\":false,\"slot\":0,\"message\":\"{ex.Message.Replace("\"", "'")}\"}}}}");
+            }
+        }
+
+        private void HandleGetPresets()
+        {
+            try
+            {
+                var sb = new StringBuilder(512);
+                sb.Append("{\"type\":\"presets_info\",\"data\":{\"slots\":[");
+                bool first = true;
+                for (int i = 0; i < 10; i++)
+                {
+                    bool exists = SaveManager.Current.GetInt($"Preset_{i}_SlotExists", 0) == 1;
+                    string name = SaveManager.Current.GetString($"Preset_{i}_PresetName", "");
+                    if (!first) sb.Append(",");
+                    first = false;
+                    sb.Append($"{{\"index\":{i},\"exists\":{(exists ? "true" : "false")},\"name\":\"{(name ?? "").Replace("\"", "'")}\"}}");
+                }
+                sb.Append("]}}");
+                _server.Broadcast(sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError($"HandleGetPresets error: {ex.Message}");
             }
         }
     }

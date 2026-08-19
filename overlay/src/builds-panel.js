@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const { ipcRenderer, shell } = require('electron');
 const { log, guard, esc, sanitize } = require('./util');
+const gamedata = require('./gamedata');
 const {
   ASSETS, itemByName, comboById, combos,
   COMBO_TO_WIKI, comboKeyFromWikiSlug,
@@ -16,9 +17,10 @@ const {
   slugName, slugIcon, slugCategories,
   weaponsByTier, weaponRootOf,
   skewerName, skewerIcon, ABILITY_LABELS,
-} = require('./gamedata');
+} = gamedata;
 const ws = require('./ws');
 const tooltip = require('./tooltip');
+const presetCodec = require('./preset-codec');
 
 // ── 상태 ──────────────────────────────────────────────
 
@@ -47,6 +49,14 @@ function init() {
     // 상세 화면을 통째로 다시 그리면 1~2초마다 호버 상태·스크롤이 리셋되어
     // 아이템 툴팁이 뜨자마자 사라진다. 보유 표시 클래스만 제자리에서 갱신한다.
     if (buildDetail) updateOwnedMarks();
+  });
+
+  ws.on('apply_preset_result', data => {
+    if (data && data.ok) {
+      showBuildToast(`🎉 인게임 슬롯 ${data.slot + 1}에 저장되었습니다!`);
+    } else {
+      showBuildToast(`⚠ 저장 실패: ${(data && data.message) || '오류 발생'}`);
+    }
   });
 
   document.querySelectorAll('.build-tab').forEach(tab => {
@@ -167,6 +177,66 @@ function toggleFav(b) {
   saveFavorites();
   updateFavCount();
   renderBuildList();
+}
+
+// ── 프리셋 생성 및 인게임 슬롯 주입 ──────────────────────
+
+function showBuildToast(msg, duration = 3000) {
+  let toast = document.getElementById('build-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'build-toast';
+    toast.className = 'build-toast hidden';
+    document.getElementById('panel-builds').appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.add('hidden');
+  }, duration);
+}
+
+function openSlotPickerModal(b) {
+  let modal = document.getElementById('preset-slot-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'preset-slot-modal';
+    modal.className = 'preset-slot-modal hidden';
+    document.getElementById('panel-builds').appendChild(modal);
+  }
+
+  modal.innerHTML =
+    `<div class="psm-box">` +
+    `<div class="psm-title">📥 저장할 인게임 프리셋 슬롯 선택</div>` +
+    `<div class="psm-build-name">대상 빌드: <b>${esc(b.title)}</b></div>` +
+    `<div class="psm-desc">선택한 슬롯에 이 빌드의 코스튬·무기·관심부적·재능·과일꼬치가 저장됩니다.</div>` +
+    `<div class="psm-slots">` +
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => `<button class="psm-slot-btn" data-slot="${i}">슬롯 ${i + 1}</button>`).join('') +
+    `</div>` +
+    `<div class="psm-foot"><button class="psm-close-btn">닫기</button></div>` +
+    `</div>`;
+
+  modal.classList.remove('hidden');
+
+  modal.querySelectorAll('.psm-slot-btn').forEach(btn => {
+    btn.addEventListener('click', guard('psm:slot', () => {
+      const slotIndex = parseInt(btn.dataset.slot, 10);
+      modal.classList.add('hidden');
+      const code = presetCodec.getOrGeneratePresetCode(b, gamedata);
+      ws.send({
+        type: 'apply_preset',
+        slot: slotIndex,
+        presetCode: code,
+        title: b.title || '위키 프리셋'
+      });
+      showBuildToast(`인게임 슬롯 ${slotIndex + 1}에 저장을 요청했습니다…`);
+    }));
+  });
+
+  modal.querySelector('.psm-close-btn').addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
 }
 
 function updateFavCount() {
@@ -293,7 +363,31 @@ function buildCard(b) {
     `<span>${esc((b.writer && b.writer.nickname) || '')}</span>` +
     `<span class="bc-like">♥ ${b.postLike != null ? b.postLike : 0}</span>` +
     `<span>v${esc(b.version || '')}</span>` +
+    `<span class="bc-actions">` +
+    `<button class="bc-quick-btn copy-btn" title="프리셋 코드 복사">📋 복사</button>` +
+    `<button class="bc-quick-btn apply-btn" title="인게임 슬롯에 저장">📥 저장</button>` +
+    `</span>` +
     `</div>`;
+
+  const copyBtn = body.querySelector('.copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', guard('card:copy', (e) => {
+      e.stopPropagation();
+      const code = presetCodec.getOrGeneratePresetCode(b, gamedata);
+      if (code) {
+        presetCodec.copyPresetCodeToClipboard(code);
+        showBuildToast(`✔ '${b.title}' 프리셋 코드 복사 완료!`);
+      }
+    }));
+  }
+
+  const applyBtn = body.querySelector('.apply-btn');
+  if (applyBtn) {
+    applyBtn.addEventListener('click', guard('card:apply', (e) => {
+      e.stopPropagation();
+      openSlotPickerModal(b);
+    }));
+  }
 
   card.appendChild(fav);
   card.appendChild(iconRow);
@@ -401,6 +495,8 @@ function renderBuildDetail(b) {
 
   view.innerHTML =
     `<div class="bd-head"><button class="back-btn">← 목록으로</button>` +
+    `<button class="preset-copy-btn" title="세피리아 게임 표준 프리셋 코드를 클립보드에 복사합니다">📋 프리셋 복사</button>` +
+    `<button class="preset-apply-btn" title="인게임 프리셋 슬롯에 이 빌드를 즉시 저장합니다">📥 슬롯에 저장</button>` +
     (buildUrl(b) ? `<button class="open-web-btn" title="위키 원본글을 브라우저로 엽니다">🔗 원본글</button>` : '') +
     `<span class="fav-btn detail${isFav(b) ? ' on' : ''}">${isFav(b) ? '★' : '☆'}</span></div>` +
     `<div class="bd-title-row"><div class="bd-title">${esc(b.title)}</div>` +
@@ -419,6 +515,26 @@ function renderBuildDetail(b) {
     document.getElementById('build-list-view').classList.remove('hidden');
     renderBuildList();
   });
+
+  const copyBtn = view.querySelector('.preset-copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', guard('preset:copy', () => {
+      const code = presetCodec.getOrGeneratePresetCode(b, gamedata);
+      if (code) {
+        presetCodec.copyPresetCodeToClipboard(code);
+        showBuildToast('✔ 프리셋 코드가 클립보드에 복사되었습니다! (인게임 붙여넣기 가능)');
+      } else {
+        showBuildToast('⚠ 프리셋 코드 생성 실패');
+      }
+    }));
+  }
+
+  const applyBtn = view.querySelector('.preset-apply-btn');
+  if (applyBtn) {
+    applyBtn.addEventListener('click', guard('preset:apply', () => {
+      openSlotPickerModal(b);
+    }));
+  }
 
   view.querySelector('.fav-btn').addEventListener('click', guard('fav:detail', () => {
     toggleFav(b);

@@ -747,3 +747,83 @@ html, body {
 
 /* 무기 아이콘 아래 파생 원본(1티어) 표기 */
 .bd-icon em .root { color: #8b93ad; font-weight: normal; }
+
+/* ── 프리셋 생성 및 인게임 주입 UI ─────────────────────── */
+.preset-copy-btn, .preset-apply-btn {
+  background: #1a2032; color: #8fdcff;
+  border: 1px solid #2a4b6e; border-radius: 6px;
+  padding: 4px 10px; font-size: 12px; cursor: pointer;
+  font-family: inherit; font-weight: 500;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s;
+}
+.preset-copy-btn:hover { background: #253852; border-color: #4a7bb5; color: #bde4ff; }
+.preset-apply-btn {
+  background: #153222; color: #6ee7b7; border-color: #24633f;
+}
+.preset-apply-btn:hover { background: #1f4932; border-color: #38a169; color: #a7f3d0; }
+.preset-copy-btn:active, .preset-apply-btn:active { transform: scale(0.97); }
+
+/* 카드 상의 퀵 액션 */
+.bc-actions {
+  margin-left: auto; display: inline-flex; gap: 4px; align-items: center;
+}
+.bc-quick-btn {
+  background: #181d2c; border: 1px solid #2c354d; border-radius: 4px;
+  color: #8b93ad; font-size: 11px; padding: 2px 6px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.bc-quick-btn:hover { color: #8fdcff; border-color: #3d5a80; background: #222b40; }
+.bc-quick-btn.apply-btn:hover { color: #6ee7b7; border-color: #24633f; background: #1a3828; }
+
+/* 알림 토스트 (Toast) */
+.build-toast {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: rgba(18, 24, 38, 0.95);
+  border: 1px solid #3d5a80; border-radius: 8px;
+  color: #eaf0ff; font-size: 13px; font-weight: 500;
+  padding: 10px 18px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 100; pointer-events: none;
+  animation: toastFadeIn 0.2s ease-out;
+}
+.build-toast.hidden { display: none; }
+@keyframes toastFadeIn {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* 프리셋 슬롯 선택 모달 (Slot Picker Modal) */
+.preset-slot-modal {
+  position: absolute; inset: 0; z-index: 50;
+  background: rgba(8, 10, 16, 0.85); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.preset-slot-modal.hidden { display: none; }
+.psm-box {
+  background: #141824; border: 1px solid #2a354d; border-radius: 12px;
+  width: 360px; max-width: 90%; padding: 18px; box-shadow: 0 12px 32px rgba(0,0,0,0.7);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.psm-title { font-size: 15px; font-weight: bold; color: #8fdcff; }
+.psm-build-name { font-size: 13px; color: #eaf0ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.psm-desc { font-size: 11px; color: #7e8aa6; line-height: 1.4; }
+.psm-slots {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin: 8px 0;
+}
+.psm-slot-btn {
+  background: #1c2233; border: 1px solid #2f3a54; border-radius: 6px;
+  color: #c7d2e8; padding: 8px 12px; font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit; text-align: center;
+  transition: all 0.15s;
+}
+.psm-slot-btn:hover {
+  background: #244132; border-color: #3ba76f; color: #a7f3d0;
+}
+.psm-foot { display: flex; justify-content: flex-end; }
+.psm-close-btn {
+  background: transparent; border: 1px solid #2a354d; border-radius: 6px;
+  color: #8b93ad; padding: 6px 14px; font-size: 12px; cursor: pointer;
+  font-family: inherit;
+}
+.psm-close-btn:hover { background: #1c2233; color: #dde3f0; }
+
