@@ -161,8 +161,8 @@ fs.writeFileSync(path.join(STAGE, 'BepInEx', 'LICENSE-NOTICE.txt'),
 
 step('zip 생성');
 const zipPath = path.join(DIST, `${NAME}.zip`);
-fs.rmSync(zipPath, { force: true });
-run(`powershell -NoProfile -Command "Compress-Archive -Path ${JSON.stringify(STAGE)} -DestinationPath ${JSON.stringify(zipPath)} -CompressionLevel Optimal"`);
+try { fs.rmSync(zipPath, { force: true }); } catch {}
+run(`powershell -NoProfile -Command "Compress-Archive -Path '${STAGE}\\*' -DestinationPath '${zipPath}' -CompressionLevel Optimal -Force"`);
 
 const mb = (fs.statSync(zipPath).size / 1024 / 1024).toFixed(1);
 console.log(`\n완료: ${zipPath} (${mb}MB)`);

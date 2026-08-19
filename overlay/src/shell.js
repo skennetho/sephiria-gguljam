@@ -54,6 +54,19 @@ function init(deps) {
     document.getElementById('hotkey-bar').classList.toggle('hidden');
   });
 
+  // 인게임 Unity 플러그인 WebSocket 단축키 수신 (게임 전체화면 / 관리자 권한 환경 이중 보장)
+  const ws = require('./ws');
+  ws.on('hotkey', guard('ws-hotkey', (data, msg) => {
+    const action = (msg && msg.action) || (data && data.action);
+    if (action === 'toggle-optimizer') togglePanel('optimizer');
+    else if (action === 'toggle-builds') togglePanel('builds');
+    else if (action === 'toggle-team') togglePanel('team');
+    else if (action === 'run-optimize') deps.runOptimize();
+    else if (action === 'toggle-hotkey-bar') {
+      document.getElementById('hotkey-bar').classList.toggle('hidden');
+    }
+  }));
+
   refreshOpenPanelCount();
   setupMousePassthrough();
   setupPanelDragging();

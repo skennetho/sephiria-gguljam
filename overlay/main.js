@@ -176,10 +176,13 @@ function trackDisplay() {
 let panelsOpen = false;
 
 function showOverlay() {
-  if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isVisible()) return;
-  // show() 는 게임에서 포커스를 뺏는다. 오버레이는 포커스 없이 떠야 한다.
-  mainWindow.showInactive();
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (!mainWindow.isVisible()) {
+    // show() 는 게임에서 포커스를 뺏는다. 오버레이는 포커스 없이 떠야 한다.
+    mainWindow.showInactive();
+  }
   mainWindow.setAlwaysOnTop(true, 'screen-saver');
+  mainWindow.moveTop();
   log.info('window', '오버레이 표시');
   // 보여줄 때는 항상 통과 상태로 시작한다. 커서가 패널에 들어오면 renderer 가 푼다.
   mainWindow.setIgnoreMouseEvents(true, { forward: true });

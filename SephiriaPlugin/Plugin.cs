@@ -127,10 +127,40 @@ namespace SephiriaTools
         {
             _dataCollector?.Update();
 
+            CheckInGameHotkeys();
+
             // Retry export every few seconds if items were not loaded yet on title screen
             if (Time.frameCount % 180 == 0)
             {
                 TryExport();
+            }
+        }
+
+        private void CheckInGameHotkeys()
+        {
+            if (_wsServer == null || !_wsServer.HasClients) return;
+
+            bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+            if (ctrl && Input.GetKeyDown(KeyCode.D))
+            {
+                _wsServer.Broadcast("{\"type\":\"hotkey\",\"action\":\"toggle-optimizer\"}");
+            }
+            else if (ctrl && Input.GetKeyDown(KeyCode.B))
+            {
+                _wsServer.Broadcast("{\"type\":\"hotkey\",\"action\":\"toggle-builds\"}");
+            }
+            else if (Input.GetKeyDown(KeyCode.F1))
+            {
+                _wsServer.Broadcast("{\"type\":\"hotkey\",\"action\":\"toggle-team\"}");
+            }
+            else if (ctrl && Input.GetKeyDown(KeyCode.R))
+            {
+                _wsServer.Broadcast("{\"type\":\"hotkey\",\"action\":\"run-optimize\"}");
+            }
+            else if (ctrl && Input.GetKeyDown(KeyCode.H))
+            {
+                _wsServer.Broadcast("{\"type\":\"hotkey\",\"action\":\"toggle-hotkey-bar\"}");
             }
         }
 
