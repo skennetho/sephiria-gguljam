@@ -48,19 +48,36 @@ function renderGridInto(gridEl, snap) {
       if (it) {
         const db = itemById(it.entityID);
         const isTablet = db && db.type === 'StoneTablet';
+        const rarity = (it.rarity || db?.rarity || 'Common').toLowerCase();
+
+        cell.classList.add(`rarity-${rarity}`);
         if (isTablet) cell.classList.add('tablet');
         if (it.isActive === false) cell.classList.add('inactive');
+
+        // 커스텀 툴팁 데이터 바인딩 (최적배치 격자 호버 시 상세 툴팁 노출)
+        cell.dataset.cat = 'artifacts';
+        cell.dataset.id = String(it.entityID);
+        cell.dataset.name = it.name || db?.name || '';
+        cell.dataset.level = String(it.level != null ? it.level : 0);
+        cell.dataset.maxLevel = String(it.maxLevel != null ? it.maxLevel : (db?.maxLevel || 0));
+        cell.dataset.rarity = it.rarity || db?.rarity || 'Common';
+        if (it.activateCriteria && it.activateCriteria !== 'Always') {
+          cell.dataset.criteria = it.activateCriteria;
+          cell.dataset.criteriaDesc = it.criteriaDescription || '';
+        }
+        cell.dataset.active = it.isActive !== false ? 'true' : 'false';
 
         const img = document.createElement('img');
         img.src = `${ASSETS}/icons/${it.entityID}.png`;
         img.onerror = () => { img.style.visibility = 'hidden'; };
         cell.appendChild(img);
 
-        // 마법서는 게임 UI 처럼 책 위에 담긴 마법의 아이콘을 겹쳐 그린다
-        if (db && db.magicIcon) {
+        // 마법서는 책 표지 위에 담긴 마법의 아이콘을 겹쳐 그린다 (게임 인게임 UI 와 동일)
+        const magicIcon = db?.magicIcon || (db?.isMagicBook ? `${it.entityID}_magic.png` : null);
+        if (magicIcon) {
           const overlay = document.createElement('img');
           overlay.className = 'magic-overlay';
-          overlay.src = `${ASSETS}/icons/${db.magicIcon}`;
+          overlay.src = `${ASSETS}/icons/${magicIcon}`;
           overlay.onerror = () => overlay.remove();
           cell.appendChild(overlay);
         }
@@ -71,10 +88,6 @@ function renderGridInto(gridEl, snap) {
           lv.textContent = it.level;
           cell.appendChild(lv);
         }
-
-        cell.title = `${it.name} — ${it.level}/${it.maxLevel}강` +
-          (it.activateCriteria && it.activateCriteria !== 'Always' ? ` [${it.activateCriteria}]` : '') +
-          (it.isActive === false ? ' (비활성)' : '');
       }
 
       gridEl.appendChild(cell);

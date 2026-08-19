@@ -26,21 +26,53 @@ function readJson(relPath) {
     fs.readFileSync(path.join(ASSETS_DIR, relPath), 'utf8').replace(/^﻿/, ''));
 }
 
-// ── 아이템 DB (게임 추출본) ───────────────────────────
+// ── 아이템 DB (게임 추출본 + 번들 폴백) ──────────────────
 
 let itemDb = { items: [], combos: [] };
 let comboList = [];
+let bundledDb = null;
+
+function tryLoadBundledDb() {
+  if (bundledDb) return bundledDb;
+  const candidates = [
+    path.join(__dirname, '..', 'assets-bundled', 'database.json'),
+    path.join(path.dirname(process.execPath), 'assets-bundled', 'database.json'),
+    path.join(__dirname, '..', '..', 'assets', 'database.json'),
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        bundledDb = JSON.parse(fs.readFileSync(p, 'utf8').replace(/^\uFEFF/, ''));
+        break;
+      }
+    } catch { }
+  }
+  return bundledDb;
+}
 
 function loadItemDb() {
   try {
     itemDb = readJson('database.json');
-    comboList = (itemDb.combos || []).filter(c => c.isEnabled !== false);
-    log.info('db', '아이템 DB 로드', { 아이템: itemDb.items.length, 콤보: comboList.length });
   } catch (err) {
     log.error('db', 'database.json 로드 실패 — 플러그인이 아직 덤프하지 않았을 수 있음', err.message);
     itemDb = { items: [], combos: [] };
-    comboList = [];
   }
+
+  // 덤프가 불완전한 상태(예: 타이틀 화면 68개)인 경우 번들 DB(444개)의 아이템을 병합해 채운다
+  const bundled = tryLoadBundledDb();
+  if (bundled && bundled.items) {
+    const existingIds = new Set((itemDb.items || []).map(i => i.id));
+    const missing = bundled.items.filter(i => !existingIds.has(i.id));
+    if (missing.length > 0) {
+      itemDb.items = (itemDb.items || []).concat(missing);
+    }
+    if ((!itemDb.combos || itemDb.combos.length === 0) && bundled.combos) {
+      itemDb.combos = bundled.combos;
+    }
+  }
+
+  comboList = (itemDb.combos || []).filter(c => c.isEnabled !== false);
+  log.info('db', '아이템 DB 로드', { 아이템: itemDb.items.length, 콤보: comboList.length });
 }
 
 // ── 위키 슬러그 및 이름 매핑 ──────────────────────────
@@ -63,7 +95,13 @@ function normalizeName(name) {
 }
 
 function itemById(id) {
-  const it = itemDb.items.find(i => i.id === id);
+  if (id == null) return null;
+  const numId = Number(id);
+  let it = itemDb.items.find(i => i.id === numId);
+  if (!it) {
+    const bundled = tryLoadBundledDb();
+    it = bundled && bundled.items ? bundled.items.find(i => i.id === numId) : null;
+  }
   if (!it) return null;
   return { ...it, displayName: normalizeName(it.name) };
 }
@@ -74,10 +112,19 @@ function itemByName(kor) {
   if (!target) return null;
   if (NAME_ALIASES[target]) target = NAME_ALIASES[target];
 
-  const it = itemDb.items.find(i => {
+  let it = itemDb.items.find(i => {
     const dbName = (i.name || '').replace(/\s/g, '');
     return dbName === target || normalizeName(dbName).replace(/\s/g, '') === target;
   });
+  if (!it) {
+    const bundled = tryLoadBundledDb();
+    if (bundled && bundled.items) {
+      it = bundled.items.find(i => {
+        const dbName = (i.name || '').replace(/\s/g, '');
+        return dbName === target || normalizeName(dbName).replace(/\s/g, '') === target;
+      });
+    }
+  }
   if (!it) return null;
   return { ...it, displayName: normalizeName(it.name) };
 }
@@ -362,7 +409,34 @@ function artifactInfo(slug, id) {
 
 // ── 기타 상수 ─────────────────────────────────────────
 
-const RARITY_RANK = { Common: 0, Uncommon: 1, Rare: 2, Unique: 3, Epic: 3, Legend: 4 };
+const RARITY_RANK = { Common: 0, Uncommon: 1, Rare: 2, Unique: 3, Epic: 3, Legend: 4, Eternal: 5 };
+
+const RARITY_LABELS = {
+  Common: '일반',
+  Uncommon: '고급',
+  Rare: '희귀',
+  Unique: '영웅',
+  Epic: '영웅',
+  Legend: '전설',
+  Eternal: '신화',
+};
+
+const RARITY_COLORS = {
+  Common: '#9da3b4',
+  Uncommon: '#4ecb71',
+  Rare: '#4aa8ff',
+  Unique: '#b36bff',
+  Epic: '#b36bff',
+  Legend: '#ffb834',
+  Eternal: '#ff5252',
+};
+
+function rarityName(rarity) {
+  if (!rarity) return '일반';
+  const key = String(rarity).trim();
+  const formatted = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+  return RARITY_LABELS[formatted] || RARITY_LABELS[key] || key;
+}
 
 // 실제 세피리아 인게임 6대 재능 (기본 제거)
 const ABILITY_LABELS = {
@@ -379,5 +453,6 @@ module.exports = {
   weaponsByTier, weaponRootOf, weaponByName, costumeByName,
   skewerName, skewerIcon,
   entityInfo, artifactInfo,
-  RARITY_RANK, ABILITY_LABELS,
+  RARITY_RANK, RARITY_LABELS, RARITY_COLORS, rarityName,
+  ABILITY_LABELS,
 };

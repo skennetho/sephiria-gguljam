@@ -27,4 +27,12 @@ Copy-Item "$distDir\Overlay" -Destination $pluginDir -Recurse -Force
 # 3. 루트 런처 및 유틸 복사
 Copy-Item "$distDir\Sephiria Tools.bat" -Destination "$steamGameRoot\Sephiria Tools.bat" -Force
 
+# 4. assets 시드 복사 (444개 DB 및 전체 아이콘)
+if (Test-Path "$distDir\assets-seed") {
+    if (-not (Test-Path "$pluginDir\assets")) {
+        New-Item -ItemType Directory -Path "$pluginDir\assets" -Force | Out-Null
+    }
+    Copy-Item "$distDir\assets-seed\*" -Destination "$pluginDir\assets" -Recurse -Force
+}
+
 Write-Host "배포 완료! 이제 게임을 실행하시면 됩니다." -ForegroundColor Green

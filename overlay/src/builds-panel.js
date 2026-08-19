@@ -318,14 +318,14 @@ function renderBuildDetail(b) {
       const kor = slugName('artifacts', it.value);
       const isOwned = owned.has(kor.replace(/\s/g, ''));
       const local = itemByName(kor);
-      // 우선순위: 플레이어의 게임 추출 아이콘(실제 게임 애셋) -> 위키 로컬 캐시 -> 위키 CDN 직결.
-      // 게임 DB에 없는 아티팩트(신규 콘텐츠 등)를 위한 안전망은 scripts/fetch-wiki-data.mjs 가 채운다.
       const src = local ? `${ASSETS}/icons/${local.id}.png` : slugIcon('artifacts', it.value);
-      const magicOverlay = local && local.magicIcon
-        ? `<img class="magic-overlay" src="${ASSETS}/icons/${local.magicIcon}" onerror="this.remove()">`
+      const magicIcon = local?.magicIcon || (local?.isMagicBook ? `${local.id}_magic.png` : null);
+      const magicOverlay = magicIcon
+        ? `<img class="magic-overlay" src="${ASSETS}/icons/${magicIcon}" onerror="this.remove()">`
         : '';
+      const rarity = local?.rarity ? ` data-rarity="${esc(local.rarity)}"` : '';
       return `<span class="it${isOwned ? ' owned' : ''}" data-cat="artifacts" data-slug="${esc(it.value)}"` +
-             `${local ? ` data-id="${local.id}"` : ''}>` +
+             `${local ? ` data-id="${local.id}"` : ''}${rarity}>` +
              `<img src="${src}" onerror="this.parentNode.classList.add('missing');this.remove()">${magicOverlay}</span>`;
     }).join('');
 

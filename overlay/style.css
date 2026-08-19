@@ -89,21 +89,35 @@ html, body {
   border-radius: 5px; position: relative;
   width: 58px; height: 58px;
 }
+.cell[data-id] { cursor: pointer; }
+.cell.rarity-uncommon { border-color: #21663b; }
+.cell.rarity-rare     { border-color: #245c8f; }
+.cell.rarity-unique,
+.cell.rarity-epic     { border-color: #63338f; }
+.cell.rarity-legend   { border-color: #94681e; box-shadow: inset 0 0 6px rgba(255, 184, 52, 0.15); }
+.cell.rarity-eternal  { border-color: #9e2a2a; box-shadow: inset 0 0 8px rgba(255, 82, 82, 0.2); }
+
 .cell.void { background: repeating-linear-gradient(45deg, #12151f, #12151f 4px, #171b28 4px, #171b28 8px); border-color: #1d2130; }
 .cell.tablet { background: #20263c; border-color: #3d4966; }
 .cell img {
   width: 100%; height: 100%; object-fit: contain;
   image-rendering: pixelated; padding: 5px;
 }
+.cell .magic-overlay {
+  position: absolute; inset: 0; margin: auto;
+  width: 68% !important; height: 68% !important;
+  object-fit: contain; image-rendering: pixelated;
+  padding: 0 !important; pointer-events: none; z-index: 2;
+}
 .cell .lv {
   position: absolute; right: 2px; bottom: 1px;
   font-size: 12px; font-weight: bold; color: #ffd75e;
-  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000; z-index: 3;
 }
 .cell.inactive img { filter: grayscale(1) brightness(0.6); }
 .cell.inactive::after {
   content: ''; position: absolute; inset: 0;
-  border: 1px solid #6b2b2b; border-radius: 4px;
+  border: 1px solid #6b2b2b; border-radius: 4px; z-index: 4;
 }
 
 .grid-caption { text-align: center; color: #5a6685; font-size: 11px; padding: 4px 0 8px; }
@@ -461,13 +475,21 @@ html, body {
 .artifact-tooltip.hidden { display: none; }
 
 .tt-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.tt-icon-wrap {
+  position: relative; width: 44px; height: 44px; flex-shrink: 0;
+}
 .tt-icon {
   width: 44px; height: 44px; object-fit: contain; image-rendering: pixelated;
   background: #181d2c; border: 1px solid #262e45; border-radius: 6px; padding: 3px;
-  flex-shrink: 0;
+}
+.tt-icon-wrap .magic-overlay {
+  position: absolute; inset: 0; margin: auto;
+  width: 68% !important; height: 68% !important;
+  object-fit: contain; image-rendering: pixelated;
+  padding: 0 !important; pointer-events: none; z-index: 2;
 }
 .tt-name { font-size: 14px; font-weight: bold; color: #eaf0ff; }
-.tt-sub { font-size: 11px; color: #8b93ad; }
+.tt-sub { font-size: 11px; color: #8b93ad; display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
 .tt-owned { color: #5fdc94; }
 
 .tt-combos { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -480,12 +502,31 @@ html, body {
 
 .tt-badge {
   display: inline-block; padding: 1px 6px; border-radius: 4px;
-  font-size: 10px; font-weight: bold;
+  font-size: 10px; font-weight: bold; line-height: 1.3;
 }
 .tt-badge.tier    { background: #202b42; color: #a9b7db; border: 1px solid #334366; }
 .tt-badge.root    { background: #1b3542; color: #7ad1f5; border: 1px solid #2d5569; }
+.tt-badge.weapon  { background: #232b42; color: #8fdcff; border: 1px solid #2c5a75; }
 .tt-badge.costume { background: #332338; color: #e5a4f7; border: 1px solid #573761; }
 .tt-badge.miracle { background: #3b2f1e; color: #f7d174; border: 1px solid #66502e; }
+
+/* 희귀도 뱃지 */
+.tt-badge.rarity.common   { background: #1f2433; color: #9da3b4; border: 1px solid #333a52; }
+.tt-badge.rarity.uncommon { background: #132b1d; color: #4ecb71; border: 1px solid #215433; }
+.tt-badge.rarity.rare     { background: #12283e; color: #4aa8ff; border: 1px solid #1f4f7d; }
+.tt-badge.rarity.unique,
+.tt-badge.rarity.epic     { background: #2c163e; color: #c47eff; border: 1px solid #54277a; }
+.tt-badge.rarity.legend   { background: #38280f; color: #ffb834; border: 1px solid #6e4e1a; }
+.tt-badge.rarity.eternal  { background: #3b1414; color: #ff5252; border: 1px solid #752424; }
+
+.tt-badge.level    { background: #2b2413; color: #ffd75e; border: 1px solid #54441f; }
+.tt-badge.owned    { background: #132b1d; color: #5fdc94; border: 1px solid #215433; }
+.tt-badge.inactive { background: #381414; color: #ff7d7d; border: 1px solid #6b2626; }
+
+.tt-criteria {
+  background: #2b2214; border-left: 2px solid #ffb834; border-radius: 4px;
+  padding: 4px 8px; margin-bottom: 6px; font-size: 11px; color: #ffd75e;
+}
 
 .tt-unlock {
   color: #ffd75e; background: rgba(255, 215, 94, 0.08);
