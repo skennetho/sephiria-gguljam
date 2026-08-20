@@ -23,7 +23,10 @@ Write-Host "최신 빌드 파일을 게임 폴더로 복사 중..." -ForegroundC
 Copy-Item "$distDir\plugin\SephiriaTools.dll" -Destination "$pluginDir\SephiriaTools.dll" -Force
 
 # 2. Overlay 폴더 복사
-Copy-Item "$distDir\Overlay" -Destination $pluginDir -Recurse -Force
+if (Test-Path "$pluginDir\Overlay") {
+    Remove-Item "$pluginDir\Overlay" -Recurse -Force
+}
+Copy-Item "$distDir\Overlay" -Destination "$pluginDir\Overlay" -Recurse -Force
 
 # 3. 루트 런처 및 유틸 복사
 Copy-Item "$distDir\Sephiria Tools.bat" -Destination "$steamGameRoot\Sephiria Tools.bat" -Force
