@@ -808,17 +808,36 @@ html, body {
 .psm-build-name { font-size: 13px; color: #eaf0ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .psm-desc { font-size: 11px; color: #7e8aa6; line-height: 1.4; }
 .psm-slots {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin: 8px 0;
+  display: flex; flex-direction: column; gap: 6px; margin: 8px 0;
+  max-height: 280px; overflow-y: auto; padding-right: 2px;
 }
 .psm-slot-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
   background: #1c2233; border: 1px solid #2f3a54; border-radius: 6px;
-  color: #c7d2e8; padding: 8px 12px; font-size: 13px; font-weight: 500;
-  cursor: pointer; font-family: inherit; text-align: center;
+  color: #c7d2e8; padding: 8px 12px; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: inherit; text-align: left;
   transition: all 0.15s;
 }
 .psm-slot-btn:hover {
   background: #244132; border-color: #3ba76f; color: #a7f3d0;
 }
+.psm-slot-btn.selected {
+  border-color: #ffd75e; background: #26241a; color: #ffd75e;
+}
+.psm-slot-btn.new-slot {
+  border-style: dashed; border-color: #3d4a66; color: #8fdcff; justify-content: center;
+}
+.psm-slot-btn.new-slot:hover {
+  border-style: solid; border-color: #3ba76f; background: #244132; color: #a7f3d0;
+}
+.psm-slot-num { font-weight: bold; color: #8fdcff; min-width: 46px; }
+.psm-slot-btn.selected .psm-slot-num { color: #ffd75e; }
+.psm-slot-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.psm-slot-tag {
+  font-size: 10px; padding: 1px 5px; border-radius: 4px;
+  background: #202b42; color: #a9b7db; white-space: nowrap;
+}
+.psm-slot-btn.selected .psm-slot-tag { background: #4a3d1c; color: #ffd75e; }
 .psm-foot { display: flex; justify-content: flex-end; }
 .psm-close-btn {
   background: transparent; border: 1px solid #2a354d; border-radius: 6px;

@@ -46,7 +46,30 @@ namespace SephiriaTools
                             {
                                 SaveManager.Current.SetString($"Preset_{slotIndex}_PresetName", presetName);
                             }
+
+                            // PresetSlotOrder 갱신
+                            string order = SaveManager.Current.GetString("PresetSlotOrder", "");
+                            var orderList = new List<string>(order.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                            if (!orderList.Contains(slotIndex.ToString()))
+                            {
+                                orderList.Add(slotIndex.ToString());
+                                SaveManager.Current.SetString("PresetSlotOrder", string.Join(",", orderList));
+                            }
+
                             SaveManager.Save(true, false);
+
+                            // UI_PresetPanel 이 활성화되어 있다면 버튼 목록 및 선택 갱신
+                            try
+                            {
+                                var rebuildMethod = typeof(UI_PresetPanel).GetMethod("RebuildPresetSlotButtons", 
+                                    BindingFlags.NonPublic | BindingFlags.Instance);
+                                rebuildMethod?.Invoke(presetPanel, null);
+
+                                var selectMethod = typeof(UI_PresetPanel).GetMethod("SelectPresetSlot", 
+                                    BindingFlags.NonPublic | BindingFlags.Instance);
+                                selectMethod?.Invoke(presetPanel, new object[] { slotIndex });
+                            }
+                            catch { }
 
                             try
                             {
@@ -115,7 +138,20 @@ namespace SephiriaTools
                     SaveManager.Current.SetString(targetPrefix + "PlayerCostume_CurrentSkin_" + costume, skin);
                 }
 
-                // F: Favorites
+                // F: Favorites - 기존 부적 초기화 후 새 부적 반영
+                try
+                {
+                    int[] allItemIds = ItemDatabase.GetAllItemID();
+                    if (allItemIds != null)
+                    {
+                        foreach (var id in allItemIds)
+                        {
+                            SaveManager.Current.SetBool(targetPrefix + "Item_Favorite_" + id, false);
+                        }
+                    }
+                }
+                catch { }
+
                 if (dict.TryGetValue("F", out var fStr) && !string.IsNullOrEmpty(fStr))
                 {
                     foreach (var idStr in fStr.Split(','))
@@ -127,7 +163,20 @@ namespace SephiriaTools
                     }
                 }
 
-                // P: Passives
+                // P: Passives - 기존 패시브 초기화 후 새 패시브 반영
+                try
+                {
+                    var allPassives = PassiveDatabase.GetAll();
+                    if (allPassives != null)
+                    {
+                        foreach (var p in allPassives)
+                        {
+                            SaveManager.Current.SetInt(targetPrefix + "PassivePoint_" + p.id, 0);
+                        }
+                    }
+                }
+                catch { }
+
                 if (dict.TryGetValue("P", out var pStr) && !string.IsNullOrEmpty(pStr))
                 {
                     foreach (var pairStr in pStr.Split(';'))
@@ -136,6 +185,23 @@ namespace SephiriaTools
                         if (parts.Length == 2 && ulong.TryParse(parts[0], out var pid) && int.TryParse(parts[1], out var pval))
                         {
                             SaveManager.Current.SetInt(targetPrefix + "PassivePoint_" + pid, pval);
+                        }
+                    }
+                }
+
+                // D: Dimension Pocket
+                if (dict.TryGetValue("D", out var dStr) && !string.IsNullOrEmpty(dStr))
+                {
+                    var dItems = dStr.Split(';');
+                    SaveManager.Current.SetInt(targetPrefix + "DimensionPocketCount", dItems.Length);
+                    for (int j = 0; j < dItems.Length; j++)
+                    {
+                        var parts = dItems[j].Split(',');
+                        if (parts.Length == 3 && int.TryParse(parts[0], out var inst) && int.TryParse(parts[1], out var ent) && int.TryParse(parts[2], out var qty))
+                        {
+                            SaveManager.Current.SetInt(targetPrefix + $"DimensionPocket{j}_InstanceID", inst);
+                            SaveManager.Current.SetInt(targetPrefix + $"DimensionPocket{j}_EntityID", ent);
+                            SaveManager.Current.SetInt(targetPrefix + $"DimensionPocket{j}_Quantity", qty);
                         }
                     }
                 }
@@ -169,6 +235,16 @@ namespace SephiriaTools
                 {
                     SaveManager.Current.SetString(targetPrefix + "PresetName", presetName);
                 }
+
+                // PresetSlotOrder 갱신
+                string order = SaveManager.Current.GetString("PresetSlotOrder", "");
+                var orderList = new List<string>(order.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+                if (!orderList.Contains(slotIndex.ToString()))
+                {
+                    orderList.Add(slotIndex.ToString());
+                    SaveManager.Current.SetString("PresetSlotOrder", string.Join(",", orderList));
+                }
+
                 SaveManager.Save(true, false);
 
                 try

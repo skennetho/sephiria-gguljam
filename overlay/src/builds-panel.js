@@ -43,6 +43,8 @@ let favorites = loadFavorites();
 
 // ── 초기화 ────────────────────────────────────────────
 
+let latestPresetsInfo = null;
+
 function init() {
   ws.on('inventory_update', data => {
     inventory = data;
@@ -51,9 +53,18 @@ function init() {
     if (buildDetail) updateOwnedMarks();
   });
 
+  ws.on('presets_info', data => {
+    latestPresetsInfo = data;
+    const modal = document.getElementById('preset-slot-modal');
+    if (modal && !modal.classList.contains('hidden') && modal._currentBuild) {
+      renderSlotPickerSlots(modal, modal._currentBuild);
+    }
+  });
+
   ws.on('apply_preset_result', data => {
     if (data && data.ok) {
-      showBuildToast(`🎉 인게임 슬롯 ${data.slot + 1}에 저장되었습니다!`);
+      showBuildToast(`🎉 인게임 슬롯 ${data.slot + 1}에 '${data.title || '빌드'}' 저장 완료!`);
+      ws.send({ type: 'get_presets' });
     } else {
       showBuildToast(`⚠ 저장 실패: ${(data && data.message) || '오류 발생'}`);
     }
@@ -206,23 +217,84 @@ function openSlotPickerModal(b) {
     document.getElementById('panel-builds').appendChild(modal);
   }
 
+  modal._currentBuild = b;
   modal.innerHTML =
     `<div class="psm-box">` +
     `<div class="psm-title">📥 저장할 인게임 프리셋 슬롯 선택</div>` +
     `<div class="psm-build-name">대상 빌드: <b>${esc(b.title)}</b></div>` +
     `<div class="psm-desc">선택한 슬롯에 이 빌드의 코스튬·무기·관심부적·재능·과일꼬치가 저장됩니다.</div>` +
-    `<div class="psm-slots">` +
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => `<button class="psm-slot-btn" data-slot="${i}">슬롯 ${i + 1}</button>`).join('') +
+    `<div class="psm-slots" id="psm-slots-container">` +
+    `<div style="padding:10px;text-align:center;color:#8b93ad;font-size:12px">인게임 슬롯 목록 불러오는 중…</div>` +
     `</div>` +
     `<div class="psm-foot"><button class="psm-close-btn">닫기</button></div>` +
     `</div>`;
 
   modal.classList.remove('hidden');
 
-  modal.querySelectorAll('.psm-slot-btn').forEach(btn => {
+  modal.querySelector('.psm-close-btn').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    modal._currentBuild = null;
+  });
+
+  renderSlotPickerSlots(modal, b);
+  try { ws.send({ type: 'get_presets' }); } catch {}
+}
+
+function renderSlotPickerSlots(modal, b) {
+  const container = modal.querySelector('#psm-slots-container');
+  if (!container) return;
+
+  const info = latestPresetsInfo;
+  let slotButtons = [];
+
+  if (info && Array.isArray(info.slots) && info.slots.length > 0) {
+    const selectedSlot = info.selectedSlot ?? 0;
+    slotButtons = info.slots.map(slot => {
+      const idx = slot.index;
+      const isSelected = (idx === selectedSlot);
+      const isExisting = Boolean(slot.exists);
+      const title = slot.name ? esc(slot.name) : (isExisting ? `프리셋 ${idx + 1}` : '비어 있는 슬롯');
+      const tag = isSelected ? '현재 선택됨' : (isExisting ? (slot.costume || '저장됨') : '빈 슬롯');
+      const lockIcon = slot.locked ? ' 🔒' : '';
+
+      return `<button class="psm-slot-btn${isSelected ? ' selected' : ''}" data-slot="${idx}">` +
+             `<span class="psm-slot-num">[슬롯 ${idx + 1}]</span>` +
+             `<span class="psm-slot-title">${title}${lockIcon}</span>` +
+             `<span class="psm-slot-tag">${tag}</span>` +
+             `</button>`;
+    });
+
+    // 만약 슬롯 개수가 15개 미만이면 [+ 새 슬롯 추가] 버튼 제공
+    const usedIndices = new Set(info.slots.map(s => s.index));
+    let nextUnused = -1;
+    for (let i = 0; i < 15; i++) {
+      if (!usedIndices.has(i)) { nextUnused = i; break; }
+    }
+    if (nextUnused >= 0) {
+      slotButtons.push(
+        `<button class="psm-slot-btn new-slot" data-slot="${nextUnused}">` +
+        `<span>➕ 새 슬롯 (슬롯 ${nextUnused + 1}) 추가 후 저장</span>` +
+        `</button>`
+      );
+    }
+  } else {
+    // 기본 슬롯 1..10
+    slotButtons = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => {
+      return `<button class="psm-slot-btn" data-slot="${i}">` +
+             `<span class="psm-slot-num">[슬롯 ${i + 1}]</span>` +
+             `<span class="psm-slot-title">슬롯 ${i + 1}에 저장</span>` +
+             `<span class="psm-slot-tag">선택</span>` +
+             `</button>`;
+    });
+  }
+
+  container.innerHTML = slotButtons.join('');
+
+  container.querySelectorAll('.psm-slot-btn').forEach(btn => {
     btn.addEventListener('click', guard('psm:slot', () => {
       const slotIndex = parseInt(btn.dataset.slot, 10);
       modal.classList.add('hidden');
+      modal._currentBuild = null;
       const code = presetCodec.getOrGeneratePresetCode(b, gamedata);
       ws.send({
         type: 'apply_preset',
@@ -232,10 +304,6 @@ function openSlotPickerModal(b) {
       });
       showBuildToast(`인게임 슬롯 ${slotIndex + 1}에 저장을 요청했습니다…`);
     }));
-  });
-
-  modal.querySelector('.psm-close-btn').addEventListener('click', () => {
-    modal.classList.add('hidden');
   });
 }
 

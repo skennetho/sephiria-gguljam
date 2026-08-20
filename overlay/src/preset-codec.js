@@ -47,6 +47,34 @@ const COSTUME_SLUG_TO_GAME_ID = {
   forest_cat: 'ForestCat',
 };
 
+// ── 1티어 기본 무기 슬러그 -> 인게임 공식 시작 무기 ID ───
+const BASE_WEAPON_SLUG_TO_ID = {
+  shield_sword: 0,
+  sword_and_shield: 0,
+  sword: 0,
+  great_sword: 10,
+  greatsword: 10,
+  dagger: 20,
+  crossbow: 100,
+  bow: 100,
+  katana: 400,
+  blade: 400,
+  staff: 500,
+  polearm: 500,
+};
+
+// ── 위키 재능 슬러그 -> 인게임 공식 Passive ID ─────────────
+const ABILITY_TO_PASSIVE_ID = {
+  anger: 4,      // 분노
+  rapid: 5,      // 신속
+  survival: 6,   // 생존
+  patience: 7,   // 인내
+  wisdom: 8,     // 지혜
+  will: 9,       // 의지
+  greed: 10,     // 탐욕
+  ingenuity: 11, // 기지
+};
+
 /**
  * AAP1 평문 텍스트를 게임 표준 프리셋 공유 코드로 인코딩
  * @param {string} plainText AAP1 포맷 텍스트
@@ -95,6 +123,31 @@ function decodePreset(presetCode) {
   }
 }
 
+function resolveArtifactId(raw, gamedata) {
+  if (!raw) return null;
+  if (typeof raw === 'number' && raw > 0) return raw;
+  if (typeof raw === 'string') {
+    if (/^\d+$/.test(raw)) return parseInt(raw, 10);
+    if (gamedata && typeof gamedata.slugName === 'function' && typeof gamedata.itemByName === 'function') {
+      const kor = gamedata.slugName('artifacts', raw);
+      const it = gamedata.itemByName(kor || raw);
+      if (it && it.id > 0) return it.id;
+    }
+  } else if (typeof raw === 'object') {
+    if (typeof raw.id === 'number' && raw.id > 0) return raw.id;
+    const slug = raw.value || raw.slug || raw.name;
+    if (slug) {
+      if (typeof slug === 'number' && slug > 0) return slug;
+      if (gamedata && typeof gamedata.slugName === 'function' && typeof gamedata.itemByName === 'function') {
+        const kor = gamedata.slugName('artifacts', slug);
+        const it = gamedata.itemByName(kor || slug);
+        if (it && it.id > 0) return it.id;
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * 위키 빌드 JSON 데이터를 분석하여 AAP1 평문 텍스트 생성
  * @param {object} b 위키 빌드 객체
@@ -110,11 +163,17 @@ function buildPlainFromWikiBuild(b, gamedata) {
   let weaponId = 0;
   if (typeof b.weaponId === 'number') {
     weaponId = b.weaponId;
-  } else if (b.weapon && gamedata && typeof gamedata.weaponRootOf === 'function') {
-    const root = gamedata.weaponRootOf(b.weapon);
-    weaponId = (root && root.id) || (typeof b.weapon === 'number' ? b.weapon : 0);
   } else if (typeof b.weapon === 'number') {
     weaponId = b.weapon;
+  } else if (typeof b.weapon === 'string') {
+    if (BASE_WEAPON_SLUG_TO_ID[b.weapon] !== undefined) {
+      weaponId = BASE_WEAPON_SLUG_TO_ID[b.weapon];
+    } else if (gamedata && typeof gamedata.weaponRootOf === 'function') {
+      const rootSlug = gamedata.weaponRootOf(b.weapon);
+      if (rootSlug && BASE_WEAPON_SLUG_TO_ID[rootSlug] !== undefined) {
+        weaponId = BASE_WEAPON_SLUG_TO_ID[rootSlug];
+      }
+    }
   }
   lines.push(`W:${weaponId || 0}`);
 
@@ -129,43 +188,60 @@ function buildPlainFromWikiBuild(b, gamedata) {
 
   // 3. 관심 아티팩트(부적) 목록 (F)
   const artifactIds = new Set();
-  const rawArtifacts = b.artifacts || b.items || [];
-  if (Array.isArray(rawArtifacts)) {
-    for (const art of rawArtifacts) {
-      if (typeof art === 'number' && art > 0) {
-        artifactIds.add(art);
-      } else if (art && typeof art.id === 'number' && art.id > 0) {
-        artifactIds.add(art.id);
-      } else if (art && art.slug && gamedata && typeof gamedata.itemByName === 'function') {
-        const item = gamedata.itemByName(art.slug) || gamedata.itemByName(art.name);
-        if (item && item.id > 0) artifactIds.add(item.id);
-      } else if (typeof art === 'string' && gamedata && typeof gamedata.itemByName === 'function') {
-        const item = gamedata.itemByName(art);
-        if (item && item.id > 0) artifactIds.add(item.id);
+
+  // (1) Direct arrays (artifacts, items, required_artifacts)
+  const directList = [
+    ...(Array.isArray(b.artifacts) ? b.artifacts : []),
+    ...(Array.isArray(b.items) ? b.items : []),
+    ...(Array.isArray(b.required_artifacts) ? b.required_artifacts : []),
+    ...(Array.isArray(b.starting_artifacts) ? b.starting_artifacts : []),
+  ];
+  for (const art of directList) {
+    const id = resolveArtifactId(art, gamedata);
+    if (id) artifactIds.add(id);
+  }
+
+  // (2) Sections in b.content
+  if (Array.isArray(b.content)) {
+    for (const sec of b.content) {
+      if (sec && Array.isArray(sec.items)) {
+        for (const item of sec.items) {
+          const id = resolveArtifactId(item, gamedata);
+          if (id) artifactIds.add(id);
+        }
       }
     }
   }
+
   if (artifactIds.size > 0) {
     lines.push(`F:${[...artifactIds].join(',')}`);
   }
 
   // 4. 재능/패시브 포인트 (P)
-  const passivePairs = [];
-  const rawPassives = b.passives || b.talents || [];
-  if (Array.isArray(rawPassives)) {
-    for (const p of rawPassives) {
-      const id = p.id || p.passiveId || p.key;
-      const point = p.point || p.value || p.level || 0;
-      if (id && point > 0) {
-        passivePairs.push(`${id},${point}`);
+  const passiveMap = new Map();
+
+  // (1) b.ability object: { will: 20, anger: 20, rapid: 0, ... }
+  if (b.ability && typeof b.ability === 'object') {
+    for (const [key, val] of Object.entries(b.ability)) {
+      const pt = typeof val === 'number' ? val : parseInt(val, 10);
+      if (pt > 0 && ABILITY_TO_PASSIVE_ID[key] !== undefined) {
+        passiveMap.set(ABILITY_TO_PASSIVE_ID[key], pt);
       }
     }
-  } else if (rawPassives && typeof rawPassives === 'object') {
-    for (const [id, point] of Object.entries(rawPassives)) {
-      if (point > 0) passivePairs.push(`${id},${point}`);
+  }
+
+  // (2) b.passives or b.talents array
+  const rawPassives = Array.isArray(b.passives) ? b.passives : (Array.isArray(b.talents) ? b.talents : []);
+  for (const p of rawPassives) {
+    const id = p.id || p.passiveId || p.key;
+    const point = p.point || p.value || p.level || 0;
+    if (id && point > 0) {
+      passiveMap.set(id, point);
     }
   }
-  if (passivePairs.length > 0) {
+
+  if (passiveMap.size > 0) {
+    const passivePairs = Array.from(passiveMap.entries()).map(([id, pt]) => `${id},${pt}`);
     lines.push(`P:${passivePairs.join(';')}`);
   }
 
@@ -215,6 +291,9 @@ function buildPlainFromWikiBuild(b, gamedata) {
  */
 function getOrGeneratePresetCode(b, gamedata) {
   if (!b) return '';
+  if (b.preset_code && typeof b.preset_code === 'string' && b.preset_code.startsWith(PRESET_HEADER)) {
+    return b.preset_code.trim();
+  }
   if (b.presetCode && typeof b.presetCode === 'string' && b.presetCode.startsWith(PRESET_HEADER)) {
     return b.presetCode.trim();
   }
@@ -240,6 +319,8 @@ function copyPresetCodeToClipboard(presetCode) {
 module.exports = {
   PRESET_HEADER,
   COSTUME_SLUG_TO_GAME_ID,
+  BASE_WEAPON_SLUG_TO_ID,
+  ABILITY_TO_PASSIVE_ID,
   encodePreset,
   decodePreset,
   buildPlainFromWikiBuild,

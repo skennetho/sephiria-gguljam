@@ -258,16 +258,42 @@ namespace SephiriaTools
         {
             try
             {
+                string order = SaveManager.Current.GetString("PresetSlotOrder", "");
+                var orderList = new List<int>();
+                foreach (var part in order.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (int.TryParse(part, out var idx) && idx >= 0 && idx < 15 && !orderList.Contains(idx))
+                    {
+                        orderList.Add(idx);
+                    }
+                }
+                for (int i = 0; i < 15; i++)
+                {
+                    if (SaveManager.Current.GetInt($"Preset_{i}_SlotExists", 0) == 1 && !orderList.Contains(i))
+                    {
+                        orderList.Add(i);
+                    }
+                }
+                if (orderList.Count == 0) orderList.Add(0);
+
+                int selectedSlot = SaveManager.Current.GetInt("Preset_SelectedSlot", 0);
+
                 var sb = new StringBuilder(512);
-                sb.Append("{\"type\":\"presets_info\",\"data\":{\"slots\":[");
+                sb.Append("{\"type\":\"presets_info\",\"data\":{\"selectedSlot\":");
+                sb.Append(selectedSlot);
+                sb.Append(",\"slots\":[");
                 bool first = true;
-                for (int i = 0; i < 10; i++)
+                foreach (int i in orderList)
                 {
                     bool exists = SaveManager.Current.GetInt($"Preset_{i}_SlotExists", 0) == 1;
                     string name = SaveManager.Current.GetString($"Preset_{i}_PresetName", "");
+                    string costume = SaveManager.Current.GetString($"Preset_{i}_PlayerCostume", "");
+                    int weapon = SaveManager.Current.GetInt($"Preset_{i}_StartingWeaponID", 0);
+                    bool locked = SaveManager.Current.GetInt($"Preset_{i}_SlotLocked", 0) == 1;
+
                     if (!first) sb.Append(",");
                     first = false;
-                    sb.Append($"{{\"index\":{i},\"exists\":{(exists ? "true" : "false")},\"name\":\"{(name ?? "").Replace("\"", "'")}\"}}");
+                    sb.Append($"{{\"index\":{i},\"exists\":{(exists ? "true" : "false")},\"name\":\"{(name ?? "").Replace("\"", "'")}\",\"costume\":\"{(costume ?? "").Replace("\"", "'")}\",\"weapon\":{weapon},\"locked\":{(locked ? "true" : "false")}}}");
                 }
                 sb.Append("]}}");
                 _server.Broadcast(sb.ToString());
