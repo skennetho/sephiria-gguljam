@@ -570,6 +570,22 @@ html, body {
   border-left: 2px solid #ff8a8a; padding: 4px 8px; border-radius: 3px; font-size: 11px;
 }
 
+.tt-weapon-tree {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  background: #111520; border: 1px solid #253147; border-radius: 6px;
+  padding: 5px 8px; margin-bottom: 8px; font-size: 11px; color: #8b93ad;
+}
+.tt-tree-node { color: #a9b7db; }
+.tt-tree-node.active { color: #8fdcff; font-weight: bold; }
+.tt-tree-node b { color: #ffd75e; }
+.tt-effect-tag {
+  display: inline-block; font-size: 10px; font-weight: bold; padding: 1px 5px;
+  border-radius: 3px; background: #202b42; color: #a9b7db; margin-right: 4px;
+}
+.tt-effect-tag.highlight {
+  background: #1d3a52; color: #8fdcff; border: 1px solid #2c5a75;
+}
+
 .tt-flavor {
   color: #6f7891; font-size: 11px; font-style: italic;
   white-space: pre-line; margin-top: 4px;

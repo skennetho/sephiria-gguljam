@@ -334,6 +334,15 @@ function costumeByName(kor) {
   return null;
 }
 
+function miracleByName(kor) {
+  const target = String(kor || '').replace(/\s/g, '');
+  if (!target) return null;
+  for (const m of Object.values((wikiData && wikiData.miracle) || {})) {
+    if ((m.label_kor || m.value_kor || '').replace(/\s/g, '') === target) return m;
+  }
+  return null;
+}
+
 // ── 과일꼬치 ──────────────────────────────────────────
 
 const SKEWER_SPECIAL = {
@@ -366,6 +375,9 @@ function entityInfo(category, slug, id, name) {
     } else if (cat === 'costume') {
       const c = costumeByName(name);
       if (c) slug = c.value;
+    } else if (cat === 'miracle') {
+      const m = miracleByName(name);
+      if (m) slug = m.value;
     } else if (cat === 'artifacts') {
       const g = itemByName(name);
       if (g) id = g.id;
@@ -389,8 +401,8 @@ function entityInfo(category, slug, id, name) {
   }
 
   if (cat === 'miracle') {
-    const m = (wikiData && wikiData.miracle && wikiData.miracle[slug]) || null;
-    return { category: 'miracle', slug, wiki: m, game: null };
+    const m = (wikiData && wikiData.miracle && wikiData.miracle[slug]) || (name ? miracleByName(name) : null);
+    return { category: 'miracle', slug: slug || (m && m.value), wiki: m, game: null };
   }
 
   return { category: cat, slug, wiki: null, game: null };
@@ -450,7 +462,7 @@ module.exports = {
   COMBO_KOREAN_NAMES, comboInfo, comboName, comboIcon, renderComboBadge,
   WIKI_COMBO_KEY, COMBO_TO_WIKI, comboKeyFromWikiSlug,
   slugName, slugIcon, slugCategories,
-  weaponsByTier, weaponRootOf, weaponByName, costumeByName,
+  weaponsByTier, weaponRootOf, weaponByName, costumeByName, miracleByName, weaponRecords,
   skewerName, skewerIcon,
   entityInfo, artifactInfo,
   RARITY_RANK, RARITY_LABELS, RARITY_COLORS, rarityName,
