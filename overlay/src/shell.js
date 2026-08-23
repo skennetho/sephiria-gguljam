@@ -124,34 +124,53 @@ function setupMousePassthrough() {
 // ── 패널 드래그 이동 ──────────────────────────────────
 
 function setupPanelDragging() {
+  let activePanel = null;
+  let startX = 0, startY = 0, originLeft = 0, originTop = 0;
+
   document.querySelectorAll('[data-drag]').forEach(handle => {
     const panel = handle.closest('.panel');
-    let startX, startY, originLeft, originTop;
+    if (!panel) return;
 
     handle.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      if (e.target.closest('button') || e.target.closest('.panel-btn')) return;
+
+      activePanel = panel;
       dragging = true;
       startX = e.screenX;
       startY = e.screenY;
       const r = panel.getBoundingClientRect();
       originLeft = r.left;
       originTop = r.top;
+
       // right/bottom 기준으로 배치된 패널을 left/top 기준으로 전환
       panel.style.left = `${originLeft}px`;
       panel.style.top = `${originTop}px`;
       panel.style.right = 'auto';
       panel.style.bottom = 'auto';
-      e.preventDefault();
-    });
 
-    window.addEventListener('mousemove', e => {
-      if (!dragging) return;
-      panel.style.left = `${originLeft + (e.screenX - startX)}px`;
-      panel.style.top = `${originTop + (e.screenY - startY)}px`;
+      // 드래그 중인 패널을 최상단으로 올림
+      document.querySelectorAll('.panel').forEach(p => {
+        if (p === panel) p.style.zIndex = '20';
+        else if (p.style.zIndex === '20') p.style.zIndex = '10';
+      });
+
+      e.preventDefault();
     });
   });
 
+  // 단일 전역 mousemove 로 현재 드래그 중인 단 하나의 패널만 이동
+  window.addEventListener('mousemove', e => {
+    if (!dragging || !activePanel) return;
+    activePanel.style.left = `${originLeft + (e.screenX - startX)}px`;
+    activePanel.style.top = `${originTop + (e.screenY - startY)}px`;
+  });
+
   // 어느 패널을 끌었든 여기서 한 번에 푼다
-  window.addEventListener('mouseup', () => { dragging = false; });
+  window.addEventListener('mouseup', () => {
+    dragging = false;
+    activePanel = null;
+  });
 }
 
 module.exports = { init };
