@@ -8,6 +8,7 @@
 'use strict';
 
 const { log, guard, esc } = require('./util');
+const i18n = require('./i18n');
 const {
   ASSETS, entityInfo, comboInfo, comboName, comboIcon, renderComboBadge,
   rarityName, slugIcon, slugName, weaponRootOf, weaponRecords, weaponByName, miracleByName
@@ -37,7 +38,7 @@ function formatWikiMarkup(text) {
 }
 
 function renderWeaponTooltip(wiki, el) {
-  const name = wiki ? (wiki.label_kor || wiki.value_kor) : (el.dataset.name || el.dataset.slug || '무기');
+  const name = wiki ? (wiki.label_kor || wiki.value_kor) : (el.dataset.name || el.dataset.slug || i18n.t('tt.weapon'));
   const iconSrc = (el.querySelector('img') && el.querySelector('img').src) || slugIcon('weapons', wiki?.value);
   const tier = wiki?.tier || (el.dataset.tier ? parseInt(el.dataset.tier, 10) : 1);
 
@@ -67,25 +68,25 @@ function renderWeaponTooltip(wiki, el) {
   let treeHtml = '';
   if (tier === 3 && t2Name) {
     treeHtml = `<div class="tt-weapon-tree">` +
-      (t1Name ? `<span class="tt-tree-node">1티어: <b>${esc(t1Name)}</b></span> ➔ ` : '') +
-      `<span class="tt-tree-node">2티어: <b>${esc(t2Name)}</b></span> ➔ ` +
-      `<span class="tt-tree-node active">3티어: <b>${esc(name)}</b></span>` +
+      (t1Name ? `<span class="tt-tree-node">${i18n.t('tt.tier', { tier: 1 })}: <b>${esc(t1Name)}</b></span> ➔ ` : '') +
+      `<span class="tt-tree-node">${i18n.t('tt.tier', { tier: 2 })}: <b>${esc(t2Name)}</b></span> ➔ ` +
+      `<span class="tt-tree-node active">${i18n.t('tt.tier', { tier: 3 })}: <b>${esc(name)}</b></span>` +
       `</div>`;
   } else if (tier === 2 && t1Name) {
     treeHtml = `<div class="tt-weapon-tree">` +
-      `<span class="tt-tree-node">1티어: <b>${esc(t1Name)}</b></span> ➔ ` +
-      `<span class="tt-tree-node active">2티어: <b>${esc(name)}</b></span>` +
+      `<span class="tt-tree-node">${i18n.t('tt.tier', { tier: 1 })}: <b>${esc(t1Name)}</b></span> ➔ ` +
+      `<span class="tt-tree-node active">${i18n.t('tt.tier', { tier: 2 })}: <b>${esc(name)}</b></span>` +
       `</div>`;
   } else if (tier === 1) {
-    treeHtml = `<div class="tt-weapon-tree"><span class="tt-tree-node active">1티어 기본 무기</span></div>`;
+    treeHtml = `<div class="tt-weapon-tree"><span class="tt-tree-node active">${i18n.t('tt.tier1Base')}</span></div>`;
   }
 
   let html =
     `<div class="tt-head">` +
     `<img class="tt-icon" src="${iconSrc}" onerror="this.remove()">` +
     `<div><div class="tt-name">${esc(name)}</div>` +
-    `<div class="tt-sub"><span class="tt-badge weapon">무기</span> · <span class="tt-badge level">${tier}티어</span>` +
-    (t2Name && tier === 3 ? ` · <span class="tt-badge root">2티어: ${esc(t2Name)}</span>` : '') +
+    `<div class="tt-sub"><span class="tt-badge weapon">${i18n.t('tt.weapon')}</span> · <span class="tt-badge level">${i18n.t('tt.tier', { tier })}</span>` +
+    (t2Name && tier === 3 ? ` · <span class="tt-badge root">${i18n.t('tt.tier', { tier: 2 })}: ${esc(t2Name)}</span>` : '') +
     `</div></div></div>` +
     treeHtml;
 
@@ -97,23 +98,23 @@ function renderWeaponTooltip(wiki, el) {
       if (!r) return;
       let label = '';
       if (tier === 3) {
-        label = i === 0 ? `<span class="tt-effect-tag">[2티어 ${t2Name ? esc(t2Name) : ''} 효과]</span> `
-                        : `<span class="tt-effect-tag highlight">[3티어 고유 효과]</span> `;
+        label = i === 0 ? `<span class="tt-effect-tag">${i18n.t('tt.tier2InheritedEffect', { name: t2Name ? esc(t2Name) : '' })}</span> `
+                        : `<span class="tt-effect-tag highlight">${i18n.t('tt.tier3UniqueEffect')}</span> `;
       } else if (tier === 2) {
-        label = `<span class="tt-effect-tag">[2티어 효과]</span> `;
+        label = `<span class="tt-effect-tag">${i18n.t('tt.tier2Effect')}</span> `;
       }
       html += `<div class="tt-effect">${label}${formatWikiMarkup(r)}</div>`;
     });
     html += `</div>`;
   } else if (wiki && wiki.effect) {
     if (wiki.effect.type) {
-      html += `<div class="tt-weapon-type">계열: <b>${esc(wiki.effect.type)}</b></div>`;
+      html += `<div class="tt-weapon-type">${esc(wiki.effect.type)}</div>`;
     }
     if (wiki.effect.effect) {
       html += `<div class="tt-effect">${formatWikiMarkup(wiki.effect.effect)}</div>`;
     }
     if (wiki.effect.exclusive) {
-      html += `<div class="tt-exclusive">전용: ${formatWikiMarkup(wiki.effect.exclusive)}</div>`;
+      html += `<div class="tt-exclusive">${formatWikiMarkup(wiki.effect.exclusive)}</div>`;
     }
   }
 
@@ -125,18 +126,18 @@ function renderWeaponTooltip(wiki, el) {
 }
 
 function renderCostumeTooltip(wiki, el) {
-  const name = wiki ? wiki.label_kor : (el.dataset.name || el.dataset.slug || '코스튬');
+  const name = wiki ? wiki.label_kor : (el.dataset.name || el.dataset.slug || i18n.t('tt.costume'));
   const iconSrc = (el.querySelector('img') && el.querySelector('img').src) || slugIcon('costume', wiki?.value);
 
   let html =
     `<div class="tt-head">` +
     `<img class="tt-icon" src="${iconSrc}" onerror="this.remove()">` +
     `<div><div class="tt-name">${esc(name)}</div>` +
-    `<div class="tt-sub"><span class="tt-badge costume">코스튬</span></div>` +
+    `<div class="tt-sub"><span class="tt-badge costume">${i18n.t('tt.costume')}</span></div>` +
     `</div></div>`;
 
   if (wiki && wiki.unlock) {
-    html += `<div class="tt-unlock">해금: ${esc(wiki.unlock)}</div>`;
+    html += `<div class="tt-unlock">${i18n.t('tt.unlock')} ${esc(wiki.unlock)}</div>`;
   }
 
   const pos = (wiki && wiki.effects && wiki.effects.positive) || [];
@@ -157,14 +158,14 @@ function renderCostumeTooltip(wiki, el) {
 }
 
 function renderMiracleTooltip(wiki, el) {
-  const name = wiki ? (wiki.label_kor || wiki.value_kor) : (el.dataset.name || el.dataset.slug || '기적');
+  const name = wiki ? (wiki.label_kor || wiki.value_kor) : (el.dataset.name || el.dataset.slug || i18n.t('tt.miracle'));
   const iconSrc = (el.querySelector('img') && el.querySelector('img').src) || slugIcon('miracle', wiki?.value);
 
   let html =
     `<div class="tt-head">` +
     `<img class="tt-icon" src="${iconSrc}" onerror="this.remove()">` +
     `<div><div class="tt-name">${esc(name)}</div>` +
-    `<div class="tt-sub"><span class="tt-badge miracle">기적</span></div>` +
+    `<div class="tt-sub"><span class="tt-badge miracle">${i18n.t('tt.miracle')}</span></div>` +
     `</div></div>`;
 
   const rewards = (wiki && wiki.effects && wiki.effects.reward) || [];
@@ -204,7 +205,7 @@ function renderComboTooltip(comboKeyOrSlug, el) {
     tiersHtml = '<div class="tt-combo-tiers">' + tiers.map(t => {
       const active = count >= t.count;
       return `<div class="tt-combo-tier${active ? ' active' : ''}">` +
-             `<span class="tt-tier-req">(${t.count}세트)</span> ` +
+             `<span class="tt-tier-req">${i18n.t('tt.setRequirement', { count: t.count })}</span> ` +
              `<span class="tt-tier-desc">${esc(t.effect || t.description || '')}</span>` +
              `</div>`;
     }).join('') + '</div>';
@@ -215,14 +216,14 @@ function renderComboTooltip(comboKeyOrSlug, el) {
       <img class="tt-icon" src="${info.icon}" onerror="this.remove()">
       <div>
         <div class="tt-name">${esc(info.name)}</div>
-        <div class="tt-sub"><span class="tt-badge" style="background:#1d3a52;color:#8fdcff">콤보 시너지</span>${count > 0 ? ` · <span class="tt-badge level">${count}개 보유</span>` : ''}</div>
+        <div class="tt-sub"><span class="tt-badge" style="background:#1d3a52;color:#8fdcff">${i18n.t('tt.comboSynergy')}</span>${count > 0 ? ` · <span class="tt-badge level">${i18n.t('tt.ownedCount', { count })}</span>` : ''}</div>
       </div>
     </div>` +
     tiersHtml;
 }
 
 function renderArtifactTooltip(wiki, game, el) {
-  const name = (game && (game.displayName || game.name)) || (wiki && wiki.label_kor) || el.dataset.name || el.dataset.slug || '아티팩트';
+  const name = (game && (game.displayName || game.name)) || (wiki && wiki.label_kor) || el.dataset.name || el.dataset.slug || i18n.t('tt.artifact');
   const owned = el.classList.contains('owned');
   const iconSrc = (el.querySelector('img') && el.querySelector('img').src) ||
                   (game ? `${ASSETS}/icons/${game.id}.png` : slugIcon('artifacts', el.dataset.slug));
@@ -252,10 +253,10 @@ function renderArtifactTooltip(wiki, game, el) {
     subBadges.push(`<span class="tt-badge level">최대 ${maxLevel}강</span>`);
   }
   if (owned) {
-    subBadges.push(`<span class="tt-badge owned">보유 중</span>`);
+    subBadges.push(`<span class="tt-badge owned">${i18n.t('tt.owned')}</span>`);
   }
   if (isInactive) {
-    subBadges.push(`<span class="tt-badge inactive">조건 미달(비활성)</span>`);
+    subBadges.push(`<span class="tt-badge inactive">${i18n.t('tt.inactive')}</span>`);
   }
 
   const cats = (game && game.categories) || (wiki && wiki.effect && wiki.effect.sets) || [];
@@ -269,7 +270,7 @@ function renderArtifactTooltip(wiki, game, el) {
 
   let criteriaNotice = '';
   if (criteria && criteria !== 'Always') {
-    criteriaNotice = `<div class="tt-criteria">⚠️ 발동 조건: <b>${esc(criteriaDesc || criteria)}</b></div>`;
+    criteriaNotice = `<div class="tt-criteria">${i18n.t('tt.condition')} <b>${esc(criteriaDesc || criteria)}</b></div>`;
   }
 
   return `

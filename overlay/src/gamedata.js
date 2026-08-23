@@ -137,32 +137,11 @@ function combos() {
   return comboList;
 }
 
+const i18n = require('./i18n');
+
 // ── 콤보 및 시너지 ─────────────────────────────────────
 
-const COMBO_KOREAN_NAMES = {
-  EMBER: '잉걸불',
-  FROST: '얼음무구',
-  GLACIER: '빙하',
-  MAGITECH: '마법공학',
-  SHADOW: '그림자',
-  GUARDIAN: '수호',
-  WINDSONG: '바람노래',
-  MYSTIC: '신비',
-  PLANET: '행성',
-  COMPANION: '동료',
-  PRECISION: '정밀',
-  DARKCLOUD: '먹구름',
-  STURDY: '견고',
-  LAKE: '호수',
-  FLAMESWORD: '태양검',
-  ACADEMY: '아카데미',
-  CURSE: '저주',
-  SAVVY: '교섭',
-  ELEMENTAL: '원소',
-  ALCHEMY: '연금술',
-  PARTY: '파티',
-  WEAPON: '대장간',
-};
+const COMBO_KOREAN_NAMES = i18n.COMBOS.ko;
 
 // ── 위키 슬러그 매핑 ──────────────────────────────────
 
@@ -203,13 +182,13 @@ function comboInfo(keyOrSlug) {
   let key = WIKI_COMBO_KEY[lower];
   if (!key) {
     const upper = raw.toUpperCase();
-    if (COMBO_KOREAN_NAMES[upper] || comboById(upper)) {
+    if (i18n.COMBOS.ko[upper] || comboById(upper)) {
       key = upper;
     }
   }
   if (!key) {
-    for (const [k, kor] of Object.entries(COMBO_KOREAN_NAMES)) {
-      if (kor === raw || kor === lower) {
+    for (const [k, kor] of Object.entries(i18n.COMBOS.ko)) {
+      if (kor === raw || kor === lower || i18n.COMBOS.en?.[k]?.toLowerCase() === lower) {
         key = k;
         break;
       }
@@ -218,7 +197,7 @@ function comboInfo(keyOrSlug) {
   if (!key) key = raw.toUpperCase();
 
   const c = comboById(key);
-  const name = (c && c.name) || COMBO_KOREAN_NAMES[key] || raw;
+  const name = i18n.comboName(key);
   const icon = `${ASSETS}/combos/${key}.png`;
   const wikiSlug = COMBO_TO_WIKI[key] || lower;
 
@@ -232,8 +211,7 @@ function comboInfo(keyOrSlug) {
 }
 
 function comboName(keyOrSlug) {
-  const info = comboInfo(keyOrSlug);
-  return info ? info.name : String(keyOrSlug || '');
+  return i18n.comboName(keyOrSlug);
 }
 
 function comboIcon(keyOrSlug) {

@@ -70,6 +70,13 @@ function init() {
     }
   });
 
+  const i18n = require('./i18n');
+  i18n.onLanguageChange(() => {
+    renderBuildList();
+    renderPager();
+    if (buildDetail) renderBuildDetail(buildDetail);
+  });
+
   document.querySelectorAll('.build-tab').forEach(tab => {
     tab.addEventListener('click', guard('tab', () => {
       document.querySelectorAll('.build-tab').forEach(t => t.classList.remove('on'));
@@ -217,16 +224,17 @@ function openSlotPickerModal(b) {
     document.getElementById('panel-builds').appendChild(modal);
   }
 
+  const i18n = require('./i18n');
   modal._currentBuild = b;
   modal.innerHTML =
     `<div class="psm-box">` +
-    `<div class="psm-title">📥 저장할 인게임 프리셋 슬롯 선택</div>` +
-    `<div class="psm-build-name">대상 빌드: <b>${esc(b.title)}</b></div>` +
-    `<div class="psm-desc">선택한 슬롯에 이 빌드의 코스튬·무기·관심부적·재능·과일꼬치가 저장됩니다.</div>` +
+    `<div class="psm-title">${i18n.t('psm.title')}</div>` +
+    `<div class="psm-build-name">${i18n.t('psm.targetBuild')} <b>${esc(b.title)}</b></div>` +
+    `<div class="psm-desc">${i18n.t('psm.desc')}</div>` +
     `<div class="psm-slots" id="psm-slots-container">` +
-    `<div style="padding:10px;text-align:center;color:#8b93ad;font-size:12px">인게임 슬롯 목록 불러오는 중…</div>` +
+    `<div style="padding:10px;text-align:center;color:#8b93ad;font-size:12px">${i18n.t('psm.loading')}</div>` +
     `</div>` +
-    `<div class="psm-foot"><button class="psm-close-btn">닫기</button></div>` +
+    `<div class="psm-foot"><button class="psm-close-btn">${i18n.t('panel.close')}</button></div>` +
     `</div>`;
 
   modal.classList.remove('hidden');
@@ -244,6 +252,7 @@ function renderSlotPickerSlots(modal, b) {
   const container = modal.querySelector('#psm-slots-container');
   if (!container) return;
 
+  const i18n = require('./i18n');
   const info = latestPresetsInfo;
   let slotButtons = [];
 
@@ -253,12 +262,12 @@ function renderSlotPickerSlots(modal, b) {
       const idx = slot.index;
       const isSelected = (idx === selectedSlot);
       const isExisting = Boolean(slot.exists);
-      const title = slot.name ? esc(slot.name) : (isExisting ? `프리셋 ${idx + 1}` : '비어 있는 슬롯');
-      const tag = isSelected ? '현재 선택됨' : (isExisting ? (slot.costume || '저장됨') : '빈 슬롯');
+      const title = slot.name ? esc(slot.name) : (isExisting ? i18n.t('psm.slotNum', { slot: idx + 1 }) : i18n.t('psm.emptySlot'));
+      const tag = isSelected ? i18n.t('psm.currentSelected') : (isExisting ? (slot.costume || i18n.t('psm.saved')) : i18n.t('psm.emptySlot'));
       const lockIcon = slot.locked ? ' 🔒' : '';
 
       return `<button class="psm-slot-btn${isSelected ? ' selected' : ''}" data-slot="${idx}">` +
-             `<span class="psm-slot-num">[슬롯 ${idx + 1}]</span>` +
+             `<span class="psm-slot-num">[${i18n.t('psm.slotNum', { slot: idx + 1 })}]</span>` +
              `<span class="psm-slot-title">${title}${lockIcon}</span>` +
              `<span class="psm-slot-tag">${tag}</span>` +
              `</button>`;
@@ -273,7 +282,7 @@ function renderSlotPickerSlots(modal, b) {
     if (nextUnused >= 0) {
       slotButtons.push(
         `<button class="psm-slot-btn new-slot" data-slot="${nextUnused}">` +
-        `<span>➕ 새 슬롯 (슬롯 ${nextUnused + 1}) 추가 후 저장</span>` +
+        `<span>${i18n.t('psm.newSlot', { slot: nextUnused + 1 })}</span>` +
         `</button>`
       );
     }
@@ -281,8 +290,8 @@ function renderSlotPickerSlots(modal, b) {
     // 기본 슬롯 1..10
     slotButtons = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => {
       return `<button class="psm-slot-btn" data-slot="${i}">` +
-             `<span class="psm-slot-num">[슬롯 ${i + 1}]</span>` +
-             `<span class="psm-slot-title">슬롯 ${i + 1}에 저장</span>` +
+             `<span class="psm-slot-num">[${i18n.t('psm.slotNum', { slot: i + 1 })}]</span>` +
+             `<span class="psm-slot-title">${i18n.t('psm.slotNum', { slot: i + 1 })}</span>` +
              `<span class="psm-slot-tag">선택</span>` +
              `</button>`;
     });
@@ -494,12 +503,15 @@ function renderBuildDetail(b) {
   const view = document.getElementById('build-detail-view');
   const owned = ownedNameSet();
 
+  const i18n = require('./i18n');
+
   // 6대 재능 (기본 제외)
-  const abilities = Object.entries(ABILITY_LABELS)
-    .filter(([k]) => k !== 'base')
-    .map(([k, label]) => {
+  const abilities = Object.keys(b.ability || {})
+    .filter(k => k !== 'base')
+    .map(k => {
+      const label = i18n.abilityName(k);
       const v = b.ability?.[k] ?? 0;
-      return `<div class="stat-box"><div class="sn">${label}</div>` +
+      return `<div class="stat-box"><div class="sn">${esc(label)}</div>` +
              `<div class="sv${v === 0 ? ' zero' : ''}">${v}</div></div>`;
     }).join('');
 
@@ -542,9 +554,9 @@ function renderBuildDetail(b) {
   }).join('');
 
   const headIcons = [
-    ['costume', b.costume, '코스튬'],
-    ['weapons', b.weapon, '무기'],
-    ['miracle', b.miracle, '기적'],
+    ['costume', b.costume, i18n.t('tt.costume')],
+    ['weapons', b.weapon, i18n.t('tt.weapon')],
+    ['miracle', b.miracle, i18n.t('tt.miracle')],
   ].filter(([, slug]) => slug).map(([cat, slug, label]) => {
     // 무기는 3티어(최종) 이름만 보면 어느 계열인지 알 수 없다.
     // 파생 원본인 1티어(기본 무기 6종)를 괄호로 덧붙인다.
@@ -562,10 +574,10 @@ function renderBuildDetail(b) {
   }).join('');
 
   view.innerHTML =
-    `<div class="bd-head"><button class="back-btn">← 목록으로</button>` +
-    `<button class="preset-copy-btn" title="세피리아 게임 표준 프리셋 코드를 클립보드에 복사합니다">📋 프리셋 복사</button>` +
-    `<button class="preset-apply-btn" title="인게임 프리셋 슬롯에 이 빌드를 즉시 저장합니다">📥 슬롯에 저장</button>` +
-    (buildUrl(b) ? `<button class="open-web-btn" title="위키 원본글을 브라우저로 엽니다">🔗 원본글</button>` : '') +
+    `<div class="bd-head"><button class="back-btn">${i18n.t('builds.backBtn')}</button>` +
+    `<button class="preset-copy-btn" title="세피리아 게임 표준 프리셋 코드를 클립보드에 복사합니다">${i18n.t('builds.copyBtn')}</button>` +
+    `<button class="preset-apply-btn" title="인게임 프리셋 슬롯에 이 빌드를 즉시 저장합니다">${i18n.t('builds.saveBtn')}</button>` +
+    (buildUrl(b) ? `<button class="open-web-btn" title="위키 원본글을 브라우저로 엽니다">${i18n.t('builds.originalLink')}</button>` : '') +
     `<span class="fav-btn detail${isFav(b) ? ' on' : ''}">${isFav(b) ? '★' : '☆'}</span></div>` +
     `<div class="bd-title-row"><div class="bd-title">${esc(b.title)}</div>` +
     (comboBadges ? `<div class="bd-title-combos">${comboBadges}</div>` : '') +
@@ -573,7 +585,7 @@ function renderBuildDetail(b) {
     `<div class="bd-writer">${esc(b.writer?.nickname || '')} · ♥ ${b.postLike ?? 0} · v${esc(b.version || '')}</div>` +
     `<div class="bd-icons">${headIcons}</div>` +
     `<div class="stat-row">${abilities}</div>` +
-    (skewer ? `<div class="skewer-row"><span class="skewer-label">🍡 과일꼬치</span>${skewer}</div>` : '') +
+    (skewer ? `<div class="skewer-row"><span class="skewer-label">${i18n.t('builds.skewerLabel')}</span>${skewer}</div>` : '') +
     (b.description ? `<div class="bd-desc">${sanitize(b.description)}</div>` : '') +
     sections;
 

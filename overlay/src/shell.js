@@ -83,9 +83,83 @@ function init(deps) {
     }));
   }
 
+  // 언어 변경 토글 (KO <-> EN)
+  const i18n = require('./i18n');
+  const btnToggleLang = document.getElementById('btn-toggle-lang');
+  if (btnToggleLang) {
+    const langText = document.getElementById('current-lang-text');
+    if (langText) langText.textContent = i18n.getLanguage().toUpperCase();
+    btnToggleLang.addEventListener('click', guard('lang-toggle', e => {
+      e.stopPropagation();
+      const next = i18n.getLanguage() === 'ko' ? 'en' : 'ko';
+      i18n.setLanguage(next);
+      if (langText) langText.textContent = next.toUpperCase();
+      updateAllPanelTexts();
+    }));
+  }
+
+  i18n.onLanguageChange(() => {
+    updateAllPanelTexts();
+  });
+  updateAllPanelTexts();
+
   refreshOpenPanelCount();
   setupMousePassthrough();
   setupPanelDragging();
+}
+
+function updateAllPanelTexts() {
+  const i18n = require('./i18n');
+  const lang = i18n.getLanguage();
+
+  // 1. Optimizer Panel
+  const optTitle = document.querySelector('#panel-optimizer .panel-head .title');
+  if (optTitle) optTitle.textContent = i18n.t('panel.optimizer');
+  const optDragHint = document.querySelector('#panel-optimizer .drag-hint');
+  if (optDragHint) optDragHint.textContent = i18n.t('panel.dragHint');
+
+  const btnRefresh = document.getElementById('btn-refresh');
+  if (btnRefresh) btnRefresh.textContent = i18n.t('opt.refresh');
+  const btnAddCombo = document.getElementById('btn-add-combo');
+  if (btnAddCombo) btnAddCombo.textContent = i18n.t('opt.addCombo');
+
+  const viewCur = document.querySelector('#view-seg [data-view="current"]');
+  if (viewCur) viewCur.textContent = `👁 ${i18n.t('opt.viewCurrent')}`;
+  const viewOpt = document.querySelector('#view-seg [data-view="optimized"]');
+  if (viewOpt) viewOpt.textContent = `⚡ ${i18n.t('opt.viewOptimized')}`;
+
+  // 2. Builds Panel
+  const buildsTitle = document.querySelector('#panel-builds .panel-head .title');
+  if (buildsTitle) buildsTitle.textContent = i18n.t('panel.builds');
+  const buildsDragHint = document.querySelector('#panel-builds .drag-hint');
+  if (buildsDragHint) buildsDragHint.textContent = i18n.t('panel.dragHint');
+
+  const tabAll = document.querySelector('.build-tab[data-tab="all"]');
+  if (tabAll) tabAll.textContent = i18n.t('builds.tabAll');
+  const tabFav = document.querySelector('.build-tab[data-tab="fav"]');
+  if (tabFav) {
+    const favCount = document.getElementById('fav-count');
+    tabFav.innerHTML = `⭐ ${i18n.t('builds.tabFav')} <span id="fav-count" class="tab-count">${favCount ? favCount.textContent : '0'}</span>`;
+  }
+
+  // 3. Team Panel
+  const teamTitle = document.querySelector('#panel-team .panel-head .title');
+  if (teamTitle) teamTitle.textContent = i18n.t('panel.team');
+  const teamDragHint = document.querySelector('#panel-team .drag-hint');
+  if (teamDragHint) teamDragHint.textContent = i18n.t('panel.dragHint');
+
+  // 4. Hotkey Bar
+  const hbOpt = document.querySelector('#hotkey-bar [data-panel="optimizer"]');
+  if (hbOpt) hbOpt.innerHTML = i18n.t('hotkey.optimizer');
+  const hbBuilds = document.querySelector('#hotkey-bar [data-panel="builds"]');
+  if (hbBuilds) hbBuilds.innerHTML = i18n.t('hotkey.builds');
+  const hbTeam = document.querySelector('#hotkey-bar [data-panel="team"]');
+  if (hbTeam) hbTeam.innerHTML = i18n.t('hotkey.team');
+  const btnToggleBar = document.getElementById('btn-toggle-bar');
+  if (btnToggleBar) btnToggleBar.innerHTML = i18n.t('hotkey.hide');
+
+  const langText = document.getElementById('current-lang-text');
+  if (langText) langText.textContent = lang.toUpperCase();
 }
 
 // ── 마우스 통과 ───────────────────────────────────────

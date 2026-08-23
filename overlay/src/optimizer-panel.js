@@ -137,6 +137,15 @@ function init() {
 
   // 상태 배지의 '몇 분 전' 을 갱신
   setInterval(() => { if (optimizeState === 'done') renderStatus(); }, 30000);
+
+  // 다국어 변경 시 즉시 갱신
+  const i18n = require('./i18n');
+  i18n.onLanguageChange(() => {
+    lastGridSignature = '';
+    renderPriority();
+    renderGrid();
+    renderStatus();
+  });
 }
 
 // ── 수신 처리 ─────────────────────────────────────────
@@ -570,19 +579,20 @@ function requestUndo() {
 function renderGrid() {
   const grid = document.getElementById('opt-grid');
   const caption = document.getElementById('grid-caption');
+  const i18n = require('./i18n');
 
   if (!displayed) {
     grid.style.gridTemplateColumns = '';
-    grid.innerHTML = '<div class="empty">게임에서 인벤토리를 열면 자동으로 표시됩니다</div>';
-    caption.textContent = '인벤토리를 기다리는 중…';
+    grid.innerHTML = `<div class="empty">${i18n.t('opt.empty')}</div>`;
+    caption.textContent = i18n.t('opt.empty');
     lastGridSignature = '';
     return;
   }
 
   if (displayedKind === 'optimized') {
-    caption.textContent = '아이콘 = 목표 위치 · 노란 숫자 = 최종 강화수';
+    caption.textContent = i18n.t('opt.captionOptimized');
   } else {
-    caption.innerHTML = '<span class="live-dot"></span>실시간 · 노란 숫자 = 현재 강화수';
+    caption.innerHTML = `<span class="live-dot"></span>${i18n.t('opt.captionCurrent')}`;
   }
 
   // 같은 배치를 500ms 마다 다시 그리지 않는다

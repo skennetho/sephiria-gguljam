@@ -7,6 +7,7 @@
 
 const { esc } = require('./util');
 const { ASSETS, renderComboBadge } = require('./gamedata');
+const i18n = require('./i18n');
 const ws = require('./ws');
 const { renderGridInto } = require('./grid');
 
@@ -19,6 +20,10 @@ function init() {
     if (teamActive >= team.length) teamActive = 0;
     renderTeam();
   });
+
+  i18n.onLanguageChange(() => {
+    renderTeam();
+  });
 }
 
 function renderTeam() {
@@ -27,7 +32,7 @@ function renderTeam() {
 
   if (!team.length) {
     tabs.innerHTML = '';
-    body.innerHTML = '<div class="empty">멀티플레이 중이 아니거나<br>팀원 정보가 아직 없습니다</div>';
+    body.innerHTML = `<div class="empty">${i18n.t('team.empty')}</div>`;
     return;
   }
 
@@ -43,10 +48,12 @@ function renderTeam() {
   const m = team[teamActive] || team[0];
   body.innerHTML = '';
 
+  const meta = document.createElement('div');
+  meta.className = 'team-meta';
   const chips = [];
-  if (m.costume) chips.push(`<span class="chip" data-cat="costume" data-name="${esc(m.costume)}" style="cursor:pointer">캐릭터 <b>${esc(m.costume)}</b></span>`);
-  if (m.weapon) chips.push(`<span class="chip" data-cat="weapons" data-name="${esc(m.weapon)}" style="cursor:pointer">무기 <b>${esc(m.weapon)}</b></span>`);
-  if (m.miracle) chips.push(`<span class="chip" data-cat="miracle" data-name="${esc(m.miracle)}" style="cursor:pointer">기적 <b>${esc(m.miracle)}</b></span>`);
+  if (m.costume) chips.push(`<span class="chip" data-cat="costume" data-name="${esc(m.costume)}" style="cursor:pointer">${i18n.t('team.costume')} <b>${esc(m.costume)}</b></span>`);
+  if (m.weapon) chips.push(`<span class="chip" data-cat="weapons" data-name="${esc(m.weapon)}" style="cursor:pointer">${i18n.t('team.weapon')} <b>${esc(m.weapon)}</b></span>`);
+  if (m.miracle) chips.push(`<span class="chip" data-cat="miracle" data-name="${esc(m.miracle)}" style="cursor:pointer">${i18n.t('team.miracle')} <b>${esc(m.miracle)}</b></span>`);
   for (const c of (m.combos || [])) {
     chips.push(renderComboBadge(c.id || c.name, {
       count: c.count,
