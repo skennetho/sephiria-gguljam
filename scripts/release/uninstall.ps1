@@ -20,15 +20,9 @@ Write-Host ""
 # ── 1. 게임 폴더 탐색 ─────────────────────────────────────────
 
 function Find-GameDir {
-    # 1. 스크립트가 게임 폴더 내부에 위치한 경우 (BepInEx\plugins\SephiriaTools)
-    try {
-        $parent3 = Split-Path (Split-Path (Split-Path $Here -Parent) -Parent) -Parent
-        if ($parent3 -and (Test-Path (Join-Path $parent3 "Sephiria.exe"))) {
-            return $parent3
-        }
-    } catch {}
-
     $steamRoots = @()
+
+    # 레지스트리 경로 수집
     foreach ($regPath in @("HKCU:\Software\Valve\Steam", "HKLM:\SOFTWARE\Valve\Steam", "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam")) {
         try {
             $reg = Get-ItemProperty -Path $regPath -Name SteamPath -ErrorAction SilentlyContinue
@@ -38,10 +32,11 @@ function Find-GameDir {
         } catch {}
     }
 
+    # 기본 경로
     $steamRoots += "C:\Program Files (x86)\Steam"
     $steamRoots += "C:\Program Files\Steam"
 
-    # 모든 드라이브의 SteamLibrary 검사
+    # 모든 활성 드라이브의 SteamLibrary 폴더 탐색 (D:\SteamLibrary, E:\SteamLibrary 등)
     try {
         $drives = Get-PSDrive -PSProvider FileSystem | Select-Object -ExpandProperty Root
         foreach ($d in $drives) {
@@ -84,8 +79,8 @@ if (-not $GameDir -or -not (Test-Path (Join-Path $GameDir "Sephiria.exe"))) {
     Write-Host "    게임 폴더 경로를 직접 입력해 주세요."
     Write-Host "    (예: D:\SteamLibrary\steamapps\common\Sephiria)"
     $GameDir = Read-Host "게임 폴더"
-    if (-not $GameDir -or -not (Test-Path (Join-Path $GameDir "Sephiria.exe"))) {
-        Write-Host "[X] 유효한 Sephiria.exe 경로가 아닙니다. 작업을 중단합니다." -ForegroundColor Red
+    if (-not (Test-Path (Join-Path $GameDir "Sephiria.exe"))) {
+        Write-Host "[X] 해당 경로에 Sephiria.exe 가 존재하지 않습니다. 작업을 중단합니다." -ForegroundColor Red
         exit 1
     }
 }
@@ -109,12 +104,12 @@ if ($procs) {
 
 $removedItems = @()
 
-function Safe-Remove-Path($targetPath, $label) {
+function Safe-Remove-Path {
+    param([string]$targetPath, [string]$label)
     if (Test-Path $targetPath) {
         try {
-            # 읽기 전용 속성 해제
             if (Test-Path -PathType Container $targetPath) {
-                Get-ChildItem $targetPath -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.IsReadOnly = $false }
+                Get-ChildItem $targetPath -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.IsReadOnly = $false }
             } else {
                 (Get-Item $targetPath -Force -ErrorAction SilentlyContinue).IsReadOnly = $false
             }
@@ -138,12 +133,12 @@ $winhttpDisabled = Join-Path $GameDir "winhttp.dll.disabled"
 $doorstopIni = Join-Path $GameDir "doorstop_config.ini"
 
 # 3-1. SephiriaTools 플러그인 & 오버레이 폴더 제거
-if (Safe-Remove-Path $pluginDir "SephiriaTools 플러그인 및 오버레이") {
+if (Safe-Remove-Path -targetPath $pluginDir -label "SephiriaTools 플러그인 및 오버레이") {
     $removedItems += "플러그인 및 오버레이"
 }
 
 # 3-2. 설정 파일 제거
-if (Safe-Remove-Path $configFile "SephiriaTools 설정 파일") {
+if (Safe-Remove-Path -targetPath $configFile -label "SephiriaTools 설정 파일") {
     $removedItems += "설정 파일"
 }
 
@@ -165,10 +160,10 @@ if ($hasOtherPlugins) {
 } else {
     Write-Host "[..] 다른 BepInEx 모드가 없으므로 완전 순정(Vanilla) 복원을 진행합니다..." -ForegroundColor Yellow
 
-    Safe-Remove-Path $winhttpDll "winhttp.dll (BepInEx 로더)" | Out-Null
-    Safe-Remove-Path $winhttpDisabled "winhttp.dll.disabled" | Out-Null
-    Safe-Remove-Path $doorstopIni "doorstop_config.ini" | Out-Null
-    Safe-Remove-Path $bepInExDir "BepInEx 폴더 전체" | Out-Null
+    Safe-Remove-Path -targetPath $winhttpDll -label "winhttp.dll (BepInEx 로더)" | Out-Null
+    Safe-Remove-Path -targetPath $winhttpDisabled -label "winhttp.dll.disabled" | Out-Null
+    Safe-Remove-Path -targetPath $doorstopIni -label "doorstop_config.ini" | Out-Null
+    Safe-Remove-Path -targetPath $bepInExDir -label "BepInEx 폴더 전체" | Out-Null
     $removedItems += "BepInEx 코어 및 순정 복원"
 }
 

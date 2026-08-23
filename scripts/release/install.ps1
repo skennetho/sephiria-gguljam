@@ -211,7 +211,7 @@ Write-Host "[..] 최신 오버레이 복사 중..." -ForegroundColor Yellow
 if (Test-Path $overlayDst) {
     try {
         # 읽기 전용 해제 후 덮어쓰기
-        Get-ChildItem $overlayDst -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.IsReadOnly = $false }
+        Get-ChildItem $overlayDst -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.IsReadOnly = $false }
         Remove-Item $overlayDst -Recurse -Force -ErrorAction SilentlyContinue
     } catch {}
 }
