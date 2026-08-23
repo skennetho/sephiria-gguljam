@@ -28,62 +28,38 @@ namespace SephiriaTools
                     return false;
                 }
 
-                var presetPanel = GameObject.FindObjectOfType<UI_PresetPanel>();
-                if (presetPanel != null)
+                // 1. SaveManager 에 프리셋 데이터 직접 완벽 저장
+                bool ok = ApplyDirectlyToSaveManager(slotIndex, decodedPlain, presetName, out errorMessage);
+                if (!ok) return false;
+
+                // 2. 인게임 프리셋 패널이 열려있거나 씬에 존재하면 실시간 UI 새로고침 및 슬롯 선택
+                try
                 {
-                    var method = typeof(UI_PresetPanel).GetMethod("TryApplyCompactPresetData", 
-                        BindingFlags.NonPublic | BindingFlags.Instance);
-                    if (method != null)
+                    var presetPanel = GameObject.FindObjectOfType<UI_PresetPanel>();
+                    if (presetPanel != null)
                     {
-                        object[] args = new object[] { slotIndex, decodedPlain, "" };
-                        bool ok = (bool)method.Invoke(presetPanel, args);
-                        errorMessage = (string)args[2];
-                        if (ok)
-                        {
-                            SaveManager.Current.SetInt($"Preset_{slotIndex}_PresetEnabled", 1);
-                            SaveManager.Current.SetInt($"Preset_{slotIndex}_SlotExists", 1);
-                            if (!string.IsNullOrEmpty(presetName))
-                            {
-                                SaveManager.Current.SetString($"Preset_{slotIndex}_PresetName", presetName);
-                            }
+                        var rebuildMethod = typeof(UI_PresetPanel).GetMethod("RebuildPresetSlotButtons", 
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        rebuildMethod?.Invoke(presetPanel, null);
 
-                            // PresetSlotOrder 갱신
-                            string order = SaveManager.Current.GetString("PresetSlotOrder", "");
-                            var orderList = new List<string>(order.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
-                            if (!orderList.Contains(slotIndex.ToString()))
-                            {
-                                orderList.Add(slotIndex.ToString());
-                                SaveManager.Current.SetString("PresetSlotOrder", string.Join(",", orderList));
-                            }
-
-                            SaveManager.Save(true, false);
-
-                            // UI_PresetPanel 이 활성화되어 있다면 버튼 목록 및 선택 갱신
-                            try
-                            {
-                                var rebuildMethod = typeof(UI_PresetPanel).GetMethod("RebuildPresetSlotButtons", 
-                                    BindingFlags.NonPublic | BindingFlags.Instance);
-                                rebuildMethod?.Invoke(presetPanel, null);
-
-                                var selectMethod = typeof(UI_PresetPanel).GetMethod("SelectPresetSlot", 
-                                    BindingFlags.NonPublic | BindingFlags.Instance);
-                                selectMethod?.Invoke(presetPanel, new object[] { slotIndex });
-                            }
-                            catch { }
-
-                            try
-                            {
-                                UIManager.Instance.GetElement<UI_SystemMessage>()?.Open($"프리셋 슬롯 {slotIndex + 1}에 '{presetName}' 저장 완료!", 3f);
-                            }
-                            catch { }
-
-                            return true;
-                        }
+                        var selectMethod = typeof(UI_PresetPanel).GetMethod("SelectPresetSlot", 
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        selectMethod?.Invoke(presetPanel, new object[] { slotIndex });
                     }
                 }
+                catch (Exception exUI)
+                {
+                    Plugin.Log.LogWarning($"Preset UI refresh skipped: {exUI.Message}");
+                }
 
-                // Fallback: Directly write to SaveManager if UI_PresetPanel is not active
-                return ApplyDirectlyToSaveManager(slotIndex, decodedPlain, presetName, out errorMessage);
+                // 3. 인게임 시스템 토스트 메시지 팝업
+                try
+                {
+                    UIManager.Instance.GetElement<UI_SystemMessage>()?.Open($"프리셋 슬롯 {slotIndex + 1}에 '{presetName}' 저장 완료!", 3f);
+                }
+                catch { }
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -106,14 +82,14 @@ namespace SephiriaTools
                     return false;
                 }
 
-                var dict = new Dictionary<string, string>();
+                var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 for (int i = 1; i < lines.Length; i++)
                 {
                     string line = lines[i].Trim();
                     int idx = line.IndexOf(':');
                     if (idx > 0)
                     {
-                        dict[line.Substring(0, idx)] = line.Substring(idx + 1);
+                        dict[line.Substring(0, idx).Trim()] = line.Substring(idx + 1).Trim();
                     }
                 }
 
@@ -156,7 +132,7 @@ namespace SephiriaTools
                 {
                     foreach (var idStr in fStr.Split(','))
                     {
-                        if (int.TryParse(idStr, out var id))
+                        if (int.TryParse(idStr.Trim(), out var id))
                         {
                             SaveManager.Current.SetBool(targetPrefix + "Item_Favorite_" + id, true);
                         }
@@ -182,7 +158,7 @@ namespace SephiriaTools
                     foreach (var pairStr in pStr.Split(';'))
                     {
                         var parts = pairStr.Split(',');
-                        if (parts.Length == 2 && ulong.TryParse(parts[0], out var pid) && int.TryParse(parts[1], out var pval))
+                        if (parts.Length == 2 && ulong.TryParse(parts[0].Trim(), out var pid) && int.TryParse(parts[1].Trim(), out var pval))
                         {
                             SaveManager.Current.SetInt(targetPrefix + "PassivePoint_" + pid, pval);
                         }
@@ -197,7 +173,7 @@ namespace SephiriaTools
                     for (int j = 0; j < dItems.Length; j++)
                     {
                         var parts = dItems[j].Split(',');
-                        if (parts.Length == 3 && int.TryParse(parts[0], out var inst) && int.TryParse(parts[1], out var ent) && int.TryParse(parts[2], out var qty))
+                        if (parts.Length == 3 && int.TryParse(parts[0].Trim(), out var inst) && int.TryParse(parts[1].Trim(), out var ent) && int.TryParse(parts[2].Trim(), out var qty))
                         {
                             SaveManager.Current.SetInt(targetPrefix + $"DimensionPocket{j}_InstanceID", inst);
                             SaveManager.Current.SetInt(targetPrefix + $"DimensionPocket{j}_EntityID", ent);
@@ -220,9 +196,9 @@ namespace SephiriaTools
                     for (int k = 0; k < rItems.Length; k++)
                     {
                         var parts = rItems[k].Split(',');
-                        if (parts.Length == 2 && int.TryParse(parts[1], out var rval))
+                        if (parts.Length == 2 && int.TryParse(parts[1].Trim(), out var rval))
                         {
-                            string cat = Uri.UnescapeDataString(parts[0]);
+                            string cat = Uri.UnescapeDataString(parts[0].Trim());
                             SaveManager.Current.SetString(targetPrefix + $"FruitSkewer_Fruit{k}_Category", cat);
                             SaveManager.Current.SetInt(targetPrefix + $"FruitSkewer_Fruit{k}_Value", rval);
                         }
@@ -246,13 +222,6 @@ namespace SephiriaTools
                 }
 
                 SaveManager.Save(true, false);
-
-                try
-                {
-                    UIManager.Instance.GetElement<UI_SystemMessage>()?.Open($"프리셋 슬롯 {slotIndex + 1}에 '{presetName}' 저장 완료!", 3f);
-                }
-                catch { }
-
                 return true;
             }
             catch (Exception ex)

@@ -43,10 +43,10 @@ function renderTeam() {
   const m = team[teamActive] || team[0];
   body.innerHTML = '';
 
-  const meta = document.createElement('div');
-  meta.className = 'team-meta';
   const chips = [];
+  if (m.costume) chips.push(`<span class="chip" data-cat="costume" data-name="${esc(m.costume)}" style="cursor:pointer">캐릭터 <b>${esc(m.costume)}</b></span>`);
   if (m.weapon) chips.push(`<span class="chip" data-cat="weapons" data-name="${esc(m.weapon)}" style="cursor:pointer">무기 <b>${esc(m.weapon)}</b></span>`);
+  if (m.miracle) chips.push(`<span class="chip" data-cat="miracle" data-name="${esc(m.miracle)}" style="cursor:pointer">기적 <b>${esc(m.miracle)}</b></span>`);
   for (const c of (m.combos || [])) {
     chips.push(renderComboBadge(c.id || c.name, {
       count: c.count,

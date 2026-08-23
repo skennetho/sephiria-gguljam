@@ -23,6 +23,7 @@ window.addEventListener('unhandledrejection', e => {
 const gamedata = require('./src/gamedata');
 const ws = require('./src/ws');
 const shell = require('./src/shell');
+const tooltip = require('./src/tooltip');
 const optimizerPanel = require('./src/optimizer-panel');
 const buildsPanel = require('./src/builds-panel');
 const teamPanel = require('./src/team-panel');
@@ -31,6 +32,7 @@ const teamPanel = require('./src/team-panel');
   log.info('init', '오버레이 시작');
 
   gamedata.loadItemDb();
+  tooltip.setupArtifactTooltips();
 
   // 패널이 ws.on() 구독을 먼저 걸어야 connect 직후 오는 메시지를 놓치지 않는다
   optimizerPanel.init();

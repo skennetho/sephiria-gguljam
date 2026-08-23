@@ -1,8 +1,9 @@
-// 엔티티 호버 툴팁 (아티팩트·무기·코스튬·기적).
+// 엔티티 호버 툴팁 (아티팩트·무기·코스튬·기적·콤보 시너지).
 //
 // title 속성은 뜨는 데 1초 넘게 걸리고 줄바꿈도 안 된다.
-// 아이템 효과, 무기 트리/계열 효과, 코스튬 해금조건/스탯 효과를
+// 아이템 효과, 무기 트리/계열 효과, 코스튬 해금조건/스탯 효과, 콤보 단계별 효과를
 // 빠르고 미려하게 보여주기 위해 커스텀 툴팁을 제공한다.
+// 최적배치 격자(Ctrl+D), 위키 빌드(Ctrl+B), 팀원창(F1) 전체에 일관 적용된다.
 
 'use strict';
 
@@ -122,6 +123,37 @@ function renderMiracleTooltip(wiki, el) {
   return html;
 }
 
+function renderComboTooltip(comboKeyOrSlug, el) {
+  const info = comboInfo(comboKeyOrSlug);
+  if (!info) return '';
+
+  const countEl = el && el.querySelector && el.querySelector('.cb-count');
+  const count = countEl ? parseInt(countEl.textContent, 10) : (el?.dataset?.count ? parseInt(el.dataset.count, 10) : 0);
+
+  const tiers = (info.combo && info.combo.tiers) || (info.combo && info.combo.comboTiers) || [];
+  
+  let tiersHtml = '';
+  if (tiers.length > 0) {
+    tiersHtml = '<div class="tt-combo-tiers">' + tiers.map(t => {
+      const active = count >= t.count;
+      return `<div class="tt-combo-tier${active ? ' active' : ''}">` +
+             `<span class="tt-tier-req">(${t.count}세트)</span> ` +
+             `<span class="tt-tier-desc">${esc(t.effect || t.description || '')}</span>` +
+             `</div>`;
+    }).join('') + '</div>';
+  }
+
+  return `
+    <div class="tt-head">
+      <img class="tt-icon" src="${info.icon}" onerror="this.remove()">
+      <div>
+        <div class="tt-name">${esc(info.name)}</div>
+        <div class="tt-sub"><span class="tt-badge" style="background:#1d3a52;color:#8fdcff">콤보 시너지</span>${count > 0 ? ` · <span class="tt-badge level">${count}개 보유</span>` : ''}</div>
+      </div>
+    </div>` +
+    tiersHtml;
+}
+
 function renderArtifactTooltip(wiki, game, el) {
   const name = (game && (game.displayName || game.name)) || (wiki && wiki.label_kor) || el.dataset.name || el.dataset.slug || '아티팩트';
   const owned = el.classList.contains('owned');
@@ -191,6 +223,17 @@ function renderArtifactTooltip(wiki, game, el) {
 }
 
 function showTooltip(el) {
+  const isCombo = el.classList.contains('combo-badge') || el.classList.contains('tt-combo') || el.classList.contains('prio-row') || el.dataset.combo != null;
+  const comboKey = el.dataset.combo || el.dataset.id || el.getAttribute('data-combo');
+
+  if (isCombo && comboKey) {
+    const tip = ensureTooltip();
+    tip.innerHTML = renderComboTooltip(comboKey, el);
+    tip.classList.remove('hidden');
+    positionTooltip(tip, el);
+    return;
+  }
+
   const cat = el.dataset.cat || (el.classList.contains('weapons') ? 'weapons' :
                                 el.classList.contains('costume') ? 'costume' :
                                 el.classList.contains('miracle') ? 'miracle' : 'artifacts');
@@ -247,7 +290,7 @@ function resetTooltip() {
 
 function getTargetElement(e) {
   return e.target.closest(
-    '.it[data-slug], .it[data-id], .bd-icon, .bc-icon, .team-meta .chip[data-cat], .team-meta .chip, .cell[data-id], .cell[data-name]'
+    '.it[data-slug], .it[data-id], .bd-icon, .bc-icon, .team-meta .chip, .combo-badge, .tt-combo, .prio-row, .cell[data-id], .cell[data-name], [data-cat]'
   );
 }
 
