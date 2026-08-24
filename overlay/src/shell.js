@@ -9,6 +9,7 @@ const PANELS = {
   optimizer: 'panel-optimizer',
   builds: 'panel-builds',
   team: 'panel-team',
+  settings: 'panel-settings',
 };
 
 // 열린 패널 수. 0이면 마우스 통과 판정을 통째로 건너뛸 수 있다.
@@ -49,6 +50,7 @@ function init(deps) {
   ipcRenderer.on('toggle-optimizer', guard('ipc', () => togglePanel('optimizer')));
   ipcRenderer.on('toggle-builds', guard('ipc', () => togglePanel('builds')));
   ipcRenderer.on('toggle-team', guard('ipc', () => togglePanel('team')));
+  ipcRenderer.on('toggle-settings', guard('ipc', () => togglePanel('settings')));
   ipcRenderer.on('run-optimize', guard('ipc', () => deps.runOptimize()));
   ipcRenderer.on('toggle-hotkey-bar', () => {
     document.getElementById('hotkey-bar').classList.toggle('hidden');
@@ -61,6 +63,7 @@ function init(deps) {
     if (action === 'toggle-optimizer') togglePanel('optimizer');
     else if (action === 'toggle-builds') togglePanel('builds');
     else if (action === 'toggle-team') togglePanel('team');
+    else if (action === 'toggle-settings') togglePanel('settings');
     else if (action === 'run-optimize') deps.runOptimize();
     else if (action === 'toggle-hotkey-bar') {
       document.getElementById('hotkey-bar').classList.toggle('hidden');
@@ -148,13 +151,21 @@ function updateAllPanelTexts() {
   const teamDragHint = document.querySelector('#panel-team .drag-hint');
   if (teamDragHint) teamDragHint.textContent = i18n.t('panel.dragHint');
 
-  // 4. Hotkey Bar
+  // 4. Settings Panel
+  const settingsTitle = document.querySelector('#panel-settings .panel-head .title');
+  if (settingsTitle) settingsTitle.textContent = i18n.t('panel.settings');
+  const settingsDragHint = document.querySelector('#panel-settings .drag-hint');
+  if (settingsDragHint) settingsDragHint.textContent = i18n.t('panel.dragHint');
+
+  // 5. Hotkey Bar
   const hbOpt = document.querySelector('#hotkey-bar [data-panel="optimizer"]');
   if (hbOpt) hbOpt.innerHTML = i18n.t('hotkey.optimizer');
   const hbBuilds = document.querySelector('#hotkey-bar [data-panel="builds"]');
   if (hbBuilds) hbBuilds.innerHTML = i18n.t('hotkey.builds');
   const hbTeam = document.querySelector('#hotkey-bar [data-panel="team"]');
   if (hbTeam) hbTeam.innerHTML = i18n.t('hotkey.team');
+  const hbSettings = document.querySelector('#hotkey-bar [data-panel="settings"]');
+  if (hbSettings) hbSettings.innerHTML = i18n.t('hotkey.settings');
   const btnToggleBar = document.getElementById('btn-toggle-bar');
   if (btnToggleBar) btnToggleBar.innerHTML = i18n.t('hotkey.hide');
 

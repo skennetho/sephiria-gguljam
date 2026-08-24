@@ -101,6 +101,7 @@ function registerHotkeys() {
     'F1': () => send('toggle-team'),
     'CommandOrControl+R': () => send('run-optimize'),
     'CommandOrControl+H': () => send('toggle-hotkey-bar'),
+    'CommandOrControl+,': () => send('toggle-settings'),
     'CommandOrControl+Q': () => app.quit(),
     // Esc 는 등록하지 않는다. 전역 단축키로 잡으면 게임의 Esc 가 먹히지 않는다.
     // 패널은 각자의 토글 단축키로 닫는다.
@@ -152,6 +153,8 @@ ipcMain.on('ws-state', (_e, connected) => {
   goneTimer = setTimeout(() => {
     goneTimer = null;
     log.info('game', '플러그인 연결이 끊긴 채 유지됨 — 게임이 종료된 것으로 보고 닫습니다');
+    // 스테이징된 업데이트가 있으면 게임 종료 직전에 적용
+    applyStagedUpdateOnExit();
     app.quit();
   }, GAME_GONE_GRACE_MS);
 });
@@ -262,6 +265,251 @@ ipcMain.handle('fetch-builds', async (_e, opts = {}) => {
   log.info('wiki', '응답 수신', { 개수: result.builds.length, 전체: result.total });
   return result;
 });
+
+// ── 인앱 업데이트 시스템 ───────────────────────────────
+// GitHub Releases API 조회 및 zip 다운로드/적용을 메인 프로세스에서 처리한다.
+
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const { execFile } = require('child_process');
+
+const GITHUB_UA = 'SephiriaTools-Updater/1.0';
+
+/** HTTPS/HTTP GET 요청 (리다이렉트 추적) */
+function httpGet(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const mod = url.startsWith('https') ? https : http;
+    const req = mod.get(url, {
+      headers: { 'User-Agent': GITHUB_UA, ...options.headers },
+      timeout: 30000,
+    }, res => {
+      // 리다이렉트 추적
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        return httpGet(res.headers.location, options).then(resolve, reject);
+      }
+      if (res.statusCode !== 200) {
+        res.resume();
+        return reject(new Error(`HTTP ${res.statusCode}`));
+      }
+      resolve(res);
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+  });
+}
+
+/** GitHub Releases API 에서 최신 릴리스 확인 */
+ipcMain.handle('check-update', async (_e, opts) => {
+  try {
+    const res = await httpGet(opts.apiUrl, {
+      headers: { Accept: 'application/vnd.github.v3+json' },
+    });
+    const chunks = [];
+    for await (const chunk of res) chunks.push(chunk);
+    const json = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+
+    const version = (json.tag_name || '').replace(/^v/, '');
+    if (!version) return null;
+
+    // zip 다운로드 URL 찾기
+    const zipAsset = (json.assets || []).find(a => a.name && a.name.endsWith('.zip'));
+    const downloadUrl = zipAsset ? zipAsset.browser_download_url : null;
+
+    return {
+      version,
+      downloadUrl,
+      changelog: json.body || '',
+    };
+  } catch (err) {
+    log.error('update', 'GitHub API 조회 실패', err.message);
+    return null;
+  }
+});
+
+/** 업데이트 다운로드 + 타입에 따라 적용/스테이징 */
+ipcMain.handle('download-and-apply-update', async (_e, opts) => {
+  const { downloadUrl, type, version, updatesDir } = opts;
+
+  try {
+    // 1. 디렉토리 준비
+    const downloadDir = path.join(updatesDir, 'download');
+    const stagedDir = path.join(updatesDir, 'staged');
+    fs.mkdirSync(downloadDir, { recursive: true });
+    fs.mkdirSync(stagedDir, { recursive: true });
+
+    const zipPath = path.join(downloadDir, `update-${version}.zip`);
+
+    // 2. zip 다운로드
+    log.info('update', '다운로드 시작', downloadUrl);
+    const res = await httpGet(downloadUrl);
+    const fileStream = fs.createWriteStream(zipPath);
+    await new Promise((resolve, reject) => {
+      res.pipe(fileStream);
+      fileStream.on('finish', resolve);
+      fileStream.on('error', reject);
+    });
+    log.info('update', '다운로드 완료', zipPath);
+
+    if (type === 'patch') {
+      // 3a. 패치: zip 에서 app.asar 추출하여 현재 오버레이에 교체
+      const extractDir = path.join(downloadDir, `extracted-${version}`);
+      fs.mkdirSync(extractDir, { recursive: true });
+
+      await new Promise((resolve, reject) => {
+        execFile('powershell', [
+          '-NoProfile', '-Command',
+          `Expand-Archive -Path '${zipPath}' -DestinationPath '${extractDir}' -Force`
+        ], { timeout: 60000 }, (err) => {
+          if (err) reject(err); else resolve();
+        });
+      });
+
+      // app.asar 경로 찾기 (zip 구조: sephiria-gguljam-vX.X.X/Overlay/resources/app.asar)
+      const findAsar = (dir) => {
+        const items = fs.readdirSync(dir, { withFileTypes: true });
+        for (const item of items) {
+          const full = path.join(dir, item.name);
+          if (item.isFile() && item.name === 'app.asar') return full;
+          if (item.isDirectory()) {
+            const found = findAsar(full);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const newAsar = findAsar(extractDir);
+      if (!newAsar) {
+        log.error('update', 'app.asar 를 찾을 수 없음');
+        return { ok: false, error: 'app.asar not found in zip' };
+      }
+
+      // 현재 실행 중인 오버레이의 app.asar 교체
+      const currentAsar = path.join(path.dirname(app.getAppPath()), 'app.asar');
+      log.info('update', 'app.asar 교체', { from: newAsar, to: currentAsar });
+
+      // 기존 파일 백업
+      const backupAsar = currentAsar + '.bak';
+      try { fs.copyFileSync(currentAsar, backupAsar); } catch {}
+      fs.copyFileSync(newAsar, currentAsar);
+
+      // 정리
+      try { fs.rmSync(extractDir, { recursive: true, force: true }); } catch {}
+      try { fs.unlinkSync(zipPath); } catch {}
+
+      log.info('update', '패치 업데이트 적용 완료 — 오버레이 재시작');
+      app.relaunch();
+      app.exit(0);
+
+      return { ok: true };
+
+    } else {
+      // 3b. 마이너/메이저: 스테이징만 해두기
+      const extractDir = path.join(stagedDir, `sephiria-update-${version}`);
+      fs.mkdirSync(extractDir, { recursive: true });
+
+      await new Promise((resolve, reject) => {
+        execFile('powershell', [
+          '-NoProfile', '-Command',
+          `Expand-Archive -Path '${zipPath}' -DestinationPath '${extractDir}' -Force`
+        ], { timeout: 60000 }, (err) => {
+          if (err) reject(err); else resolve();
+        });
+      });
+
+      // pending.json 기록
+      const pendingInfo = {
+        version,
+        stagedDir: extractDir,
+        downloadedAt: new Date().toISOString(),
+      };
+      fs.writeFileSync(
+        path.join(stagedDir, 'pending.json'),
+        JSON.stringify(pendingInfo, null, 2),
+        'utf8'
+      );
+
+      // 다운로드 zip 정리
+      try { fs.unlinkSync(zipPath); } catch {}
+
+      log.info('update', '마이너/메이저 업데이트 스테이징 완료', pendingInfo);
+      return { ok: true };
+    }
+  } catch (err) {
+    log.error('update', '업데이트 처리 실패', err.message);
+    return { ok: false, error: err.message };
+  }
+});
+
+/** 게임 종료 시 스테이징된 업데이트를 적용한다 */
+function applyStagedUpdateOnExit() {
+  try {
+    const stagedDir = path.join(
+      process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming'),
+      'SephiriaTools', 'updates', 'staged'
+    );
+    const pendingPath = path.join(stagedDir, 'pending.json');
+    if (!fs.existsSync(pendingPath)) return;
+
+    const info = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
+    if (!info || !info.stagedDir || !fs.existsSync(info.stagedDir)) return;
+
+    // install.ps1 찾기 (스테이징된 디렉토리 내부)
+    const findScript = (dir) => {
+      const items = fs.readdirSync(dir, { withFileTypes: true });
+      for (const item of items) {
+        const full = path.join(dir, item.name);
+        if (item.isFile() && item.name === 'install.ps1') return full;
+        if (item.isDirectory()) {
+          const found = findScript(full);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const installScript = findScript(info.stagedDir);
+    if (!installScript) {
+      log.warn('update', 'install.ps1 을 찾을 수 없어 스테이징 업데이트를 건너뜁니다');
+      return;
+    }
+
+    // 게임 디렉토리 찾기 (assets-locator 활용)
+    let gameDir;
+    try {
+      const locator = require('./assets-locator');
+      gameDir = locator.findGameDir ? locator.findGameDir() : null;
+    } catch {}
+
+    if (!gameDir) {
+      log.warn('update', '게임 디렉토리를 찾을 수 없어 스테이징 업데이트를 건너뜁니다');
+      return;
+    }
+
+    log.info('update', '스테이징된 업데이트 적용 시작', {
+      version: info.version,
+      script: installScript,
+      gameDir,
+    });
+
+    // install.ps1 을 비동기로 실행 (오버레이 종료 후에도 실행 계속)
+    const ps = execFile('powershell', [
+      '-NoProfile', '-ExecutionPolicy', 'Bypass',
+      '-File', installScript,
+      '-GameDir', gameDir,
+    ], { detached: true, stdio: 'ignore' });
+    ps.unref();
+
+    // pending.json 제거
+    try { fs.unlinkSync(pendingPath); } catch {}
+
+    log.info('update', '스테이징 업데이트 install.ps1 실행 완료');
+  } catch (err) {
+    log.error('update', '스테이징 업데이트 적용 실패', err.message);
+  }
+}
 
 // ── 마우스 통과 토글 ───────────────────────────────────
 

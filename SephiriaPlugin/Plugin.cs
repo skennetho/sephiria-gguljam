@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SephiriaTools
 {
-    [BepInPlugin("com.sephiria.tools", "SephiriaTools", "0.2.0")]
+    [BepInPlugin("com.sephiria.tools", "SephiriaTools", "0.3.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance { get; private set; }
@@ -161,6 +161,10 @@ namespace SephiriaTools
             else if (ctrl && Input.GetKeyDown(KeyCode.H))
             {
                 _wsServer.Broadcast("{\"type\":\"hotkey\",\"action\":\"toggle-hotkey-bar\"}");
+            }
+            else if (ctrl && Input.GetKeyDown(KeyCode.Comma))
+            {
+                _wsServer.Broadcast("{\"type\":\"hotkey\",\"action\":\"toggle-settings\"}");
             }
         }
 

@@ -862,3 +862,55 @@ html, body {
 }
 .psm-close-btn:hover { background: #1c2233; color: #dde3f0; }
 
+/* ── ④ 설정 패널 ────────────────────────────────────── */
+#panel-settings { right: 24px; bottom: 80px; width: 340px; }
+
+.settings-section {
+  padding: 10px 14px;
+  border-bottom: 1px solid #1e2536;
+}
+.settings-section:last-child { border-bottom: none; }
+
+.settings-section .sec-title {
+  font-size: 12px; font-weight: bold; color: #8b93ad;
+  margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 0; font-size: 13px; gap: 8px;
+}
+.settings-row.update-row { gap: 6px; }
+
+.version-badge {
+  font-size: 12px; padding: 2px 10px; border-radius: 10px;
+  background: #1a2744; color: #59d0ff; border: 1px solid #2c5a75;
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.settings-link {
+  color: #59d0ff; text-decoration: none; font-size: 12px;
+}
+.settings-link:hover { text-decoration: underline; color: #7de0ff; }
+
+/* 업데이트 상태 */
+.update-status {
+  font-size: 12px; padding: 6px 0; min-height: 18px;
+  line-height: 1.5;
+}
+.update-status.up-to-date { color: #5fdc94; }
+.update-status.available  { color: #ffd75e; }
+.update-status.staged     { color: #59d0ff; }
+.update-status.downloading { color: #8b93ad; }
+.update-status.error      { color: #ff6b6b; }
+
+/* 프로그레스 바 */
+.update-progress {
+  height: 4px; border-radius: 2px;
+  background: #1a2032; margin-top: 6px; overflow: hidden;
+}
+.update-progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #59d0ff, #5fdc94);
+  border-radius: 2px; transition: width 0.3s ease;
+}

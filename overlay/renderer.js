@@ -27,6 +27,7 @@ const tooltip = require('./src/tooltip');
 const optimizerPanel = require('./src/optimizer-panel');
 const buildsPanel = require('./src/builds-panel');
 const teamPanel = require('./src/team-panel');
+const settingsPanel = require('./src/settings-panel');
 
 (function init() {
   log.info('init', '오버레이 시작');
@@ -38,6 +39,7 @@ const teamPanel = require('./src/team-panel');
   optimizerPanel.init();
   buildsPanel.init();
   teamPanel.init();
+  settingsPanel.init();
   shell.init({ runOptimize: optimizerPanel.requestOptimize });
 
   ws.connect();

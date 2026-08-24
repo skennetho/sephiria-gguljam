@@ -204,6 +204,28 @@ const TRANSLATIONS = {
     'tt.tier2InheritedEffect': '[2티어 {name} 효과]',
     'tt.tier3UniqueEffect': '[3티어 고유 효과]',
     'tt.tier2Effect': '[2티어 효과]',
+
+    // 설정 패널
+    'panel.settings': '⚙️ 설정',
+    'hotkey.settings': '<b>Ctrl+,</b> ⚙️ 설정',
+    'settings.info': '📋 정보',
+    'settings.version': '현재 버전',
+    'settings.github': 'GitHub 페이지',
+    'settings.update': '🔄 업데이트',
+    'settings.checkUpdate': '업데이트 확인',
+    'settings.checking': '확인 중…',
+    'settings.downloading': '다운로드 중… ({percent}%)',
+    'settings.upToDate': '✅ 최신 버전입니다 (v{version})',
+    'settings.available': '🔔 새 버전 v{version} 사용 가능',
+    'settings.patchReady': '지금 적용 시 오버레이만 재시작됩니다 (게임 유지)',
+    'settings.majorReady': '게임 재시작 시 자동 적용됩니다',
+    'settings.applyNow': '지금 적용',
+    'settings.applying': '적용 중…',
+    'settings.staged': '⏳ v{version} 대기 중 — 게임 종료 시 자동 적용',
+    'settings.downloadFail': '❌ 다운로드 실패',
+    'settings.checkFail': '❌ 확인 실패 (네트워크 오류)',
+    'settings.preferences': '🌐 환경설정',
+    'settings.language': '언어',
   },
   en: {
     // Panel Titles & Hints
@@ -292,6 +314,28 @@ const TRANSLATIONS = {
     'tt.tier2InheritedEffect': '[Tier 2 {name} Effect]',
     'tt.tier3UniqueEffect': '[Tier 3 Unique Effect]',
     'tt.tier2Effect': '[Tier 2 Effect]',
+
+    // Settings Panel
+    'panel.settings': '⚙️ Settings',
+    'hotkey.settings': '<b>Ctrl+,</b> ⚙️ Settings',
+    'settings.info': '📋 Info',
+    'settings.version': 'Current Version',
+    'settings.github': 'GitHub Page',
+    'settings.update': '🔄 Update',
+    'settings.checkUpdate': 'Check for Updates',
+    'settings.checking': 'Checking…',
+    'settings.downloading': 'Downloading… ({percent}%)',
+    'settings.upToDate': '✅ Up to date (v{version})',
+    'settings.available': '🔔 New version v{version} available',
+    'settings.patchReady': 'Overlay will restart to apply (game keeps running)',
+    'settings.majorReady': 'Will be applied when game exits',
+    'settings.applyNow': 'Apply Now',
+    'settings.applying': 'Applying…',
+    'settings.staged': '⏳ v{version} staged — auto-applies on game exit',
+    'settings.downloadFail': '❌ Download failed',
+    'settings.checkFail': '❌ Check failed (network error)',
+    'settings.preferences': '🌐 Preferences',
+    'settings.language': 'Language',
   }
 };
 

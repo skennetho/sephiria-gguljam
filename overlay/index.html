@@ -153,11 +153,59 @@
   </div>
 </div>
 
+<!-- ═══════════ ④ 설정 (Ctrl+,) ═══════════ -->
+<div id="panel-settings" class="panel interactive-ui hidden">
+  <div class="panel-head" data-drag>
+    <span class="title">⚙️ 설정</span>
+    <span class="hotkey">Ctrl+,</span>
+    <span class="drag-hint">드래그로 이동</span>
+  </div>
+
+  <!-- 📋 정보 -->
+  <div class="settings-section">
+    <div class="sec-title" id="settings-info-title">📋 정보</div>
+    <div class="settings-row">
+      <span id="settings-version-label">현재 버전</span>
+      <span id="settings-version-value" class="version-badge">v0.2.0</span>
+    </div>
+    <div class="settings-row">
+      <span id="settings-github-label">GitHub</span>
+      <a id="settings-github-link" href="https://github.com/skennetho/sephiria-gguljam" target="_blank" class="settings-link">skennetho/sephiria-gguljam ↗</a>
+    </div>
+  </div>
+
+  <!-- 🔄 업데이트 -->
+  <div class="settings-section">
+    <div class="sec-title" id="settings-update-title">🔄 업데이트</div>
+    <div class="settings-row update-row">
+      <button id="btn-check-update" class="calc-btn">업데이트 확인</button>
+      <button id="btn-apply-update" class="calc-btn apply hidden">지금 적용</button>
+    </div>
+    <div id="update-status" class="update-status"></div>
+    <div id="update-progress" class="update-progress hidden">
+      <div id="update-progress-fill" class="update-progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- 🌐 환경설정 -->
+  <div class="settings-section">
+    <div class="sec-title" id="settings-pref-title">🌐 환경설정</div>
+    <div class="settings-row">
+      <span id="settings-lang-label">언어</span>
+      <select id="settings-lang-select" class="filter-sel">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </div>
+</div>
+
 <!-- 단축키 퀵버튼 안내바 -->
 <div id="hotkey-bar" class="hotkey-bar interactive-ui">
   <span class="hotkey-btn" data-panel="optimizer"><b>Ctrl+D</b> ⚡ 최적배치</span>
   <span class="hotkey-btn" data-panel="builds"><b>Ctrl+B</b> 📖 빌드</span>
   <span class="hotkey-btn" data-panel="team"><b>F1</b> 👥 팀원</span>
+  <span class="hotkey-btn" data-panel="settings"><b>Ctrl+,</b> ⚙️ 설정</span>
   <span class="hotkey-btn" id="btn-toggle-lang" title="언어 변경 (Language)">🌐 <span id="current-lang-text">KO</span></span>
   <span class="hotkey-btn" id="btn-toggle-bar"><b>Ctrl+H</b> 숨기기</span>
 </div>
