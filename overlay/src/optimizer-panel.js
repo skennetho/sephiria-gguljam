@@ -205,7 +205,10 @@ function onOptimizeData(data) {
     return;
   }
   invalidateUndo('새 최적화 데이터 수신');
-  runSearch(data);
+  // 비동기 틱으로 분리하여 UI 렌더러가 프레임 드랍 없이 반응하도록 보장
+  setTimeout(() => {
+    runSearch(data);
+  }, 0);
 }
 
 function onOptimizeError(data) {

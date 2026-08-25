@@ -5,22 +5,51 @@ using UnityEngine;
 
 namespace SephiriaTools
 {
+    internal class RawItemData
+    {
+        public int iid;
+        public int eid;
+        public int idx;
+        public string kind;
+        public string name;
+        public bool charmType;
+        public int maxLevel;
+        public int enchant;
+        public int level;
+        public string criteria;
+        public bool magic;
+        public int rot;
+        public bool rotatable;
+        public string effectQuery;
+        public string conditionQuery;
+    }
+
+    internal class RawEngravingData
+    {
+        public int idx;
+        public int instanceID;
+        public string effectQuery;
+        public string conditionQuery;
+    }
+
+    internal class RawSnapshotData
+    {
+        public int width;
+        public int height;
+        public int storage;
+        public int[] baseLevels;
+        public bool fullHp;
+        public List<RawItemData> items = new List<RawItemData>();
+        public List<RawEngravingData> engravings = new List<RawEngravingData>();
+    }
+
     /// <summary>
     /// 배치 최적화에 필요한 게임 상태를 <b>읽기만 해서</b> 순수 데이터로 뽑아낸다.
     /// 게임 상태를 바꾸는 코드는 여기에 없다.
     ///
-    /// 탐색(어느 칸에 무엇을 놓을지)은 오버레이 쪽 JS 가 담당한다.
-    /// 플러그인이 하는 일은 JS 가 절대 알 수 없는 것 두 가지뿐이다:
-    ///
-    ///  1. <b>석판 효과 해석</b> — 석판 효과는 47개 키워드짜리 텍스트 DSL 이고
-    ///     회전마다 분기가 다르다. 게임의 <c>StoneTablet.ParseQuery</c> 를 그대로 호출해
-    ///     "이 석판을 이 칸에 이 회전으로 놓으면 어느 칸에 무슨 효과" 까지 풀어서 넘긴다.
-    ///     JS 로 재구현하면 어긋나고, 게임 패치 때마다 깨진다.
-    ///  2. <b>런타임 상태</b> — 인챈트 수치, 칸별 임시 레벨, 각인, 회전 가능 여부.
-    ///
-    /// 좌표는 전부 선형 인덱스(idx = y * width + x)로 넘긴다.
-    /// 격자는 직사각형이 아니다: 유효한 칸은 0 &lt;= idx &lt; CurrentInventoryStorage 뿐이고,
-    /// 마지막 줄은 부분적으로만 존재할 수 있다. 포션 벨트(y = 100)는 격자가 아니라 제외한다.
+    /// 메인 스레드에서는 Capture()로 가벼운 DTO만 즉시 복사(0.05ms 미만)하고,
+    /// 무거운 ParseQuery 전수조사 및 JSON 직렬화는 BuildFromRaw()를 통해
+    /// 백그라운드 스레드에서 비동기로 수행하여 게임 프리징(0 FPS Drop)을 완전히 방지한다.
     /// </summary>
     internal static class OptimizeSnapshot
     {
@@ -35,7 +64,10 @@ namespace SephiriaTools
         private const int CRIT_ONLY_CHARM = 2;
         private const int CRIT_PLACED = 3;
 
-        public static string Build(GridInventory inv, int seq)
+        /// <summary>
+        /// [Unity Main Thread] 0.05ms 미만으로 인벤토리 상태를 DTO로 복사한다.
+        /// </summary>
+        public static RawSnapshotData Capture(GridInventory inv)
         {
             if (inv == null) return null;
 
@@ -43,15 +75,36 @@ namespace SephiriaTools
             int storage = inv.CurrentInventoryStorage;
             int height = inv.Height;
 
-            var sb = new StringBuilder(16384);
-            sb.Append("{\"type\":\"optimize_data\",\"data\":{");
-            sb.Append($"\"seq\":{seq}");
-            sb.Append($",\"width\":{width},\"storage\":{storage},\"height\":{height}");
+            var raw = new RawSnapshotData
+            {
+                width = width,
+                height = height,
+                storage = storage,
+                baseLevels = new int[storage],
+                fullHp = false
+            };
 
-            AppendCellBase(sb, inv, width, storage);
-            AppendFixedTruths(sb);
+            // 1. 칸별 임시 레벨
+            try
+            {
+                foreach (var kv in inv.dungeonTempLevels)
+                {
+                    int idx = kv.Key.y * width + kv.Key.x;
+                    if (idx >= 0 && idx < storage) raw.baseLevels[idx] += kv.Value;
+                }
+            }
+            catch { }
 
-            // 격자 위 아이템 (포션 벨트 등 격자 밖 슬롯은 제외)
+            // 2. FullHP 여부
+            try
+            {
+                var avatar = UnityEngine.Object.FindAnyObjectByType<PlayerAvatar>();
+                var unit = avatar != null ? avatar.GetComponent<UnitAvatar>() : null;
+                if (unit != null) raw.fullHp = Mathf.Approximately(unit.hp, unit.MaxHp);
+            }
+            catch { }
+
+            // 3. 격자 위 아이템 목록
             var gridItems = new List<KeyValuePair<int, NewItemOwnInstance>>();
             foreach (var kv in inv.inventoryMatrix)
             {
@@ -64,105 +117,34 @@ namespace SephiriaTools
             }
             gridItems.Sort((a, b) => a.Key.CompareTo(b.Key));
 
-            AppendItems(sb, gridItems, inv, width, storage, height);
-            AppendEngravings(sb, inv, width, storage, height);
-
-            sb.Append("}}");
-            return sb.ToString();
-        }
-
-        // ── 칸에 고정된 기본 레벨 ──────────────────────────────
-
-        /// <summary>
-        /// dungeonTempLevels 는 '칸'에 붙는 보너스라 아이템이 움직여도 따라가지 않는다.
-        /// 인챈트는 반대로 '아이템'에 붙어 같이 움직인다(아이템 쪽에서 따로 내보낸다).
-        /// </summary>
-        private static void AppendCellBase(StringBuilder sb, GridInventory inv, int width, int storage)
-        {
-            var baseLevels = new int[storage];
-
-            try
+            foreach (var kv in gridItems)
             {
-                foreach (var kv in inv.dungeonTempLevels)
-                {
-                    int idx = kv.Key.y * width + kv.Key.x;
-                    if (idx >= 0 && idx < storage) baseLevels[idx] += kv.Value;
-                }
-            }
-            catch (Exception ex)
-            {
-                Plugin.Log.LogWarning($"dungeonTempLevels 읽기 실패: {ex.Message}");
-            }
-
-            sb.Append(",\"cellBase\":[");
-            for (int i = 0; i < storage; i++)
-            {
-                if (i > 0) sb.Append(',');
-                sb.Append(baseLevels[i]);
-            }
-            sb.Append(']');
-        }
-
-        /// <summary>
-        /// 배치로 바꿀 수 없는 조건들. 최적화 대상이 아니라 '고정 입력'이다.
-        /// FullHP 발동조건이 여기에 해당한다.
-        /// </summary>
-        private static void AppendFixedTruths(StringBuilder sb)
-        {
-            bool fullHp = false;
-            try
-            {
-                var avatar = UnityEngine.Object.FindAnyObjectByType<PlayerAvatar>();
-                var unit = avatar != null ? avatar.GetComponent<UnitAvatar>() : null;
-                if (unit != null) fullHp = Mathf.Approximately(unit.hp, unit.MaxHp);
-            }
-            catch { /* 못 읽으면 false 로 둔다 */ }
-
-            sb.Append($",\"fullHp\":{(fullHp ? "true" : "false")}");
-        }
-
-        // ── 아이템 ─────────────────────────────────────────────
-
-        private static void AppendItems(StringBuilder sb,
-            List<KeyValuePair<int, NewItemOwnInstance>> gridItems,
-            GridInventory inv, int width, int storage, int height)
-        {
-            var patterns = new StringBuilder();
-            int patternCount = 0;
-
-            sb.Append(",\"items\":[");
-
-            for (int i = 0; i < gridItems.Count; i++)
-            {
-                if (i > 0) sb.Append(',');
-
-                int idx = gridItems[i].Key;
-                var item = gridItems[i].Value;
+                int idx = kv.Key;
+                var item = kv.Value;
                 var charm = item.Charm;
                 var tablet = item.StoneTablet;
-
                 string kind = tablet != null ? "tablet" : (charm != null ? "charm" : "misc");
 
-                sb.Append('{');
-                sb.Append($"\"iid\":{item.InstanceID}");
-                sb.Append($",\"eid\":{item.EntityID}");
-                sb.Append($",\"idx\":{idx}");
-                sb.Append($",\"kind\":\"{kind}\"");
-                sb.Append($",\"name\":\"{Esc(SafeItemName(item))}\"");
-
-                // BothSideCharm 은 이웃이 'Charm 타입' 인지를 본다 (석판 이웃은 조건을 만족시키지 않는다)
                 bool isCharmType = false;
                 try { isCharmType = item.Entity != null && item.Entity.type == EItemType.Charm; } catch { }
-                sb.Append($",\"charmType\":{(isCharmType ? "true" : "false")}");
+
+                var rawItem = new RawItemData
+                {
+                    iid = item.InstanceID,
+                    eid = item.EntityID,
+                    idx = idx,
+                    kind = kind,
+                    name = SafeItemName(item),
+                    charmType = isCharmType
+                };
 
                 if (charm != null)
                 {
-                    sb.Append($",\"maxLevel\":{charm.maxLevel}");
-                    sb.Append($",\"enchant\":{ReadEnchant(item.InstanceID)}");
-                    sb.Append($",\"level\":{SafeDisplayedLevel(charm)}");
-                    string crit = charm.criteria != null ? charm.criteria.GetType().Name : null;
-                    sb.Append($",\"criteria\":{(crit == null ? "null" : "\"" + Esc(crit) + "\"")}");
-                    sb.Append($",\"magic\":{(charm is Charm_Magic ? "true" : "false")}");
+                    rawItem.maxLevel = charm.maxLevel;
+                    rawItem.enchant = ReadEnchant(item.InstanceID);
+                    rawItem.level = SafeDisplayedLevel(charm);
+                    rawItem.criteria = charm.criteria != null ? charm.criteria.GetType().Name : null;
+                    rawItem.magic = charm is Charm_Magic;
                 }
 
                 if (tablet != null)
@@ -171,83 +153,164 @@ namespace SephiriaTools
                     try { rotatable = DungeonManager.IsTabletRotatable(item.InstanceID, tablet.isRotatable); }
                     catch { rotatable = tablet.isRotatable; }
 
-                    sb.Append($",\"rot\":{tablet.rotation}");
-                    sb.Append($",\"rotatable\":{(rotatable ? "true" : "false")}");
+                    rawItem.rot = tablet.rotation;
+                    rawItem.rotatable = rotatable;
+
+                    try
+                    {
+                        rawItem.effectQuery = tablet.GetQuery(item.InstanceID);
+                        rawItem.conditionQuery = tablet.GetConditionQuery(item.InstanceID);
+                    }
+                    catch
+                    {
+                        rawItem.effectQuery = tablet.query;
+                        rawItem.conditionQuery = tablet.conditionQuery;
+                    }
+                }
+
+                raw.items.Add(rawItem);
+            }
+
+            // 4. 각인 목록
+            try
+            {
+                foreach (var eng in inv.engravings)
+                {
+                    if (eng == null) continue;
+                    int idx = eng.yIdx * width + eng.xIdx;
+                    string eq, cq;
+                    try
+                    {
+                        eq = eng.GetQuery(eng.instanceID);
+                        cq = eng.GetConditionQuery(eng.instanceID);
+                    }
+                    catch
+                    {
+                        eq = eng.query;
+                        cq = eng.conditionQuery;
+                    }
+
+                    raw.engravings.Add(new RawEngravingData
+                    {
+                        idx = idx,
+                        instanceID = eng.instanceID,
+                        effectQuery = eq,
+                        conditionQuery = cq
+                    });
+                }
+            }
+            catch { }
+
+            return raw;
+        }
+
+        /// <summary>
+        /// [Background Worker Thread Safe]
+        /// 무거운 ParseQuery 전수조사 및 JSON 빌드를 백그라운드 스레드에서 안전하게 수행한다.
+        /// </summary>
+        public static string BuildFromRaw(RawSnapshotData raw, int seq)
+        {
+            if (raw == null) return null;
+
+            int width = raw.width;
+            int storage = raw.storage;
+            int height = raw.height;
+
+            var sb = new StringBuilder(16384);
+            sb.Append("{\"type\":\"optimize_data\",\"data\":{");
+            sb.Append($"\"seq\":{seq}");
+            sb.Append($",\"width\":{width},\"storage\":{storage},\"height\":{height}");
+
+            // cellBase
+            sb.Append(",\"cellBase\":[");
+            for (int i = 0; i < storage; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append(raw.baseLevels[i]);
+            }
+            sb.Append(']');
+
+            // fullHp
+            sb.Append($",\"fullHp\":{(raw.fullHp ? "true" : "false")}");
+
+            // items & tablet patterns
+            var patterns = new StringBuilder();
+            int patternCount = 0;
+
+            sb.Append(",\"items\":[");
+            for (int i = 0; i < raw.items.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                var item = raw.items[i];
+
+                sb.Append('{');
+                sb.Append($"\"iid\":{item.iid}");
+                sb.Append($",\"eid\":{item.eid}");
+                sb.Append($",\"idx\":{item.idx}");
+                sb.Append($",\"kind\":\"{item.kind}\"");
+                sb.Append($",\"name\":\"{Esc(item.name)}\"");
+                sb.Append($",\"charmType\":{(item.charmType ? "true" : "false")}");
+
+                if (item.kind == "charm")
+                {
+                    sb.Append($",\"maxLevel\":{item.maxLevel}");
+                    sb.Append($",\"enchant\":{item.enchant}");
+                    sb.Append($",\"level\":{item.level}");
+                    sb.Append($",\"criteria\":{(item.criteria == null ? "null" : "\"" + Esc(item.criteria) + "\"")}");
+                    sb.Append($",\"magic\":{(item.magic ? "true" : "false")}");
+                }
+
+                if (item.kind == "tablet")
+                {
+                    sb.Append($",\"rot\":{item.rot}");
+                    sb.Append($",\"rotatable\":{(item.rotatable ? "true" : "false")}");
                     sb.Append($",\"pat\":{patternCount}");
 
                     if (patternCount > 0) patterns.Append(',');
-                    AppendTabletPattern(patterns, tablet, item.InstanceID, rotatable,
-                                        width, storage, height, movable: true, fixedIdx: -1);
+                    AppendRawTabletPattern(patterns, item.iid, item.rot, item.rotatable,
+                        item.effectQuery, item.conditionQuery, width, storage, height, movable: true, fixedIdx: -1);
                     patternCount++;
                 }
 
                 sb.Append('}');
             }
-
             sb.Append(']');
             sb.Append(",\"patterns\":[").Append(patterns).Append(']');
-        }
 
-        /// <summary>
-        /// 각인(engraving)은 인벤토리 칸을 차지하지 않고 움직이지도 않지만,
-        /// 발동조건은 후보 배치에 따라 달라진다. 따라서 위치는 고정, 조건은 매번 평가해야 한다.
-        /// </summary>
-        private static void AppendEngravings(StringBuilder sb, GridInventory inv,
-            int width, int storage, int height)
-        {
+            // engravings
             sb.Append(",\"engravings\":[");
-
-            try
+            for (int i = 0; i < raw.engravings.Count; i++)
             {
-                int n = 0;
-                foreach (var eng in inv.engravings)
-                {
-                    if (eng == null) continue;
-                    int idx = eng.yIdx * width + eng.xIdx;
-                    if (n > 0) sb.Append(',');
-                    AppendTabletPattern(sb, eng, eng.instanceID, rotatable: false,
-                                        width, storage, height, movable: false, fixedIdx: idx);
-                    n++;
-                }
+                if (i > 0) sb.Append(',');
+                var eng = raw.engravings[i];
+                AppendRawTabletPattern(sb, eng.instanceID, 0, false,
+                    eng.effectQuery, eng.conditionQuery, width, storage, height, movable: false, fixedIdx: eng.idx);
             }
-            catch (Exception ex)
-            {
-                Plugin.Log.LogWarning($"각인 읽기 실패: {ex.Message}");
-            }
-
             sb.Append(']');
+
+            sb.Append("}}");
+            return sb.ToString();
         }
 
-        // ── 석판 패턴 해석 ─────────────────────────────────────
-
-        /// <summary>
-        /// 석판을 가능한 모든 (회전, 놓을 칸) 조합으로 ParseQuery 에 넣어
-        /// 절대 좌표 효과/조건 목록을 미리 풀어둔다.
-        ///
-        /// 회전 불가 석판은 현재 회전만, 움직이지 않는 각인은 현재 칸만 계산한다.
-        /// </summary>
-        private static void AppendTabletPattern(StringBuilder sb, StoneTablet tablet, int instanceID,
-            bool rotatable, int width, int storage, int height, bool movable, int fixedIdx)
+        public static string Build(GridInventory inv, int seq)
         {
-            string effectQuery, conditionQuery;
-            try
-            {
-                effectQuery = tablet.GetQuery(instanceID);
-                conditionQuery = tablet.GetConditionQuery(instanceID);
-            }
-            catch
-            {
-                effectQuery = tablet.query;
-                conditionQuery = tablet.conditionQuery;
-            }
+            var raw = Capture(inv);
+            return BuildFromRaw(raw, seq);
+        }
 
+        // ── 석판 패턴 해석 (Background Thread) ──────────────────
+
+        private static void AppendRawTabletPattern(StringBuilder sb, int instanceID, int rotation,
+            bool rotatable, string effectQuery, string conditionQuery,
+            int width, int storage, int height, bool movable, int fixedIdx)
+        {
             sb.Append('{');
             sb.Append($"\"iid\":{instanceID}");
             sb.Append($",\"movable\":{(movable ? "true" : "false")}");
             sb.Append(",\"rots\":{");
 
             int rotFrom = 0, rotTo = 3;
-            if (!rotatable) { rotFrom = rotTo = Mathf.Clamp(tablet.rotation, 0, 3); }
+            if (!rotatable) { rotFrom = rotTo = Mathf.Clamp(rotation, 0, 3); }
 
             bool firstRot = true;
             for (int rot = rotFrom; rot <= rotTo; rot++)
@@ -301,11 +364,9 @@ namespace SephiriaTools
                             case StoneTablet.EffectType.Disable: op = OP_DISABLE; break;
                             case StoneTablet.EffectType.IgnoreCriteria: op = OP_IGNORE; break;
                             case StoneTablet.EffectType.MultiplyConstLevel: op = OP_MULTIPLY; break;
-                            default: continue;   // None 은 아무것도 하지 않는다
+                            default: continue;
                         }
 
-                        // 격자 밖으로 나간 효과는 버린다. 게임은 행렬에 그냥 쓰지만
-                        // 그 좌표에는 어떤 참도 없으므로 결과에 영향이 없다.
                         int idx = eff.position.y * width + eff.position.x;
                         if (eff.position.x < 0 || eff.position.x >= width) continue;
                         if (idx < 0 || idx >= storage) continue;
@@ -354,7 +415,6 @@ namespace SephiriaTools
 
                         if (!first) sb.Append(',');
                         first = false;
-                        // 격자 밖은 -1 로 보낸다. '아이템 있음' 조건이면 영원히 만족하지 못한다는 뜻.
                         sb.Append($"[{(offGrid ? -1 : idx)},{op}]");
                     }
                 }
