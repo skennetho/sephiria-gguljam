@@ -67,10 +67,10 @@ namespace SephiriaTools
                         {
                             string json = JsonHelper.ToJson(snapshot);
                             _server.Broadcast(json);
-                            // [perf] TriggerResourceExport() 제거 — 0.5초마다 GPU ReadPixels + 디스크 I/O를
-                            // 메인 스레드에서 실행하면 프리징이 발생한다.
-                            // 리소스 내보내기는 Plugin.cs 의 Start() + 3초 주기 재시도로 충분하다.
                         }
+
+                        // [Phase 1] 인벤토리 변경 감지 시 백그라운드 룰북 사전 캐싱 트리거
+                        CheckAndTriggerPrecomputeSnapshot(_cachedInventory);
                     }
                 }
                 catch (Exception ex)

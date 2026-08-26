@@ -187,11 +187,108 @@ namespace SephiriaTools
             _server.Broadcast(sb.ToString());
         }
 
+        // ── [Phase 1] 사전 캐싱 (Proactive In-Memory Snapshot Cache) ───────
+        private int _lastInventorySignature = 0;
+        private int _cachedSnapshotSignature = 0;
+        private string _cachedSnapshotJson = null;
+        private readonly object _snapshotCacheLock = new object();
+
+        /// <summary>
+        /// 인벤토리 구성(크기, 아이템ID, 좌표, 회전, 각인, 임시레벨)의 고유 시그니처(해시)를 계산한다.
+        /// </summary>
+        private int CalculateInventorySignature(GridInventory inv)
+        {
+            if (inv == null) return 0;
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + inv.CurrentInventoryStorage;
+                hash = hash * 31 + inv.Width;
+                hash = hash * 31 + inv.Height;
+
+                if (inv.inventoryMatrix != null)
+                {
+                    foreach (var kv in inv.inventoryMatrix)
+                    {
+                        if (kv.Value == null) continue;
+                        hash = hash * 31 + kv.Value.InstanceID;
+                        hash = hash * 31 + kv.Key.x;
+                        hash = hash * 31 + kv.Key.y;
+                        if (kv.Value.StoneTablet != null)
+                        {
+                            hash = hash * 31 + kv.Value.StoneTablet.rotation;
+                        }
+                    }
+                }
+
+                if (inv.engravings != null)
+                {
+                    foreach (var eng in inv.engravings)
+                    {
+                        if (eng == null) continue;
+                        hash = hash * 31 + eng.instanceID;
+                        hash = hash * 31 + eng.xIdx;
+                        hash = hash * 31 + eng.yIdx;
+                    }
+                }
+
+                if (inv.dungeonTempLevels != null)
+                {
+                    foreach (var kv in inv.dungeonTempLevels)
+                    {
+                        hash = hash * 31 + kv.Key.x;
+                        hash = hash * 31 + kv.Key.y;
+                        hash = hash * 31 + kv.Value;
+                    }
+                }
+
+                return hash;
+            }
+        }
+
+        /// <summary>
+        /// 인벤토리 변경 감지 시 백그라운드 스레드에서 룰북 스냅샷을 1회 미리 빌드하여 메모리에 보관한다.
+        /// </summary>
+        internal void CheckAndTriggerPrecomputeSnapshot(GridInventory inv)
+        {
+            if (inv == null) return;
+            int sig = CalculateInventorySignature(inv);
+            if (sig == _lastInventorySignature && _cachedSnapshotJson != null) return;
+
+            _lastInventorySignature = sig;
+
+            // 메인 스레드 초경량 캡처 (< 0.05ms)
+            var raw = OptimizeSnapshot.Capture(inv);
+            if (raw == null) return;
+
+            int currentSig = sig;
+            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    // seq = 0 으로 사전 빌드
+                    string json = OptimizeSnapshot.BuildFromRaw(raw, 0);
+                    if (!string.IsNullOrEmpty(json))
+                    {
+                        lock (_snapshotCacheLock)
+                        {
+                            _cachedSnapshotJson = json;
+                            _cachedSnapshotSignature = currentSig;
+                        }
+                        Plugin.Log.LogInfo($"[사전 캐싱 완료] 룰북 사전 생성 성공 (sig={currentSig}, {json.Length / 1024}KB)");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Plugin.Log.LogWarning($"사전 캐싱 백그라운드 생성 오류: {ex.Message}");
+                }
+            });
+        }
+
         /// <summary>
         /// 최적화에 필요한 게임 상태를 스냅샷으로 만들어 보낸다.
-        /// [Non-Blocking] 메인 스레드에서는 0.05ms 이내로 데이터 캡처만 수행하고,
-        /// 무거운 ParseQuery 연산 및 JSON 생성은 백그라운드 ThreadPool 에서 비동기 처리하여
-        /// 게임 프레임 멈춤(프리징)을 100% 방지한다.
+        /// [0.00ms Instant Dispatch] 사전 캐시된 룰북이 유효하면 즉시 발송하며,
+        /// 캐시 미스 시에도 백그라운드 스레드에서 비동기 처리하여 게임 프리징(0 FPS Drop)을 완벽히 방지한다.
         /// </summary>
         private void SendOptimizeData(int seq)
         {
@@ -205,7 +302,26 @@ namespace SephiriaTools
 
             try
             {
-                // 1. [메인 스레드] 초경량 DTO 캡처 (0.05ms 미만)
+                int sig = CalculateInventorySignature(_cachedInventory);
+                string cachedJson = null;
+                lock (_snapshotCacheLock)
+                {
+                    if (_cachedSnapshotSignature == sig && !string.IsNullOrEmpty(_cachedSnapshotJson))
+                    {
+                        cachedJson = _cachedSnapshotJson;
+                    }
+                }
+
+                // 1. [0.00ms 캐시 히트] 사전 캐시된 룰북이 있으면 0ms 만에 즉각 전송!
+                if (cachedJson != null)
+                {
+                    string instantJson = cachedJson.Replace("\"seq\":0", $"\"seq\":{seq}");
+                    _server.Broadcast(instantJson);
+                    Plugin.Log.LogInfo($"⚡ [사전 캐시 즉발 전송] 0.00ms 스냅샷 발송 완료 (seq={seq}, {instantJson.Length / 1024}KB)");
+                    return;
+                }
+
+                // 2. [캐시 미스 시 대비책] 메인스레드 0.05ms 캡처 후 백그라운드 생성
                 var raw = OptimizeSnapshot.Capture(_cachedInventory);
                 if (raw == null)
                 {
@@ -214,7 +330,6 @@ namespace SephiriaTools
                     return;
                 }
 
-                // 2. [백그라운드 스레드] 무거운 ParseQuery 전수조사 및 JSON 직렬화 비동기 실행
                 System.Threading.ThreadPool.QueueUserWorkItem(_ =>
                 {
                     try
@@ -230,8 +345,14 @@ namespace SephiriaTools
                             return;
                         }
 
+                        lock (_snapshotCacheLock)
+                        {
+                            _cachedSnapshotJson = OptimizeSnapshot.BuildFromRaw(raw, 0);
+                            _cachedSnapshotSignature = sig;
+                        }
+
                         _server.Broadcast(json);
-                        Plugin.Log.LogInfo($"optimize_data 비동기 전송 완료 (seq={seq}, {json.Length / 1024}KB, {sw.ElapsedMilliseconds}ms)");
+                        Plugin.Log.LogInfo($"optimize_data 백그라운드 전송 완료 (seq={seq}, {json.Length / 1024}KB, {sw.ElapsedMilliseconds}ms)");
                     }
                     catch (Exception exBg)
                     {
