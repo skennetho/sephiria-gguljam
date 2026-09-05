@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>위키 빌드 패널 간소화 모드: 무기/기적 초소형화 + 섹션 체크박스</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background-color: #090b10;
+      color: #dde3f0;
+      font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 24px;
+      user-select: none;
+    }
+
+    .panel {
+      background: rgba(15, 18, 28, 0.96);
+      border: 1px solid #3b4663;
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(2px);
+      width: 470px;
+      font-size: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3147;
+      background: #131722;
+    }
+    .panel-head .title { font-weight: bold; font-size: 15px; color: #eaf0ff; }
+    .panel-head .hotkey {
+      font-size: 11px; color: #59d0ff;
+      border: 1px solid #2c5a75; border-radius: 4px;
+      padding: 1px 6px; background: #132433;
+    }
+    .drag-hint { margin-left: auto; color: #4a5470; font-size: 11px; }
+
+    /* 빌드 상세 뷰 헤더 */
+    .bd-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #232a40;
+      background: #111520;
+    }
+    .back-btn {
+      background: #181d2c; border: 1px solid #2a3147; border-radius: 6px;
+      color: #8fdcff; padding: 4px 10px; font-size: 12px; cursor: pointer;
+    }
+    .preset-copy-btn, .preset-apply-btn {
+      background: #1d3a52; color: #8fdcff; border: 1px solid #2c5a75;
+      border-radius: 6px; padding: 4px 9px; font-size: 12px; cursor: pointer;
+    }
+    .preset-apply-btn { background: #183e29; border-color: #2e7a50; color: #5fdc94; font-weight: bold; }
+
+    /* 간소화 토글 버튼 */
+    .mode-toggle-btn {
+      margin-left: auto;
+      background: #252836;
+      border: 1px solid #48526d;
+      color: #ffd75e;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .mode-toggle-btn:hover { background: #32374a; border-color: #ffd75e; }
+
+    .bd-content-wrap {
+      padding: 12px 14px;
+      max-height: 720px;
+      overflow-y: auto;
+    }
+
+    .bd-title-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px;
+    }
+    .bd-title { font-size: 16px; font-weight: bold; color: #eaf0ff; }
+    .bd-title-combos { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .combo-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1d3a52; border: 1px solid #2c5a75;
+      border-radius: 6px; padding: 2px 8px; font-size: 12px; color: #8fdcff;
+    }
+    .combo-badge .cb-count { color: #ffd75e; font-size: 11px; margin-left: 2px; font-weight: bold; }
+
+    .bd-writer { font-size: 12px; color: #8b93ad; margin: 4px 0 10px; }
+
+    /* 기본 모드 헤드 아이콘 (코스튬 / 무기 / 기적) */
+    .bd-icons {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .bd-icon {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: #181d2c; border: 1px solid #262e45; border-radius: 8px;
+      padding: 8px 4px; text-align: center; position: relative;
+    }
+    .bd-icon .ico-img {
+      width: 44px; height: 44px; border-radius: 6px;
+      background: #12151f; border: 1px solid #2a3449;
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+    }
+    .bd-icon em {
+      font-size: 12px; font-style: normal; color: #eaf0ff; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;
+    }
+    .bd-icon small { font-size: 10px; color: #6e7998; }
+
+    /* 스탯 / 과일꼬치 / 설명문 */
+    .stat-row { display: flex; gap: 5px; margin-bottom: 10px; }
+    .stat-box {
+      flex: 1; background: #181d2c; border: 1px solid #262e45;
+      border-radius: 6px; text-align: center; padding: 4px 0;
+    }
+    .stat-box .sn { font-size: 10px; color: #5a6685; }
+    .stat-box .sv { font-size: 13px; font-weight: bold; color: #ffd75e; }
+
+    .skewer-row {
+      font-size: 11px; color: #8b93ad; background: #141824;
+      border: 1px solid #202738; border-radius: 6px; padding: 6px 10px; margin-bottom: 10px;
+    }
+
+    .bd-desc {
+      background: #161b29; border: 1px solid #232a40; border-radius: 8px;
+      padding: 10px 12px; font-size: 12px; line-height: 1.6; color: #b8c0d6;
+      margin-bottom: 12px; max-height: 180px; overflow-y: auto; white-space: pre-line;
+    }
+
+    /* 아티팩트 섹션 */
+    .item-section { margin-bottom: 12px; }
+    .is-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .sec-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #ffd75e;
+      cursor: pointer;
+    }
+    .sec-chk {
+      width: 16px;
+      height: 16px;
+      accent-color: #ffd75e;
+      cursor: pointer;
+    }
+    .sec-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #1a2233;
+      color: #8fdcff;
+      border: 1px solid #2b3a54;
+      font-weight: normal;
+    }
+
+    /* 아이콘 그리드 */
+    .icon-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+    .icon-row .it {
+      width: 48px; height: 48px; background: #181d2c;
+      border: 1px solid #2a3449; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; position: relative; cursor: pointer;
+    }
+    .icon-row .it:hover { border-color: #59d0ff; }
+    .icon-row .it.owned {
+      border-color: #3ba76f; background: #142e20;
+      box-shadow: inset 0 0 8px rgba(59, 167, 111, 0.3);
+    }
+    .icon-row .it.owned::after {
+      content: '✓'; position: absolute; right: 2px; bottom: 1px;
+      font-size: 10px; font-weight: bold; color: #5fdc94;
+    }
+    .icon-row .it.rarity-legend { border-color: #94681e; box-shadow: inset 0 0 6px rgba(255, 184, 52, 0.2); }
+    .icon-row .it.rarity-rare   { border-color: #245c8f; }
+
+    .is-desc {
+      font-size: 11px; color: #7d869e; line-height: 1.5; margin-top: 4px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════ */
+    /* 🎯 간소화 모드 (.compact-mode) 전용 초소형화 규칙             */
+    /* ══════════════════════════════════════════════════════════════ */
+    
+    /* 1. 상단 코스튬 숨김 */
+    .panel.compact-mode .bd-icon.costume { display: none !important; }
+
+    /* 2. 무기 & 기적을 초소형 가로 미니 칩(Mini-chip)으로 전환 (높이 80px -> 32px) ⭐ */
+    .panel.compact-mode .bd-icons {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .panel.compact-mode .bd-icon {
+      flex: 1;
+      flex-direction: row;
+      justify-content: flex-start;
+      padding: 4px 8px;
+      gap: 6px;
+      background: #141926;
+      border: 1px solid #253147;
+      border-radius: 6px;
+    }
+    .panel.compact-mode .bd-icon .ico-img {
+      width: 26px;
+      height: 26px;
+      font-size: 16px;
+      border-radius: 4px;
+      background: #0f131d;
+      border-color: #1f2738;
+      flex-shrink: 0;
+    }
+    .panel.compact-mode .bd-icon em {
+      font-size: 11px;
+      color: #c7d2e8;
+      font-weight: bold;
+      max-width: 170px;
+    }
+    /* "무기", "기적" 서브 텍스트는 공간 절약을 위해 완전 숨김 */
+    .panel.compact-mode .bd-icon small {
+      display: none !important;
+    }
+
+    /* 3. 텍스트 요소들 숨김 */
+    .panel.compact-mode .bd-desc { display: none !important; }
+    .panel.compact-mode .is-desc { display: none !important; }
+    .panel.compact-mode .stat-row { display: none !important; }
+    .panel.compact-mode .skewer-row { display: none !important; }
+    .panel.compact-mode .bd-writer { display: none !important; }
+
+    /* 4. 체크 해제된 섹션 숨김 */
+    .panel.compact-mode .item-section.unchecked-section {
+      display: none !important;
+    }
+
+    .panel.compact-mode .sec-chk { display: none !important; }
+    .panel.compact-mode .item-section { margin-bottom: 8px; }
+  </style>
+</head>
+<body class="max-w-7xl mx-auto space-y-8">
+
+  <!-- 상단 컨트롤 & 설명 바 -->
+  <div class="bg-[#141824] border border-[#263147] rounded-xl p-5 shadow-lg">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-lg font-bold text-[#eaf0ff] flex items-center gap-2">
+          <span>🎯 무기/기적 초소형화 (Compact Mini-Chip) 적용</span>
+        </h1>
+        <p class="text-xs text-[#8b93ad] mt-1">
+          • <b>무기 & 기적 슬림화:</b> 거대한 카드(높이 80px) ➔ <b>가로형 슬림 미니 칩(높이 32px)</b>으로 대폭 축소하여 아티팩트 아이콘이 바로 위로 밀착됩니다.<br>
+          • <b>섹션 체크박스:</b> 체크된 아티팩트 그룹만 표시되어 세로 높이가 <b>170px대 초미니 HUD</b>로 완성됩니다.
+        </p>
+      </div>
+
+      <!-- 인터랙티브 체험 버튼 -->
+      <div class="flex items-center gap-3 bg-[#0c0e15] p-2 rounded-lg border border-[#263044]">
+        <button id="btn-toggle-demo" class="px-4 py-2 text-xs font-bold rounded bg-[#ffd75e] text-black hover:bg-[#ffe285] transition flex items-center gap-1.5 shadow">
+          <span>⚡</span> <span id="toggle-label">간소화 모드 켜기</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- 1:1 실물 나란히 비교 -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+    <!-- [1] 기존 전체 상세 모드 -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between border-b border-[#232a3e] pb-2">
+        <h2 class="text-sm font-bold text-[#8fdcff] flex items-center gap-2">
+          <span>📜</span> 1. 전체 상세 모드 (기본 뷰)
+        </h2>
+        <span class="text-xs text-[#8b93ad]">무기/기적 기본 카드 (높이 80px)</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="title">📖 위키 빌드</span>
+          <span class="hotkey">Ctrl+B</span>
+          <span class="drag-hint">드래그로 이동</span>
+        </div>
+
+        <div class="bd-head">
+          <button class="back-btn">◀ 뒤로</button>
+          <button class="preset-copy-btn">📋 복사</button>
+          <button class="preset-apply-btn">📥 저장</button>
+          <button class="mode-toggle-btn" title="간소화 모드로 전환">
+            <span>⊟</span> <span>간소화</span>
+          </button>
+        </div>
+
+        <div class="bd-content-wrap">
+          <div class="bd-title-row">
+            <div class="bd-title">늑대 무한대시 번개폭풍</div>
+            <div class="bd-title-combos">
+              <span class="combo-badge">⚡ 암흑구름 <span class="cb-count">6</span></span>
+              <span class="combo-badge">🌪️ 바람노래 <span class="cb-count">4</span></span>
+            </div>
+          </div>
+          <div class="bd-writer">꿀잼장인 · ♥ 142 · v0.3.0</div>
+
+          <!-- 기본 모드의 큼직한 3단 카드 -->
+          <div class="bd-icons">
+            <div class="bd-icon costume">
+              <div class="ico-img">🐺</div>
+              <em>하얀 늑대</em>
+              <small>코스튬</small>
+            </div>
+            <div class="bd-icon weapons">
+              <div class="ico-img">🗡️</div>
+              <em>아그마 투영검</em>
+              <small>무기 (단검)</small>
+            </div>
+            <div class="bd-icon miracle">
+              <div class="ico-img">✨</div>
+              <em>번개폭풍</em>
+              <small>기적</small>
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-box"><div class="sn">근력</div><div class="sv">15</div></div>
+            <div class="stat-box"><div class="sn">민첩</div><div class="sv">25</div></div>
+            <div class="stat-box"><div class="sn">지능</div><div class="sv">10</div></div>
+            <div class="stat-box"><div class="sn">체력</div><div class="sv">12</div></div>
+            <div class="stat-box"><div class="sn">인내</div><div class="sv">8</div></div>
+            <div class="stat-box"><div class="sn">운</div><div class="sv">5</div></div>
+          </div>
+
+          <div class="bd-desc">
+[빌드 운용 가이드]
+초반 1층 상점에서 번갯돌 부적을 최우선으로 구매합니다...
+          </div>
+
+          <!-- 섹션 1 -->
+          <div class="item-section">
+            <div class="is-label-row">
+              <label class="sec-label">
+                <input type="checkbox" class="sec-chk" checked>
+                <span>핵심 아티팩트</span>
+              </label>
+              <span class="sec-tag">간소화 시 표시</span>
+            </div>
+            <div class="icon-row">
+              <div class="it rarity-legend owned" title="아그마 투영검 (보유중)">🗡️</div>
+              <div class="it rarity-rare owned" title="번갯돌 (보유중)">⚡</div>
+              <div class="it rarity-rare" title="뇌운추적 나침반">🧭</div>
+              <div class="it rarity-legend" title="친타마니 돌">💎</div>
+            </div>
+            <div class="is-desc">※ 번갯돌과 나침반이 모이면 대시마다 벼락이 떨어집니다.</div>
+          </div>
+
+          <!-- 섹션 2 -->
+          <div class="item-section">
+            <div class="is-label-row">
+              <label class="sec-label">
+                <input type="checkbox" class="sec-chk" checked>
+                <span>시너지 및 보조 부적</span>
+              </label>
+              <span class="sec-tag">간소화 시 표시</span>
+            </div>
+            <div class="icon-row">
+              <div class="it owned" title="바람개비 (보유중)">🌀</div>
+              <div class="it" title="바람풀 목도리">🧣</div>
+              <div class="it" title="깃발">🚩</div>
+              <div class="it rarity-rare" title="유리망치">🔨</div>
+            </div>
+            <div class="is-desc">※ 바람노래 콤보를 올려 대시 쿨다운을 보충합니다.</div>
+          </div>
+
+          <!-- 섹션 3 -->
+          <div class="item-section">
+            <div class="is-label-row">
+              <label class="sec-label">
+                <input type="checkbox" class="sec-chk">
+                <span class="text-[#8b93ad]">추천 석판 (체크 해제됨)</span>
+              </label>
+              <span class="sec-tag text-[#718096]">간소화 시 숨김</span>
+            </div>
+            <div class="icon-row opacity-60">
+              <div class="it owned" title="뇌문 점토판 (보유중)">📜</div>
+              <div class="it" title="질풍의 석판">📜</div>
+            </div>
+            <div class="is-desc">※ 중앙 2×2 배치 권장.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- [2] 신규: 무기/기적 초소형 미니칩 적용 간소화 모드 -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between border-b border-[#232a3e] pb-2">
+        <h2 class="text-sm font-bold text-[#5fdc94] flex items-center gap-2">
+          <span>⚡</span> 2. 신규: 간소화 모드 (무기/기적 초소형화 반영)
+        </h2>
+        <span class="text-xs text-[#5fdc94] font-bold">세로 높이: 약 180px (극소형화!)</span>
+      </div>
+
+      <p class="text-xs text-[#7e8aa6]">
+        무기와 기적이 <b>가로 32px 미니 칩</b>으로 축소되어, 아티팩트 아이콘들이 최상단으로 바짝 붙습니다.
+      </p>
+
+      <!-- 간소화 적용 패널 (초슬림) -->
+      <div id="interactive-panel" class="panel compact-mode border-[#3ba76f]/80 shadow-2xl">
+        <div class="panel-head">
+          <span class="title">📖 위키 빌드</span>
+          <span class="hotkey">Ctrl+B</span>
+          <span class="drag-hint">드래그로 이동</span>
+        </div>
+
+        <div class="bd-head">
+          <button class="back-btn">◀ 뒤로</button>
+          <button class="preset-copy-btn">📋 복사</button>
+          <button class="preset-apply-btn">📥 저장</button>
+          <button class="mode-toggle-btn" style="color:#5fdc94; border-color:#2e7a50; background:#183e29;">
+            <span>⊞</span> <span class="mode-text">전체보기 복귀</span>
+          </button>
+        </div>
+
+        <div class="bd-content-wrap">
+          <div class="bd-title-row">
+            <div class="bd-title text-sm">늑대 무한대시 번개폭풍</div>
+            <div class="bd-title-combos">
+              <span class="combo-badge py-0.5 text-xs">⚡ <span class="cb-count">6</span></span>
+              <span class="combo-badge py-0.5 text-xs">🌪️ <span class="cb-count">4</span></span>
+            </div>
+          </div>
+
+          <!-- ⭐ 초소형화된 무기 & 기적 슬림 미니 칩 (높이 30px 수준) -->
+          <div class="bd-icons">
+            <div class="bd-icon costume">
+              <div class="ico-img">🐺</div>
+              <em>하얀 늑대</em>
+            </div>
+            <!-- 무기 미니 칩 -->
+            <div class="bd-icon weapons" title="목표 무기: 아그마 투영검">
+              <div class="ico-img">🗡️</div>
+              <em>아그마 투영검</em>
+            </div>
+            <!-- 기적 미니 칩 -->
+            <div class="bd-icon miracle" title="핵심 기적: 번개폭풍">
+              <div class="ico-img">✨</div>
+              <em>번개폭풍</em>
+            </div>
+          </div>
+
+          <!-- 체크된 섹션 1: 핵심 아티팩트 -->
+          <div class="item-section">
+            <div class="is-label-row">
+              <div class="sec-label text-xs">
+                <span>핵심 아티팩트</span>
+              </div>
+            </div>
+            <div class="icon-row">
+              <div class="it rarity-legend owned" title="아그마 투영검 (인게임 보유중)">🗡️</div>
+              <div class="it rarity-rare owned" title="번갯돌 (인게임 보유중)">⚡</div>
+              <div class="it rarity-rare" title="뇌운추적 나침반">🧭</div>
+              <div class="it rarity-legend" title="친타마니 돌">💎</div>
+            </div>
+          </div>
+
+          <!-- 체크된 섹션 2: 시너지 부적 -->
+          <div class="item-section">
+            <div class="is-label-row">
+              <div class="sec-label text-xs">
+                <span>시너지 및 보조 부적</span>
+              </div>
+            </div>
+            <div class="icon-row">
+              <div class="it owned" title="바람개비 (인게임 보유중)">🌀</div>
+              <div class="it" title="바람풀 목도리">🧣</div>
+              <div class="it" title="깃발">🚩</div>
+              <div class="it rarity-rare" title="유리망치">🔨</div>
+            </div>
+          </div>
+
+          <!-- 체크 해제된 섹션 3: 완전 숨김 -->
+          <div class="item-section unchecked-section">
+            <div class="icon-row">
+              <div class="it owned">📜</div>
+              <div class="it">📜</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 요약 카드 -->
+      <div class="bg-[#121926] border border-[#233149] rounded-lg p-4 text-xs space-y-2 text-[#cbd5e1]">
+        <h4 class="font-bold text-[#5fdc94] flex items-center gap-1.5">
+          <span>✓</span> 무기/기적 슬림화 효과
+        </h4>
+        <ul class="list-disc list-inside space-y-1 text-[#a0aec0]">
+          <li>무기와 기적이 가로 30px 슬림 뱃지로 축소되어 <b>상단 공간 낭비가 60% 이상 줄어들었습니다.</b></li>
+          <li>그 결과 아티팩트 아이콘들이 바로 위로 올라와, 패널 전체 높이가 <b>180px 안팎의 완벽한 미니 HUD</b>가 됩니다.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const panel = document.getElementById('interactive-panel');
+    const toggleBtn = document.getElementById('btn-toggle-demo');
+    const toggleLabel = document.getElementById('toggle-label');
+    const headerToggleBtn = panel.querySelector('.mode-toggle-btn');
+    const modeText = panel.querySelector('.mode-text');
+
+    function toggleMode() {
+      const isCompact = panel.classList.toggle('compact-mode');
+      if (isCompact) {
+        modeText.textContent = '전체보기 복귀';
+        toggleLabel.textContent = '상세 모드로 복귀 (전체 텍스트 표시)';
+        headerToggleBtn.style.color = '#5fdc94';
+        headerToggleBtn.style.borderColor = '#2e7a50';
+        headerToggleBtn.style.background = '#183e29';
+        panel.style.borderColor = 'rgba(59, 167, 111, 0.8)';
+      } else {
+        modeText.textContent = '간소화 모드';
+        toggleLabel.textContent = '간소화 모드 켜기 (무기/기적 슬림화 + 체크 섹션만)';
+        headerToggleBtn.style.color = '#ffd75e';
+        headerToggleBtn.style.borderColor = '#48526d';
+        headerToggleBtn.style.background = '#252836';
+        panel.style.borderColor = '#3b4663';
+      }
+    }
+
+    toggleBtn.addEventListener('click', toggleMode);
+    headerToggleBtn.addEventListener('click', toggleMode);
+  </script>
+</body>
+</html>

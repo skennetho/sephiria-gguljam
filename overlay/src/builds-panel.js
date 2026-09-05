@@ -32,6 +32,13 @@ let buildTab = 'all';        // all | fav
 let buildPage = 1;
 let buildTotal = 0;
 let buildPageSize = 10;
+const COMPACT_KEY = 'sephiria.builds.compact';
+let compactMode = false;
+try {
+  compactMode = localStorage.getItem(COMPACT_KEY) === 'true';
+} catch {}
+let activeBuildId = null;
+let activeSectionChecks = new Set();
 
 // 상세검색 필터 (위키의 '빌드 검색하기' 다이얼로그와 동일한 항목)
 // text 는 isWriter 에 따라 작성자 검색 / 제목 검색으로 해석된다 (API: title + isWriter)
@@ -505,6 +512,13 @@ function renderBuildDetail(b) {
 
   const i18n = require('./i18n');
 
+  const currentKey = buildKey(b);
+  if (activeBuildId !== currentKey) {
+    activeBuildId = currentKey;
+    activeSectionChecks.clear();
+    (b.content || []).forEach((_, idx) => activeSectionChecks.add(idx));
+  }
+
   // 6대 재능 (기본 제외)
   const abilities = Object.keys(b.ability || {})
     .filter(k => k !== 'base')
@@ -530,7 +544,8 @@ function renderBuildDetail(b) {
     })
     .join('');
 
-  const sections = (b.content || []).map(sec => {
+  const sections = (b.content || []).map((sec, secIdx) => {
+    const isChecked = activeSectionChecks.has(secIdx);
     const icons = (sec.items || []).map(it => {
       const kor = slugName('artifacts', it.value);
       const isOwned = owned.has(kor.replace(/\s/g, ''));
@@ -546,8 +561,8 @@ function renderBuildDetail(b) {
              `<img src="${src}" onerror="this.parentNode.classList.add('missing');this.remove()">${magicOverlay}</span>`;
     }).join('');
 
-    return `<div class="item-section">` +
-           `<div class="is-label">${esc(sec.label || '')}</div>` +
+    return `<div class="item-section${isChecked ? '' : ' unchecked-section'}" data-sec-idx="${secIdx}">` +
+           `<div class="is-label"><label class="sec-chk-label"><input type="checkbox" class="sec-chk" data-sec-idx="${secIdx}" ${isChecked ? 'checked' : ''} title="${i18n.t('builds.secCheckTooltip')}"> <span>${esc(sec.label || '')}</span></label></div>` +
            `<div class="icon-row">${icons}</div>` +
            (sec.description ? `<div class="is-desc">${esc(sec.description)}</div>` : '') +
            `</div>`;
@@ -575,6 +590,7 @@ function renderBuildDetail(b) {
 
   view.innerHTML =
     `<div class="bd-head"><button class="back-btn">${i18n.t('builds.backBtn')}</button>` +
+    `<button class="compact-toggle-btn${compactMode ? ' on' : ''}" title="${compactMode ? i18n.t('builds.fullTooltip') : i18n.t('builds.compactTooltip')}">${compactMode ? i18n.t('builds.compactOff') : i18n.t('builds.compactOn')}</button>` +
     `<button class="preset-copy-btn" title="세피리아 게임 표준 프리셋 코드를 클립보드에 복사합니다">${i18n.t('builds.copyBtn')}</button>` +
     `<button class="preset-apply-btn" title="인게임 프리셋 슬롯에 이 빌드를 즉시 저장합니다">${i18n.t('builds.saveBtn')}</button>` +
     (buildUrl(b) ? `<button class="open-web-btn" title="위키 원본글을 브라우저로 엽니다">${i18n.t('builds.originalLink')}</button>` : '') +
@@ -591,9 +607,33 @@ function renderBuildDetail(b) {
 
   view.querySelector('.back-btn').addEventListener('click', () => {
     buildDetail = null;
+    const panel = document.getElementById('panel-builds');
+    if (panel) panel.classList.remove('compact-mode');
+    if (view) view.classList.remove('compact-mode');
     document.getElementById('build-detail-view').classList.add('hidden');
     document.getElementById('build-list-view').classList.remove('hidden');
     renderBuildList();
+  });
+
+  const compactBtn = view.querySelector('.compact-toggle-btn');
+  if (compactBtn) {
+    compactBtn.addEventListener('click', guard('compact:toggle', () => {
+      setCompactMode(!compactMode);
+    }));
+  }
+
+  view.querySelectorAll('.sec-chk').forEach(chk => {
+    chk.addEventListener('change', guard('sec:check', e => {
+      const idx = Number(e.target.dataset.secIdx);
+      const secEl = view.querySelector(`.item-section[data-sec-idx="${idx}"]`);
+      if (e.target.checked) {
+        activeSectionChecks.add(idx);
+        if (secEl) secEl.classList.remove('unchecked-section');
+      } else {
+        activeSectionChecks.delete(idx);
+        if (secEl) secEl.classList.add('unchecked-section');
+      }
+    }));
   });
 
   const copyBtn = view.querySelector('.preset-copy-btn');
@@ -630,7 +670,30 @@ function renderBuildDetail(b) {
     }));
   }
 
+  if (compactMode) {
+    setCompactMode(true);
+  }
+
   tooltip.resetTooltip();
+}
+
+function setCompactMode(active) {
+  compactMode = active;
+  try {
+    localStorage.setItem(COMPACT_KEY, String(compactMode));
+  } catch {}
+  const panel = document.getElementById('panel-builds');
+  const view = document.getElementById('build-detail-view');
+  const i18n = require('./i18n');
+  if (panel) panel.classList.toggle('compact-mode', compactMode);
+  if (view) view.classList.toggle('compact-mode', compactMode);
+
+  const btn = view ? view.querySelector('.compact-toggle-btn') : null;
+  if (btn) {
+    btn.classList.toggle('on', compactMode);
+    btn.textContent = compactMode ? i18n.t('builds.compactOff') : i18n.t('builds.compactOn');
+    btn.title = compactMode ? i18n.t('builds.fullTooltip') : i18n.t('builds.compactTooltip');
+  }
 }
 
 // ── 상세검색 ──────────────────────────────────────────

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>세피리아 오버레이 패널별 1:1 실물 스토리보드</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background-color: #0a0d14;
+      color: #dde3f0;
+      font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    /* 공통 패널 실물 스타일 (오버레이 style.css 그대로 1:1 구현) */
+    .panel-frame {
+      background: rgba(15, 18, 28, 0.96);
+      border: 1px solid #3b4663;
+      border-radius: 12px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2a3147;
+      background: #131722;
+    }
+    .panel-head .title { font-weight: bold; font-size: 16px; color: #eaf0ff; }
+    .panel-head .hotkey {
+      font-size: 11px; color: #59d0ff;
+      border: 1px solid #2c5a75; border-radius: 4px;
+      padding: 2px 7px; background: #132433;
+    }
+    .drag-hint { margin-left: auto; color: #5a6685; font-size: 11px; }
+
+    /* 버튼류 */
+    .calc-btn {
+      background: #1d3a52; color: #8fdcff;
+      border: 1px solid #2c5a75; border-radius: 6px;
+      padding: 6px 14px; font-size: 13px; cursor: pointer;
+      font-weight: 500;
+    }
+    .calc-btn:hover { background: #25496a; }
+    .calc-btn.ghost { background: transparent; border-color: #2a3147; color: #8b93ad; }
+    .calc-btn.apply { background: #183e29; border-color: #2e7a50; color: #5fdc94; }
+    .calc-btn.undo { background: #381a1a; border-color: #632b2b; color: #ff8a8a; }
+
+    /* 상태 뱃지 */
+    .status-badge {
+      font-size: 12px; padding: 4px 12px; border-radius: 12px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .status-badge.done { background: #12301f; color: #5fdc94; border: 1px solid #2b5c40; }
+    .status-badge.calc { background: #33270f; color: #ffd75e; border: 1px solid #6b5624; }
+
+    /* 6x5 인벤토리 셀 */
+    .cell {
+      background: #181d2c; border: 1px solid #262e45;
+      border-radius: 6px; position: relative;
+      width: 58px; height: 58px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cell.rarity-uncommon { border-color: #21663b; }
+    .cell.rarity-rare     { border-color: #245c8f; }
+    .cell.rarity-legend   { border-color: #94681e; box-shadow: inset 0 0 8px rgba(255, 184, 52, 0.25); }
+    .cell.tablet          { background: #20263c; border-color: #3d4966; }
+    .cell .lv {
+      position: absolute; right: 3px; bottom: 2px;
+      font-size: 12px; font-weight: bold; color: #ffd75e;
+      text-shadow: 0 1px 2px #000, 0 0 3px #000;
+    }
+    .cell .c-icon { font-size: 26px; }
+
+    /* 콤보 우선순위 행 */
+    .prio-row {
+      display: flex; align-items: center; gap: 8px;
+      background: #1a2032; border: 1px solid #2a3147;
+      border-radius: 6px; padding: 7px 10px; margin-bottom: 6px;
+      font-size: 13px;
+    }
+    .prio-row .rank { color: #59d0ff; font-weight: bold; width: 22px; }
+
+    /* 위키 빌드 카드 */
+    .build-card {
+      display: flex; align-items: center; gap: 12px;
+      background: #1a2032; border: 1px solid #2a3147; border-radius: 8px;
+      padding: 12px; margin-bottom: 8px; cursor: pointer;
+    }
+    .build-card:hover { border-color: #3d5a80; }
+    .bc-icon {
+      width: 42px; height: 42px; border-radius: 6px;
+      background: #12151f; border: 1px solid #262e45;
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .bc-combo-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #142337; border: 1px solid #233f5d;
+      border-radius: 4px; padding: 2px 7px;
+      font-size: 11px; color: #8fdcff;
+    }
+
+    /* 탭 */
+    .build-tab {
+      padding: 8px 16px; font-size: 13px; color: #8b93ad; cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .build-tab.on { color: #8fdcff; border-color: #59d0ff; font-weight: bold; }
+
+    /* 세그먼트 컨트롤 */
+    .seg { display: flex; border: 1px solid #2c5a75; border-radius: 6px; overflow: hidden; }
+    .seg div {
+      flex: 1; text-align: center; padding: 7px 0;
+      font-size: 13px; color: #5a6685; cursor: pointer;
+    }
+    .seg div.on { background: #1d3a52; color: #8fdcff; font-weight: bold; }
+  </style>
+</head>
+<body class="bg-[#090b10] text-[#dde3f0] pb-24">
+
+  <!-- 상단 헤더 & 빠른 내비게이션 -->
+  <header class="sticky top-0 z-50 bg-[#121622]/95 backdrop-blur border-b border-[#252f44] px-6 py-4 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📋</span>
+          <h1 class="text-lg font-bold text-[#eaf0ff]">세피리아 오버레이 패널별 실물 스토리보드</h1>
+          <span class="text-xs px-2 py-0.5 rounded bg-[#1e2738] text-[#59d0ff] border border-[#2d3a52]">1:1 실물 크기 (Full Scale)</span>
+        </div>
+        <p class="text-xs text-[#7e8aa6] mt-0.5">축소 없이 100% 원래 크기로 각 패널의 내부 구조와 기능을 하나씩 분해 검토합니다.</p>
+      </div>
+
+      <nav class="flex flex-wrap gap-2 text-xs">
+        <a href="#section-optimizer" class="px-3 py-1.5 bg-[#182233] hover:bg-[#22314a] text-[#8fdcff] border border-[#2c4060] rounded-lg transition font-medium">
+          ⚡ 1. 최적 배치
+        </a>
+        <a href="#section-builds" class="px-3 py-1.5 bg-[#182233] hover:bg-[#22314a] text-[#8fdcff] border border-[#2c4060] rounded-lg transition font-medium">
+          📖 2. 위키 빌드
+        </a>
+        <a href="#section-team" class="px-3 py-1.5 bg-[#182233] hover:bg-[#22314a] text-[#8fdcff] border border-[#2c4060] rounded-lg transition font-medium">
+          👥 3. 팀원 빌드
+        </a>
+        <a href="#section-settings" class="px-3 py-1.5 bg-[#182233] hover:bg-[#22314a] text-[#8fdcff] border border-[#2c4060] rounded-lg transition font-medium">
+          ⚙️ 4. 설정
+        </a>
+        <a href="#section-quickbar" class="px-3 py-1.5 bg-[#182233] hover:bg-[#22314a] text-[#8fdcff] border border-[#2c4060] rounded-lg transition font-medium">
+          ⌨️ 5. 퀵바 & 툴팁
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-16">
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- 패널 ① : ⚡ 최적 배치 패널 -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="section-optimizer" class="scroll-mt-24">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-[#192b42] border border-[#2d4d75] flex items-center justify-center text-lg">⚡</div>
+        <div>
+          <h2 class="text-lg font-bold text-[#eaf0ff]">패널 ①: ⚡ 최적 배치 패널 (`#panel-optimizer`)</h2>
+          <p class="text-xs text-[#7e8aa6]">단축키: <kbd class="px-1.5 py-0.5 bg-[#1a2333] border border-[#2a374f] rounded text-[#59d0ff]">Ctrl + D</kbd> | 실제 규격: 폭 404px | 위치: 좌상단</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- 실물 UI 렌더링 (좌측 컬럼: 폭 404px 고정 실물) -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="panel-frame w-[404px]">
+            <!-- 1. 패널 헤더 -->
+            <div class="panel-head">
+              <span class="title">⚡ 최적 배치</span>
+              <span class="hotkey">Ctrl+D</span>
+              <span class="drag-hint">드래그로 이동</span>
+            </div>
+
+            <!-- 2. 상태 뱃지 & 액션 버튼 -->
+            <div class="flex items-center gap-2 px-3.5 pt-3 pb-2">
+              <span class="status-badge done">✓ 최적배치 완료</span>
+              <button class="calc-btn ghost text-xs ml-auto">⟳ 새로고침</button>
+              <button class="calc-btn text-xs">▶ 계산</button>
+              <button class="calc-btn apply text-xs">✔ 반영</button>
+              <button class="calc-btn undo text-xs" disabled>⤺ 되돌리기</button>
+            </div>
+
+            <!-- 3. 미니 그리드 (6 x 5) -->
+            <div class="px-3.5 py-2">
+              <div class="grid grid-cols-6 gap-1 justify-center bg-[#10141f] p-2.5 rounded-lg border border-[#202738]">
+                <!-- 행 1 -->
+                <div class="cell rarity-legend"><span class="c-icon">👑</span><span class="lv">Lv.4</span></div>
+                <div class="cell rarity-rare"><span class="c-icon">🗡️</span><span class="lv">Lv.3</span></div>
+                <div class="cell rarity-uncommon"><span class="c-icon">🛡️</span><span class="lv">Lv.2</span></div>
+                <div class="cell tablet"><span class="c-icon">📜</span></div>
+                <div class="cell rarity-rare"><span class="c-icon">💎</span><span class="lv">Lv.5</span></div>
+                <div class="cell rarity-uncommon"><span class="c-icon">⚡</span><span class="lv">Lv.1</span></div>
+                <!-- 행 2 -->
+                <div class="cell"><span class="c-icon">🧪</span><span class="lv">Lv.1</span></div>
+                <div class="cell tablet"><span class="c-icon">📜</span></div>
+                <div class="cell rarity-legend"><span class="c-icon">💍</span><span class="lv">Lv.6</span></div>
+                <div class="cell rarity-rare"><span class="c-icon">🏹</span><span class="lv">Lv.4</span></div>
+                <div class="cell"><span class="c-icon">🥕</span><span class="lv">Lv.2</span></div>
+                <div class="cell"><span class="c-icon">🪓</span><span class="lv">Lv.3</span></div>
+                <!-- 행 3 -->
+                <div class="cell rarity-uncommon"><span class="c-icon">📿</span><span class="lv">Lv.2</span></div>
+                <div class="cell rarity-rare"><span class="c-icon">🔮</span><span class="lv">Lv.4</span></div>
+                <div class="cell tablet"><span class="c-icon">📜</span></div>
+                <div class="cell rarity-legend"><span class="c-icon">🪄</span><span class="lv">Lv.5</span></div>
+                <div class="cell"><span class="c-icon">📜</span><span class="lv">Lv.2</span></div>
+                <div class="cell rarity-uncommon"><span class="c-icon">🗝️</span><span class="lv">Lv.1</span></div>
+                <!-- 행 4 (빈칸) -->
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">19</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">20</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">21</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">22</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">23</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">24</span></div>
+                <!-- 행 5 (빈칸) -->
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">25</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">26</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">27</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">28</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">29</span></div>
+                <div class="cell opacity-40"><span class="text-xs text-[#4a5470]">30</span></div>
+              </div>
+
+              <!-- 그리드 풋터 (뷰 전환) -->
+              <div class="mt-2.5">
+                <div class="seg">
+                  <div class="on">👁 현재 인벤토리</div>
+                  <div>⚡ 계산 결과</div>
+                </div>
+                <div class="text-center text-[11px] text-[#5a6685] py-1.5">
+                  인벤토리 30칸 중 18개 배치 (총 강화 레벨: +48)
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. 콤보 우선순위 섹션 -->
+            <div class="p-3.5 border-t border-[#232a40]">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-[#8b93ad]">콤보 우선순위 <span class="text-[#4a5470] font-normal">(드래그로 순위 변경)</span></span>
+              </div>
+              <div class="space-y-1.5">
+                <div class="prio-row">
+                  <span class="text-[#4a5470]">☰</span>
+                  <span class="rank">#1</span>
+                  <span>⚡ 암흑구름 (DARKCLOUD)</span>
+                  <span class="ml-auto text-[#4a5470] hover:text-[#ff8a8a] cursor-pointer">✕</span>
+                </div>
+                <div class="prio-row">
+                  <span class="text-[#4a5470]">☰</span>
+                  <span class="rank">#2</span>
+                  <span>🛡️ 수호자 (GUARDIAN)</span>
+                  <span class="ml-auto text-[#4a5470] hover:text-[#ff8a8a] cursor-pointer">✕</span>
+                </div>
+                <div class="prio-row">
+                  <span class="text-[#4a5470]">☰</span>
+                  <span class="rank">#3</span>
+                  <span>⚔️ 바람노래 (WINDSONG)</span>
+                  <span class="ml-auto text-[#4a5470] hover:text-[#ff8a8a] cursor-pointer">✕</span>
+                </div>
+              </div>
+              <button class="w-full mt-2 py-1.5 text-xs text-[#7e8aa6] border border-dashed border-[#34405a] hover:border-[#59d0ff] hover:text-[#8fdcff] rounded-md transition">
+                ＋ 콤보 추가
+              </button>
+            </div>
+
+            <!-- 5. 강화 배분 모드 -->
+            <div class="p-3.5 border-t border-[#232a40]">
+              <div class="text-xs font-bold text-[#8b93ad] mb-2">강화 배분 모드</div>
+              <div class="seg">
+                <div class="on">콤보템 최대강화</div>
+                <div>균등 강화</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 구조 분해 및 개선 아이디어 (우측 컬럼) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="bg-[#131722] border border-[#242f44] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#59d0ff] mb-3 flex items-center gap-2">
+              <span>🔍 최적 배치 패널 구성 요소 분해</span>
+            </h3>
+            <ul class="text-xs text-[#cbd5e1] space-y-2">
+              <li><b class="text-[#eaf0ff]">1. 상단 제어바:</b> 계산 상태 뱃지, 새로고침, <b>▶ 계산 (Ctrl+R)</b>, <b>✔ 반영</b> (게임 인벤토리 스왑 자동 실행), <b>⤺ 되돌리기</b>.</li>
+              <li><b class="text-[#eaf0ff]">2. 6×5 미니 그리드:</b> 게임 인벤토리(최대 30칸)를 실시간 반영. 부적/석판/각인 위치, 아이콘, <b>강화 레벨(Lv)</b>, 등급별 보더 색상, 석판 회전각 시각화.</li>
+              <li><b class="text-[#eaf0ff]">3. 뷰 전환 세그먼트:</b> 현재 실제 착용 상태 vs 최적화 알고리즘이 찾아낸 추천 배치 결과를 원클릭 토글.</li>
+              <li><b class="text-[#eaf0ff]">4. 콤보 우선순위 리스트:</b> 드래그 앤 드롭으로 1순위/2순위 콤보 지정 시 가중치를 두어 해당 시너지 부적을 집중 강화.</li>
+              <li><b class="text-[#eaf0ff]">5. 강화 배분 모드:</b> 핵심 콤보에 몰아줄지, 모든 부적에 골고루 분배할지 탐색 가중치 선택.</li>
+            </ul>
+          </div>
+
+          <div class="bg-[#1c1822] border border-[#3e2e4f] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#ffd75e] mb-2">💡 이 패널의 주요 검토 및 개선 포인트</h3>
+            <div class="text-xs text-[#d6bcfa] space-y-2">
+              <p>• <b>세로 길이:</b> 콤보 리스트와 그리드가 모두 들어가 있어 세로가 약 680px로 꽤 깁니다. 콤보 설정 부분을 접이식(Accordion)으로 만들거나 탭으로 분리하면 화면 가림을 대폭 줄일 수 있습니다.</p>
+              <p>• <b>미니 모드 (HUD 모드):</b> 전투 중에는 그리드 전체 대신 "현재 +몇 강화 적용 중 / 계산 완료"만 컴팩트하게 띄우는 미니 뷰 아이디어를 고려해 볼 수 있습니다.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <hr class="border-[#1e2536]">
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- 패널 ② : 📖 위키 빌드 패널 -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="section-builds" class="scroll-mt-24">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-[#272144] border border-[#4c3d75] flex items-center justify-center text-lg">📖</div>
+        <div>
+          <h2 class="text-lg font-bold text-[#eaf0ff]">패널 ②: 📖 위키 빌드 브라우저 (`#panel-builds`)</h2>
+          <p class="text-xs text-[#7e8aa6]">단축키: <kbd class="px-1.5 py-0.5 bg-[#1a2333] border border-[#2a374f] rounded text-[#59d0ff]">Ctrl + B</kbd> | 실제 규격: 폭 470px | 위치: 우상단</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- 실물 UI 렌더링 (좌측 컬럼: 폭 470px 고정 실물) -->
+        <div class="lg:col-span-6 flex justify-center">
+          <div class="panel-frame w-[470px]">
+            <!-- 헤더 -->
+            <div class="panel-head">
+              <span class="title">📖 위키 빌드</span>
+              <span class="hotkey">Ctrl+B</span>
+              <span class="drag-hint">드래그로 이동</span>
+            </div>
+
+            <!-- 탭 (전체 / 즐겨찾기) -->
+            <div class="flex border-b border-[#232a40] px-4 pt-2">
+              <span class="build-tab on">전체 빌드 (124)</span>
+              <span class="build-tab">⭐ 즐겨찾기 (3)</span>
+            </div>
+
+            <!-- 필터 & 검색 행 -->
+            <div class="flex items-center gap-2.5 p-3.5 border-b border-[#1f2638] text-xs">
+              <button class="bg-[#181d2c] border border-[#2a3147] hover:border-[#59d0ff] px-3 py-1.5 rounded-md text-[#8fdcff] flex items-center gap-1.5">
+                <span>🔍</span> 상세검색
+              </button>
+              <select class="bg-[#181d2c] border border-[#2a3147] px-2.5 py-1.5 rounded-md text-[#a9b2c9]">
+                <option>인기순</option>
+                <option>최신순</option>
+              </select>
+              <label class="flex items-center gap-1.5 text-[#8b93ad] ml-auto cursor-pointer">
+                <input type="checkbox" checked class="accent-[#59d0ff]"> 최신버전만
+              </label>
+            </div>
+
+            <!-- 빌드 카드 목록 -->
+            <div class="p-3.5 space-y-2.5 max-h-[580px] overflow-hidden">
+              
+              <!-- 카드 1 -->
+              <div class="build-card">
+                <div class="flex gap-1.5">
+                  <div class="bc-icon" title="코스튬: 하얀 늑대">🐺</div>
+                  <div class="bc-icon" title="주무기: 아그마 투영검">🗡️</div>
+                  <div class="bc-icon" title="기적: 번개폭풍">⚡</div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[13px] font-bold text-[#eaf0ff] truncate">늑대 무한대시 번개폭풍 종결 세팅</div>
+                  <div class="flex gap-1.5 my-1.5">
+                    <span class="bc-combo-tag">⚡ 암흑구름 6</span>
+                    <span class="bc-combo-tag">🌪️ 바람노래 4</span>
+                  </div>
+                  <div class="flex items-center justify-between text-[11px] text-[#8b93ad]">
+                    <span>작성자: 꿀잼장인</span>
+                    <div class="flex items-center gap-3">
+                      <span class="text-[#ff7d9a]">❤️ 142</span>
+                      <span class="text-[#ffd75e] text-sm">⭐</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 카드 2 -->
+              <div class="build-card">
+                <div class="flex gap-1.5">
+                  <div class="bc-icon" title="코스튬: 마법사 토끼">🐰</div>
+                  <div class="bc-icon" title="주무기: 아이스볼트 완드">🪄</div>
+                  <div class="bc-icon" title="기적: 절대영도">❄️</div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[13px] font-bold text-[#eaf0ff] truncate">토끼 마법사 무한 프로스트 빙결 빌드</div>
+                  <div class="flex gap-1.5 my-1.5">
+                    <span class="bc-combo-tag">❄️ 서리 5</span>
+                    <span class="bc-combo-tag">🎓 학회 3</span>
+                  </div>
+                  <div class="flex items-center justify-between text-[11px] text-[#8b93ad]">
+                    <span>작성자: 토끼겅듀</span>
+                    <div class="flex items-center gap-3">
+                      <span class="text-[#ff7d9a]">❤️ 98</span>
+                      <span class="text-[#718096] text-sm">☆</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 카드 3 -->
+              <div class="build-card">
+                <div class="flex gap-1.5">
+                  <div class="bc-icon" title="코스튬: 방패병 도치">🦔</div>
+                  <div class="bc-icon" title="주무기: 성기사의 대방패">🛡️</div>
+                  <div class="bc-icon" title="기적: 강철의 의지">🧱</div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[13px] font-bold text-[#eaf0ff] truncate">가시 반사 방패병 불사 빌드 (초보추천)</div>
+                  <div class="flex gap-1.5 my-1.5">
+                    <span class="bc-combo-tag">🛡️ 수호자 5</span>
+                    <span class="bc-combo-tag">🧱 견고 4</span>
+                  </div>
+                  <div class="flex items-center justify-between text-[11px] text-[#8b93ad]">
+                    <span>작성자: 단단한방패</span>
+                    <div class="flex items-center gap-3">
+                      <span class="text-[#ff7d9a]">❤️ 76</span>
+                      <span class="text-[#718096] text-sm">☆</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 페이저 -->
+            <div class="p-3 text-center border-t border-[#232a40] text-xs text-[#8b93ad] flex items-center justify-center gap-4">
+              <button class="px-2 py-1 hover:text-[#8fdcff]">◀ 이전</button>
+              <span class="font-mono text-[#8fdcff]">1 / 12</span>
+              <button class="px-2 py-1 hover:text-[#8fdcff]">다음 ▶</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 구조 분해 및 개선 아이디어 (우측 컬럼) -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="bg-[#131722] border border-[#242f44] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#59d0ff] mb-3 flex items-center gap-2">
+              <span>🔍 위키 빌드 패널 구성 요소 분해</span>
+            </h3>
+            <ul class="text-xs text-[#cbd5e1] space-y-2">
+              <li><b class="text-[#eaf0ff]">1. 브라우징 모드:</b> 전체 위키 빌드 목록 뷰와 즐겨찾기(별) 등록 빌드 분리.</li>
+              <li><b class="text-[#eaf0ff]">2. 카드 컴포넌트:</b> 코스튬 / 대표 무기 / 추천 기적 3종 아이콘 + 제목 + 핵심 콤보 태그 + 작성자 / 추천수.</li>
+              <li><b class="text-[#eaf0ff]">3. 상세 뷰 (카드 클릭 시):</b> 해당 빌드의 상세 설명, 완성 석판/부적 배치도, 무기 진화 트리, 그리고 <b>'AAP1 프리셋 인게임 1초 적용'</b> 버튼 제공.</li>
+              <li><b class="text-[#eaf0ff]">4. 상세 검색 팝업:</b> 코스튬/무기군/세부무기/기적/콤보 다중 필터링 지원.</li>
+            </ul>
+          </div>
+
+          <div class="bg-[#1c1822] border border-[#3e2e4f] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#ffd75e] mb-2">💡 이 패널의 주요 검토 및 개선 포인트</h3>
+            <div class="text-xs text-[#d6bcfa] space-y-2">
+              <p>• <b>인게임 인벤토리와의 간섭:</b> 폭이 470px로 오버레이 패널 중 가장 넓습니다. 게임 플레이 중 가방(Tab)을 열었을 때 가방 우측과 완전히 겹치는 것이 가장 큰 문제입니다.</p>
+              <p>• <b>가로/세로 비율:</b> 카드를 1열로 길게 나열하는 대신, 2단 그리드나 슬림 카드 모드로 줄일 수 있는지 검토가 필요합니다.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <hr class="border-[#1e2536]">
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- 패널 ③ : 👥 팀원 빌드 패널 -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="section-team" class="scroll-mt-24">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-[#183626] border border-[#2b6343] flex items-center justify-center text-lg">👥</div>
+        <div>
+          <h2 class="text-lg font-bold text-[#eaf0ff]">패널 ③: 👥 팀원 빌드 패널 (`#panel-team`)</h2>
+          <p class="text-xs text-[#7e8aa6]">단축키: <kbd class="px-1.5 py-0.5 bg-[#1a2333] border border-[#2a374f] rounded text-[#59d0ff]">F1</kbd> | 실제 규격: 폭 404px | 위치: 좌하단</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- 실물 UI 렌더링 (폭 404px) -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="panel-frame w-[404px]">
+            <div class="panel-head">
+              <span class="title">👥 팀원 빌드</span>
+              <span class="hotkey">F1</span>
+              <span class="drag-hint">드래그로 이동</span>
+            </div>
+
+            <!-- 팀원 탭 -->
+            <div class="flex gap-1 px-3.5 pt-2 border-b border-[#232a40]">
+              <span class="px-3 py-1.5 text-xs rounded-t bg-[#1d3a52] text-[#8fdcff] font-bold border-t border-x border-[#2c5a75]">
+                🐰 토끼마법사 (호스트)
+              </span>
+              <span class="px-3 py-1.5 text-xs rounded-t bg-[#161b29] text-[#6e7998] hover:text-[#a9b2c9]">
+                🐺 하얀늑대
+              </span>
+              <span class="px-3 py-1.5 text-xs rounded-t bg-[#161b29] text-[#6e7998] hover:text-[#a9b2c9]">
+                🛡️ 방패기사
+              </span>
+            </div>
+
+            <!-- 팀원 인벤토리 미니 그리드 -->
+            <div class="p-4">
+              <div class="text-xs text-[#8b93ad] mb-2 flex justify-between">
+                <span>실시간 인벤토리 (동기화 중)</span>
+                <span class="text-[#5fdc94]">● 연결됨</span>
+              </div>
+              <div class="grid grid-cols-6 gap-1.5 justify-center bg-[#10141f] p-3 rounded-lg border border-[#202738]">
+                <div class="w-12 h-12 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center text-xl">🪄</div>
+                <div class="w-12 h-12 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center text-xl">❄️</div>
+                <div class="w-12 h-12 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center text-xl">💎</div>
+                <div class="w-12 h-12 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center text-xl">📜</div>
+                <div class="w-12 h-12 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center text-xl">🥕</div>
+                <div class="w-12 h-12 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center text-xl">🧪</div>
+              </div>
+              <div class="mt-3 p-2 bg-[#141a29] rounded border border-[#222b40] text-xs">
+                <span class="text-[#8b93ad]">핵심 시너지:</span>
+                <span class="text-[#8fdcff] ml-1">❄️ 서리 Lv.4, 🎓 학회 Lv.3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 설명 및 개선 포인트 -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="bg-[#131722] border border-[#242f44] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#59d0ff] mb-3">🔍 팀원 빌드 패널 구성 및 목적</h3>
+            <p class="text-xs text-[#cbd5e1] leading-relaxed">
+              멀티플레이(협동전) 시 파티원 3명이 각자 어떤 콤보 시너지(서리, 암흑구름, 화염 등)를 모으고 있는지 실시간으로 확인하여,
+              <b>시너지 겹침을 방지하고 상호 보완적인 빌드를 짜도록 도와주는 협동 HUD</b>입니다.
+            </p>
+          </div>
+          <div class="bg-[#1c1822] border border-[#3e2e4f] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#ffd75e] mb-2">💡 개선 포인트</h3>
+            <p class="text-xs text-[#d6bcfa]">
+              현재처럼 커다란 창 형태가 아니라, 화면 우측 상단이나 하단에 <b>파티원 체력바 옆에 붙는 슬림 위젯 형태</b>로 바꾸는 것이 게임 몰입에 훨씬 유리합니다.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <hr class="border-[#1e2536]">
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- 패널 ④ : ⚙️ 설정 패널 -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="section-settings" class="scroll-mt-24">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-[#2b2b1a] border border-[#52522c] flex items-center justify-center text-lg">⚙️</div>
+        <div>
+          <h2 class="text-lg font-bold text-[#eaf0ff]">패널 ④: ⚙️ 설정 패널 (`#panel-settings`)</h2>
+          <p class="text-xs text-[#7e8aa6]">단축키: <kbd class="px-1.5 py-0.5 bg-[#1a2333] border border-[#2a374f] rounded text-[#59d0ff]">Ctrl + ,</kbd> | 실제 규격: 폭 340px | 위치: 우하단</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- 실물 UI 렌더링 (폭 340px) -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="panel-frame w-[340px]">
+            <div class="panel-head">
+              <span class="title">⚙️ 설정</span>
+              <span class="hotkey">Ctrl+,</span>
+              <span class="drag-hint">드래그로 이동</span>
+            </div>
+
+            <!-- 정보 -->
+            <div class="p-3.5 border-b border-[#1e2536]">
+              <div class="text-[11px] font-bold text-[#8b93ad] uppercase tracking-wider mb-2">📋 정보</div>
+              <div class="flex justify-between items-center text-xs py-1">
+                <span>현재 버전</span>
+                <span class="px-2 py-0.5 rounded bg-[#1a2744] text-[#59d0ff] border border-[#2c5a75] font-mono">v0.3.0</span>
+              </div>
+              <div class="flex justify-between items-center text-xs py-1">
+                <span>GitHub 저장소</span>
+                <a href="#" class="text-[#59d0ff] hover:underline">sephiria-gguljam ↗</a>
+              </div>
+            </div>
+
+            <!-- 업데이트 엔진 -->
+            <div class="p-3.5 border-b border-[#1e2536]">
+              <div class="text-[11px] font-bold text-[#8b93ad] uppercase tracking-wider mb-2">🔄 업데이트</div>
+              <div class="flex justify-between items-center text-xs py-1">
+                <span class="text-[#5fdc94]">최신 버전 사용 중</span>
+                <button class="calc-btn text-xs py-1">업데이트 확인</button>
+              </div>
+            </div>
+
+            <!-- 환경설정 (언어) -->
+            <div class="p-3.5">
+              <div class="text-[11px] font-bold text-[#8b93ad] uppercase tracking-wider mb-2">🌐 환경설정</div>
+              <div class="flex justify-between items-center text-xs py-1">
+                <span>언어 (Language)</span>
+                <select class="bg-[#181d2c] border border-[#2a3147] px-2.5 py-1 rounded text-xs text-[#a9b2c9]">
+                  <option selected>한국어 (KO)</option>
+                  <option>English (EN)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 설명 및 개선 포인트 -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="bg-[#131722] border border-[#242f44] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#59d0ff] mb-3">🔍 설정 패널 구성 및 업데이트 엔진</h3>
+            <p class="text-xs text-[#cbd5e1] leading-relaxed">
+              0.3.0에서 신설된 패널로, <b>GitHub Releases API와 연동된 실시간 핫스왑 업데이트 기능</b>과 <b>다국어(i18n) 설정</b>을 담고 있습니다.
+            </p>
+          </div>
+          <div class="bg-[#1c1822] border border-[#3e2e4f] rounded-xl p-5">
+            <h3 class="text-sm font-bold text-[#ffd75e] mb-2">💡 개선 포인트</h3>
+            <p class="text-xs text-[#d6bcfa]">
+              추후 16:9 UX 개편 시 <b>'UI 크기 배율 조절(80% / 100% / 120%)'</b> 옵션이나 <b>'투명도 조절 슬라이더'</b>를 여기에 추가하면 완성도가 매우 높아집니다.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <hr class="border-[#1e2536]">
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- 패널 ⑤ : ⌨️ 하단 단축키 바 & 툴팁 & 상태 -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="section-quickbar" class="scroll-mt-24">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-[#1a233a] border border-[#2d406b] flex items-center justify-center text-lg">⌨️</div>
+        <div>
+          <h2 class="text-lg font-bold text-[#eaf0ff]">컴포넌트 ⑤: ⌨️ 하단 단축키 퀵바 & 툴팁 & 연결 뱃지</h2>
+          <p class="text-xs text-[#7e8aa6]">화면 상시 노출 플로팅 컴포넌트들</p>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        
+        <!-- 하단 단축키 바 실물 -->
+        <div class="bg-[#10141f] p-6 rounded-xl border border-[#202738] flex flex-col items-center gap-3">
+          <span class="text-xs text-[#8b93ad]">화면 하단 중앙 플로팅 독 (Dock) 형태</span>
+          <div class="flex items-center gap-2 bg-[#0f121c]/95 border border-[#2a3147] rounded-full px-4 py-2 shadow-2xl text-xs">
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer"><b>Ctrl+D</b> ⚡ 최적배치</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer"><b>Ctrl+B</b> 📖 빌드</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer"><b>F1</b> 👥 팀원</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer"><b>Ctrl+,</b> ⚙️ 설정</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer">🌐 <b>KO</b></span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer text-[#718096]"><b>Ctrl+H</b> 숨기기</span>
+          </div>
+        </div>
+
+        <!-- 툴팁 실물 쇼케이스 -->
+        <div class="bg-[#10141f] p-6 rounded-xl border border-[#202738]">
+          <span class="text-xs text-[#8b93ad] block mb-3">아이템 마우스 호버 시 뜨는 정보 툴팁 실물</span>
+          <div class="flex flex-wrap gap-6 justify-center">
+            <!-- 부적 툴팁 -->
+            <div class="w-[280px] bg-[#0d101a] border border-[#2f3b54] rounded-lg p-3 text-xs shadow-xl">
+              <div class="flex items-center justify-between border-b border-[#232a3e] pb-2 mb-2">
+                <span class="font-bold text-[#ffd75e]">아그마 투영검 190,191번</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#94681e]/30 text-[#ffd75e] border border-[#94681e]">전설</span>
+              </div>
+              <div class="text-[11px] text-[#5fdc94] bg-[#122e1e] p-1.5 rounded mb-2 border border-[#1f5735]">
+                발동 조건: 인벤토리 최상단 배치
+              </div>
+              <div class="text-[#cbd5e1] leading-relaxed mb-2">
+                주변 1칸 이내의 모든 아티팩트 레벨 +1 및 공격력 15% 증가.
+              </div>
+              <div class="text-[10px] text-[#64748b] italic">
+                "투영된 검의 잔영이 공간을 가른다."
+              </div>
+            </div>
+
+            <!-- 무기 진화 트리 툴팁 -->
+            <div class="w-[280px] bg-[#0d101a] border border-[#2f3b54] rounded-lg p-3 text-xs shadow-xl">
+              <div class="font-bold text-[#8fdcff] mb-2 border-b border-[#232a3e] pb-1">무기 진화 트리</div>
+              <div class="flex items-center gap-1.5 text-[11px] text-[#a9b7db] bg-[#161c2b] p-2 rounded mb-2">
+                <span>단검</span>
+                <span>➔</span>
+                <span class="text-[#ffd75e] font-bold">쿠나이 (현재)</span>
+                <span>➔</span>
+                <span class="text-[#64748b]">그림자 단도</span>
+              </div>
+              <div class="text-[11px] text-[#8fdcff]">조합 필요: 맹독 주머니 Lv.2</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>

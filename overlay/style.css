@@ -22,6 +22,7 @@ html, body {
 /* ── 공통 패널 ─────────────────────────────────────── */
 .panel {
   position: absolute;
+  z-index: 10;
   background: rgba(15, 18, 28, 0.94);
   border: 1px solid #3b4663;
   border-radius: 10px;
@@ -272,8 +273,17 @@ html, body {
 }
 
 /* 상세 화면 헤더 */
-.bd-head { display: flex; align-items: center; margin-bottom: 10px; }
+.bd-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
 .bd-head .back-btn { margin-bottom: 0; }
+.bd-head .compact-toggle-btn { margin-right: 0; }
+.bd-head .open-web-btn { margin-left: 0; }
+.bd-head .fav-btn.detail { margin-left: auto; }
 .bd-icons { display: flex; gap: 8px; margin-bottom: 12px; }
 .bd-icon {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -367,19 +377,346 @@ html, body {
   white-space: pre-line;
 }
 
+/* ── 위키 빌드 간소화 모드 (Compact Mode) ────────── */
+#panel-builds.compact-mode {
+  width: 370px;
+}
+.compact-toggle-btn {
+  background: #182333;
+  border: 1px solid #2a4163;
+  color: #8fdcff;
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 6px;
+  font-family: inherit;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.compact-toggle-btn:hover {
+  background: #203552;
+  border-color: #3b5f94;
+}
+.compact-toggle-btn.on {
+  background: #2d2612;
+  border-color: #6b5522;
+  color: #ffd75e;
+}
+
+/* 섹션 체크박스 */
+.sec-chk-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.sec-chk {
+  cursor: pointer;
+  accent-color: #59d0ff;
+  width: 14px;
+  height: 14px;
+}
+
+/* 간소화 모드 숨김 항목 */
+.compact-mode .bd-desc,
+.compact-mode .is-desc,
+.compact-mode .stat-row,
+.compact-mode .skewer-row,
+.compact-mode .bd-writer,
+.compact-mode .bd-icon.costume {
+  display: none !important;
+}
+
+/* [핵심 UX 개선] 간소화 모드에서 체크 해제 시 컨테이너를 없애지 않고 아이템만 숨겨 토글 복원 가능하게 유지 */
+.compact-mode .item-section.unchecked-section .icon-row,
+.compact-mode .item-section.unchecked-section .is-desc {
+  display: none !important;
+}
+.compact-mode .item-section.unchecked-section {
+  margin-bottom: 2px;
+  opacity: 0.45;
+}
+.compact-mode .item-section.unchecked-section .is-label {
+  margin-bottom: 0;
+  font-size: 11px;
+}
+.item-section.unchecked-section {
+  opacity: 0.6;
+}
+
+/* 간소화 모드 헤더 및 슬림 스크롤바 */
+.compact-mode .bd-head {
+  gap: 4px;
+}
+.compact-mode .bd-head button {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+#panel-builds.compact-mode #build-detail-view::-webkit-scrollbar {
+  width: 5px;
+}
+#panel-builds.compact-mode #build-detail-view::-webkit-scrollbar-thumb {
+  background: #28354d;
+  border-radius: 3px;
+}
+
+/* 간소화 모드 상단 무기/기적 슬림화 (가로형 미니 칩) */
+.compact-mode .bd-icons {
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.compact-mode .bd-icon.weapons,
+.compact-mode .bd-icon.miracle {
+  flex-direction: row;
+  width: auto;
+  min-width: 100px;
+  height: 30px;
+  background: #141a27;
+  border: 1px solid #28334a;
+  border-radius: 6px;
+  padding: 3px 8px;
+  gap: 6px;
+}
+.compact-mode .bd-icon.weapons img,
+.compact-mode .bd-icon.miracle img {
+  width: 22px;
+  height: 22px;
+  padding: 1px;
+  border: none;
+  background: transparent;
+}
+.compact-mode .bd-icon.weapons em,
+.compact-mode .bd-icon.miracle em {
+  font-size: 11px;
+  color: #dce4f5;
+  text-align: left;
+}
+.compact-mode .bd-icon.weapons small,
+.compact-mode .bd-icon.miracle small {
+  display: none !important;
+}
+.compact-mode .item-section {
+  margin-bottom: 8px;
+}
+.compact-mode .item-section .is-label {
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+.compact-mode .icon-row .it {
+  width: 38px;
+  height: 38px;
+  padding: 2px;
+}
+
 /* ── ③ 팀원 ────────────────────────────────────────── */
-#panel-team { left: 24px; bottom: 70px; width: 404px; }
-.team-tabs { display: flex; gap: 4px; padding: 8px 14px 0; flex-wrap: wrap; }
+#panel-team {
+  left: 24px;
+  bottom: 70px;
+  width: 404px;
+  max-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
+}
+.team-tabs { display: flex; flex-direction: column; padding: 8px 14px 0; }
+.team-mode-bar {
+  display: flex;
+  width: 100%;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.team-mode-btn {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 12px;
+  color: #7a86a6;
+  background: #141926;
+  border: 1px solid #232b40;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.team-mode-btn:hover {
+  background: #1b2336;
+  color: #b0bed9;
+}
+.team-mode-btn.on {
+  color: #ffd75e;
+  background: #252216;
+  border-color: #5c4f24;
+  font-weight: bold;
+}
+
+.team-member-tabs {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
 .team-tab {
-  padding: 5px 14px; font-size: 13px; color: #5a6685;
+  padding: 4px 12px; font-size: 12px; color: #5a6685;
   background: #161b29; border: 1px solid #232a40;
   border-radius: 6px 6px 0 0; cursor: pointer;
 }
 .team-tab.on { color: #8fdcff; background: #1d3a52; border-color: #2c5a75; font-weight: bold; }
-.team-body { padding: 10px 14px 12px; }
+.team-body {
+  padding: 10px 14px 12px;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+.team-body::-webkit-scrollbar {
+  width: 5px;
+}
+.team-body::-webkit-scrollbar-thumb {
+  background: #28354d;
+  border-radius: 3px;
+}
 .team-body .cell { width: 44px; height: 44px; }
 .team-body .cell .lv { font-size: 10px; }
 .team-body .cell img { padding: 3px; }
+
+/* ── 팀원 전체 요약 리스트 ── */
+.team-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.team-summary-card {
+  background: #141824;
+  border: 1px solid #273147;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.summary-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #1f2738;
+}
+.summary-member-name {
+  font-weight: bold;
+  font-size: 13px;
+  color: #eaf0ff;
+}
+.summary-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #182030;
+  border: 1px solid #2a3854;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+.summary-meta-chip img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.summary-meta-chip.miracle {
+  border-color: #5c4b28;
+  color: #f7d174;
+}
+.summary-combos {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.summary-badge {
+  padding: 2px 6px;
+  font-size: 11px;
+  gap: 4px;
+}
+.summary-badge img {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── 아티팩트 목록 (최대 2줄 제한 + 슬림 스크롤) ── */
+.summary-row-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  max-height: 84px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.summary-row-items::-webkit-scrollbar {
+  width: 4px;
+}
+.summary-row-items::-webkit-scrollbar-thumb {
+  background: #2a354d;
+  border-radius: 2px;
+}
+.summary-item {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: #10141f;
+  border: 1px solid #232b3d;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+}
+.summary-item:hover {
+  border-color: #59d0ff;
+  transform: scale(1.06);
+  z-index: 2;
+}
+.summary-item img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.summary-item .magic-overlay {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+.summary-item .lv {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffd75e;
+  text-shadow: 0 0 3px #000, 1px 1px 2px #000;
+  line-height: 1;
+}
+.summary-item.tablet {
+  border-color: #d97706;
+  box-shadow: inset 0 0 5px rgba(217, 119, 6, 0.3);
+}
+.summary-item.inactive {
+  opacity: 0.35;
+  filter: grayscale(80%);
+}
+.summary-no-items {
+  font-size: 11px;
+  color: #55627a;
+  padding: 6px 2px;
+}
 
 /* ── 상태 / 단축키 바 ──────────────────────────────── */
 .ws-status {

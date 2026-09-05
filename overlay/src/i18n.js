@@ -167,6 +167,11 @@ const TRANSLATIONS = {
     'builds.originalLink': '🔗 원본글',
     'builds.skewerLabel': '🍡 과일꼬치',
     'builds.searchPlaceholder': '작성자 검색 (체크 해제 시 제목)',
+    'builds.compactOn': '⊟ 간소화',
+    'builds.compactOff': '⊞ 전체보기',
+    'builds.compactTooltip': '인게임 전투용 간소화 뷰',
+    'builds.fullTooltip': '전체 빌드 설명 및 상세 정보 표시',
+    'builds.secCheckTooltip': '체크 해제 시 간소화 모드에서 이 섹션을 숨깁니다',
 
     // 슬롯 모달
     'psm.title': '📥 저장할 인게임 프리셋 슬롯 선택',
@@ -181,9 +186,14 @@ const TRANSLATIONS = {
 
     // 팀원 패널
     'team.empty': '멀티플레이 중이 아니거나<br>팀원 정보가 아직 없습니다',
+    'team.tabSummary': '👥 전체 요약',
+    'team.tabDetail': '🔍 개별 상세',
     'team.weapon': '무기',
     'team.costume': '캐릭터',
     'team.miracle': '기적',
+    'team.noItems': '장착된 아티팩트 없음',
+    'team.memberNum': '팀원 {num}',
+    'team.playerNum': '플레이어 {num}',
 
     // 툴팁 공통
     'tt.weapon': '무기',
@@ -277,6 +287,11 @@ const TRANSLATIONS = {
     'builds.originalLink': '🔗 View on Wiki',
     'builds.skewerLabel': '🍡 Fruit Skewer',
     'builds.searchPlaceholder': 'Search Author (or title if unchecked)',
+    'builds.compactOn': '⊟ Compact',
+    'builds.compactOff': '⊞ Full View',
+    'builds.compactTooltip': 'Compact view for gameplay',
+    'builds.fullTooltip': 'Show full build details and description',
+    'builds.secCheckTooltip': 'Uncheck to hide this section in compact mode',
 
     // Slot Modal
     'psm.title': '📥 Select In-Game Preset Slot',
@@ -291,9 +306,14 @@ const TRANSLATIONS = {
 
     // Team Panel
     'team.empty': 'Not in multiplayer or no teammates found',
+    'team.tabSummary': '👥 All Summary',
+    'team.tabDetail': '🔍 Member Detail',
     'team.weapon': 'Weapon',
     'team.costume': 'Costume',
     'team.miracle': 'Miracle',
+    'team.noItems': 'No artifacts equipped',
+    'team.memberNum': 'Teammate {num}',
+    'team.playerNum': 'Player {num}',
 
     // Tooltips
     'tt.weapon': 'Weapon',

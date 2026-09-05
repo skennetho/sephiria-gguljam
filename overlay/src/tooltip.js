@@ -358,7 +358,7 @@ function resetTooltip() {
 
 function getTargetElement(e) {
   return e.target.closest(
-    '.it[data-slug], .it[data-id], .bd-icon, .bc-icon, .team-meta .chip, .combo-badge, .tt-combo, .prio-row, .cell[data-id], .cell[data-name], [data-cat]'
+    '.it[data-slug], .it[data-id], .bd-icon, .bc-icon, .team-meta .chip, .combo-badge, .tt-combo, .prio-row, .cell[data-id], .cell[data-name], .summary-item, .summary-meta-chip, [data-cat]'
   );
 }
 

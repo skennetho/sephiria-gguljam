@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>세피리아 오버레이 현재 UI 구조 (16:9 재현)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background-color: #0c0f17;
+      color: #dde3f0;
+      font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 16px;
+      user-select: none;
+    }
+
+    /* 16:9 캔버스 스케일링 래퍼 */
+    #monitor-viewport {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
+      margin: 0 auto;
+      background: #090b10;
+      border: 2px solid #232b3e;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    /* 1920x1080 가상 스크린 */
+    #screen-1080p {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: top left;
+      /* CSS transform 으로 부모 aspect-ratio 에 맞춤 */
+    }
+
+    /* 게임 배경 시뮬레이션 */
+    .game-background {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, #182033 0%, #101420 60%, #080a0f 100%);
+      pointer-events: none;
+    }
+    .game-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 80px 80px;
+    }
+
+    /* 인게임 HUD 더미 */
+    .hud-player {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      background: rgba(10, 13, 20, 0.7);
+      border: 1px solid #232b3e;
+      border-radius: 40px;
+      padding: 10px 20px 10px 12px;
+    }
+    .hud-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #1f283d;
+      border: 2px solid #59d0ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .hud-bars { display: flex; flex-direction: column; gap: 6px; width: 220px; }
+    .hud-bar { height: 12px; border-radius: 6px; background: #131722; overflow: hidden; position: relative; }
+    .hud-bar-hp { width: 85%; height: 100%; background: linear-gradient(90deg, #e53e3e, #f56565); }
+    .hud-bar-mp { width: 65%; height: 100%; background: linear-gradient(90deg, #3182ce, #63b3ed); }
+
+    .hud-minimap {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      width: 200px;
+      height: 140px;
+      background: rgba(12, 16, 26, 0.75);
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    /* 인게임 인벤토리 창 팝업 (간섭 영역 확인용) */
+    .game-inventory-popup {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 780px;
+      height: 600px;
+      background: rgba(15, 18, 28, 0.95);
+      border: 2px solid #4a5568;
+      border-radius: 14px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .game-inventory-popup.hidden-ui {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+
+    /* ── 실제 오버레이 스타일 완벽 반영 ── */
+    .panel {
+      position: absolute;
+      background: rgba(15, 18, 28, 0.94);
+      border: 1px solid #3b4663;
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(2px);
+      z-index: 10;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .panel.hidden-ui {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: scale(0.97);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3147;
+      cursor: move;
+    }
+    .panel-head .title { font-weight: bold; font-size: 15px; color: #eaf0ff; }
+    .panel-head .hotkey {
+      font-size: 11px; color: #59d0ff;
+      border: 1px solid #2c5a75; border-radius: 4px;
+      padding: 1px 6px; background: #132433;
+    }
+    .drag-hint { margin-left: auto; color: #4a5470; font-size: 11px; }
+
+    /* ① 최적 배치 (#panel-optimizer) */
+    #panel-optimizer {
+      left: 24px;
+      top: 104px;
+      width: 404px;
+    }
+    .opt-status { display: flex; align-items: center; gap: 8px; padding: 10px 14px 0; }
+    .status-badge {
+      font-size: 12px; padding: 3px 10px; border-radius: 12px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .status-badge.done { background: #12301f; color: #5fdc94; border: 1px solid #2b5c40; }
+    .calc-btn {
+      background: #1d3a52; color: #8fdcff;
+      border: 1px solid #2c5a75; border-radius: 6px;
+      padding: 5px 12px; font-size: 13px; cursor: pointer;
+    }
+    .calc-btn.ghost { background: transparent; border-color: #2a3147; color: #8b93ad; }
+    .calc-btn.apply { background: #1f4a33; border-color: #2e7a50; color: #5fdc94; }
+    .calc-btn.undo { background: #3a2222; border-color: #5c2e2e; color: #ff8a8a; }
+
+    .mini-grid-wrap { padding: 10px 14px 6px; }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 58px);
+      gap: 3px;
+      justify-content: center;
+    }
+    .cell {
+      background: #181d2c; border: 1px solid #262e45;
+      border-radius: 5px; position: relative;
+      width: 58px; height: 58px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cell.rarity-uncommon { border-color: #21663b; }
+    .cell.rarity-rare     { border-color: #245c8f; }
+    .cell.rarity-legend   { border-color: #94681e; box-shadow: inset 0 0 6px rgba(255, 184, 52, 0.2); }
+    .cell.tablet { background: #20263c; border-color: #3d4966; }
+    .cell .lv {
+      position: absolute; right: 3px; bottom: 2px;
+      font-size: 12px; font-weight: bold; color: #ffd75e;
+      text-shadow: 0 1px 2px #000;
+    }
+    .cell .c-icon { font-size: 26px; }
+
+    .prio-row {
+      display: flex; align-items: center; gap: 8px;
+      background: #1a2032; border: 1px solid #2a3147;
+      border-radius: 6px; padding: 5px 9px; margin-bottom: 5px;
+      font-size: 12px;
+    }
+    .prio-row .rank { color: #59d0ff; font-weight: bold; width: 18px; }
+
+    /* ② 위키 빌드 (#panel-builds) */
+    #panel-builds {
+      right: 24px;
+      top: 72px;
+      width: 470px;
+      max-height: 860px;
+    }
+    .build-tabs {
+      display: flex; gap: 6px; border-bottom: 1px solid #232a40; padding: 8px 14px 0;
+    }
+    .build-tab {
+      padding: 6px 14px; font-size: 13px; color: #8b93ad; cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .build-tab.on { color: #8fdcff; border-color: #59d0ff; font-weight: bold; }
+
+    .build-card {
+      display: flex; align-items: center; gap: 10px;
+      background: #1a2032; border: 1px solid #2a3147; border-radius: 8px;
+      padding: 10px 12px; margin-bottom: 8px; cursor: pointer;
+    }
+    .bc-icon {
+      width: 42px; height: 42px; border-radius: 6px;
+      background: #12151f; border: 1px solid #262e45;
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .bc-title { font-size: 13px; font-weight: bold; color: #eaf0ff; }
+    .bc-combo-tag {
+      background: #142337; border: 1px solid #233f5d;
+      border-radius: 4px; padding: 1px 6px; font-size: 11px; color: #8fdcff;
+    }
+
+    /* ③ 팀원 빌드 (#panel-team) */
+    #panel-team {
+      left: 24px;
+      bottom: 70px;
+      width: 404px;
+    }
+    .team-tabs { display: flex; gap: 4px; padding: 8px 14px 0; }
+    .team-tab {
+      padding: 5px 12px; font-size: 12px; color: #6e7998;
+      background: #161b29; border: 1px solid #232a40;
+      border-radius: 6px 6px 0 0; cursor: pointer;
+    }
+    .team-tab.on { color: #8fdcff; background: #1d3a52; border-color: #2c5a75; font-weight: bold; }
+
+    /* ④ 설정 패널 (#panel-settings) */
+    #panel-settings {
+      right: 24px;
+      bottom: 80px;
+      width: 340px;
+    }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 14px; font-size: 13px;
+    }
+
+    /* ⑤ 하단 단축키 바 (#hotkey-bar) */
+    .hotkey-bar {
+      position: absolute; bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 18, 28, 0.94);
+      border: 1px solid #2a3147; border-radius: 20px;
+      padding: 7px 18px; font-size: 13px; color: #8b93ad;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+      z-index: 20;
+    }
+    .hotkey-btn {
+      padding: 4px 10px; border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid transparent; cursor: pointer;
+    }
+    .hotkey-btn:hover { background: #232b42; color: #eaf0ff; }
+    .hotkey-bar b { color: #8fdcff; font-weight: normal; margin-right: 4px; }
+
+    /* WS 연결 상태 */
+    .ws-status {
+      position: absolute; right: 24px; top: 20px;
+      font-size: 13px; border-radius: 14px; padding: 5px 14px;
+      background: rgba(15, 18, 28, 0.88);
+      display: flex; align-items: center; gap: 7px;
+      border: 1px solid #2b5c40; color: #5fdc94;
+      z-index: 15;
+    }
+    .ws-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #5fdc94; }
+
+    /* 충돌/간섭 하이라이트 레이어 */
+    .collision-zone {
+      position: absolute;
+      border: 2px dashed #f56565;
+      background: rgba(245, 101, 101, 0.15);
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      color: #feb2b2;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      transition: opacity 0.2s;
+    }
+    .collision-zone.hidden-ui { opacity: 0; }
+  </style>
+</head>
+<body class="p-4 bg-[#090b10] text-[#dde3f0]">
+
+  <!-- 상단 제어 툴바 -->
+  <div class="max-w-[1200px] mx-auto mb-4 bg-[#141824] border border-[#263147] rounded-xl p-4 shadow-md">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-base font-bold text-[#eaf0ff] flex items-center gap-2">
+          <span>🎮 세피리아 오버레이 현재 구조 (16:9 기준)</span>
+          <span class="text-xs font-normal px-2 py-0.5 rounded bg-[#1e2738] text-[#59d0ff] border border-[#2d3a52]">v0.3.0 기준</span>
+        </h1>
+        <p class="text-xs text-[#7e8aa6] mt-0.5">현재 1920×1080 해상도에서 화면 점유 및 패널 위치를 실시간으로 확인할 수 있습니다.</p>
+      </div>
+
+      <!-- 패널 토글 버튼 그룹 -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="toggle-all" class="px-3 py-1.5 text-xs font-medium bg-[#1f293d] hover:bg-[#2a3854] text-[#8fdcff] border border-[#374767] rounded-lg transition">
+          전체 토글
+        </button>
+        <button id="toggle-opt" class="px-3 py-1.5 text-xs font-medium bg-[#192738] text-[#59d0ff] border border-[#2b4c6e] rounded-lg">
+          ⚡ 최적배치 (Ctrl+D)
+        </button>
+        <button id="toggle-builds" class="px-3 py-1.5 text-xs font-medium bg-[#192738] text-[#59d0ff] border border-[#2b4c6e] rounded-lg">
+          📖 위키빌드 (Ctrl+B)
+        </button>
+        <button id="toggle-team" class="px-3 py-1.5 text-xs font-medium bg-[#192738] text-[#59d0ff] border border-[#2b4c6e] rounded-lg">
+          👥 팀원 (F1)
+        </button>
+        <button id="toggle-settings" class="px-3 py-1.5 text-xs font-medium bg-[#192738] text-[#59d0ff] border border-[#2b4c6e] rounded-lg">
+          ⚙️ 설정 (Ctrl+,)
+        </button>
+        <button id="toggle-game-inv" class="px-3 py-1.5 text-xs font-medium bg-[#2b1f3d] text-[#d6bcfa] border border-[#553c7b] rounded-lg hover:bg-[#382650]">
+          🎒 인게임 인벤토리 창 표시
+        </button>
+        <button id="toggle-collision" class="px-3 py-1.5 text-xs font-medium bg-[#381c1c] text-[#feb2b2] border border-[#6b2c2c] rounded-lg hover:bg-[#4a2222]">
+          ⚠️ 16:9 간섭/충돌 분석
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 16:9 모니터 가상 뷰포트 -->
+  <div id="monitor-viewport">
+    <div id="screen-1080p">
+
+      <!-- 게임 캔버스 배경 시뮬레이션 -->
+      <div class="game-background">
+        <div class="game-grid-bg"></div>
+
+        <!-- 인게임 플레이어 HUD (좌상단) -->
+        <div class="hud-player">
+          <div class="hud-avatar">🐰</div>
+          <div class="hud-bars">
+            <div class="flex justify-between text-[11px] text-[#a0aec0] font-bold">
+              <span>HP 850 / 1000</span>
+              <span class="text-[#f56565]">Lv. 14</span>
+            </div>
+            <div class="hud-bar"><div class="hud-bar-hp"></div></div>
+            <div class="hud-bar"><div class="hud-bar-mp"></div></div>
+          </div>
+        </div>
+
+        <!-- 인게임 미니맵 (우상단) -->
+        <div class="hud-minimap">
+          <span class="text-xl mb-1">🗺️</span>
+          <span>B2F 깊은 숲 (던전)</span>
+        </div>
+
+        <!-- 중앙 전투 영역 가이드 -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
+          <div class="w-[500px] h-[340px] border-2 border-dashed border-[#59d0ff] rounded-2xl flex items-center justify-center text-[#59d0ff] text-xl font-bold">
+            ⚔️ 플레이어 전투/이동 중앙 시야 영역
+          </div>
+        </div>
+      </div>
+
+      <!-- 인게임 인벤토리 팝업 (실제 세피리아 가방 창) -->
+      <div id="game-inventory" class="game-inventory-popup hidden-ui">
+        <div class="p-4 border-b border-[#2d3748] flex justify-between items-center bg-[#131722]">
+          <span class="font-bold text-lg text-[#ffd75e]">🎒 가방 및 석판 인벤토리 (인게임 창)</span>
+          <span class="text-xs text-[#718096] bg-[#1a202c] px-2 py-1 rounded">단축키: TAB 또는 I</span>
+        </div>
+        <div class="p-6 flex-1 flex flex-col items-center justify-center text-[#718096] gap-4">
+          <div class="grid grid-cols-6 gap-3">
+            <!-- 30칸 그리드 더미 -->
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 1</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 2</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 3</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 4</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 5</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 6</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 7</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 8</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 9</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 10</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 11</div>
+            <div class="w-16 h-16 bg-[#1a202c] border border-[#2d3748] rounded flex items-center justify-center text-xs">칸 12</div>
+          </div>
+          <p class="text-sm text-[#a0aec0]">인게임 인벤토리 열림 상태 (화면 정중앙 차지)</p>
+        </div>
+      </div>
+
+      <!-- ═══════════ [오버레이 UI 실물 재현] ═══════════ -->
+
+      <!-- 연결 상태 -->
+      <div id="ui-ws" class="ws-status">
+        <span class="dot"></span><span>연결됨 (v0.3.0)</span>
+      </div>
+
+      <!-- ① 최적 배치 패널 (좌상단 404px) -->
+      <div id="ui-optimizer" class="panel">
+        <div class="panel-head">
+          <span class="title">⚡ 최적 배치</span>
+          <span class="hotkey">Ctrl+D</span>
+          <span class="drag-hint">드래그로 이동</span>
+        </div>
+
+        <div class="opt-status">
+          <span class="status-badge done">✓ 최적배치 완료</span>
+          <button class="calc-btn ghost text-xs">⟳ 새로고침</button>
+          <button class="calc-btn text-xs">▶ 계산</button>
+          <button class="calc-btn apply text-xs">✔ 반영</button>
+          <button class="calc-btn undo text-xs" disabled>⤺ 되돌리기</button>
+        </div>
+
+        <div class="mini-grid-wrap">
+          <div class="mini-grid">
+            <div class="cell rarity-legend"><span class="c-icon">👑</span><span class="lv">Lv.4</span></div>
+            <div class="cell rarity-rare"><span class="c-icon">🗡️</span><span class="lv">Lv.3</span></div>
+            <div class="cell rarity-uncommon"><span class="c-icon">🛡️</span><span class="lv">Lv.2</span></div>
+            <div class="cell tablet"><span class="c-icon">📜</span></div>
+            <div class="cell rarity-rare"><span class="c-icon">💎</span><span class="lv">Lv.5</span></div>
+            <div class="cell rarity-uncommon"><span class="c-icon">⚡</span><span class="lv">Lv.1</span></div>
+
+            <div class="cell"><span class="c-icon">🧪</span><span class="lv">Lv.1</span></div>
+            <div class="cell tablet"><span class="c-icon">📜</span></div>
+            <div class="cell rarity-legend"><span class="c-icon">💍</span><span class="lv">Lv.6</span></div>
+            <div class="cell rarity-rare"><span class="c-icon">🏹</span><span class="lv">Lv.4</span></div>
+            <div class="cell"><span class="c-icon">🥕</span><span class="lv">Lv.2</span></div>
+            <div class="cell"><span class="c-icon">🪓</span><span class="lv">Lv.3</span></div>
+
+            <div class="cell rarity-uncommon"><span class="c-icon">📿</span><span class="lv">Lv.2</span></div>
+            <div class="cell rarity-rare"><span class="c-icon">🔮</span><span class="lv">Lv.4</span></div>
+            <div class="cell tablet"><span class="c-icon">📜</span></div>
+            <div class="cell rarity-legend"><span class="c-icon">🪄</span><span class="lv">Lv.5</span></div>
+            <div class="cell"><span class="c-icon">📜</span><span class="lv">Lv.2</span></div>
+            <div class="cell rarity-uncommon"><span class="c-icon">🗝️</span><span class="lv">Lv.1</span></div>
+          </div>
+          <div class="text-center text-[11px] text-[#5a6685] py-2">
+            👁 현재 인벤토리 | 30칸 중 18개 배치
+          </div>
+        </div>
+
+        <div class="p-3 border-t border-[#232a40]">
+          <div class="text-xs text-[#8b93ad] mb-1.5 font-bold">콤보 우선순위</div>
+          <div class="prio-row"><span class="rank">#1</span><span>⚡ 암흑구름 (DARKCLOUD)</span></div>
+          <div class="prio-row"><span class="rank">#2</span><span>🛡️ 수호자 (GUARDIAN)</span></div>
+          <div class="prio-row"><span class="rank">#3</span><span>⚔️ 바람노래 (WINDSONG)</span></div>
+        </div>
+      </div>
+
+      <!-- ② 위키 빌드 패널 (우상단 470px) -->
+      <div id="ui-builds" class="panel">
+        <div class="panel-head">
+          <span class="title">📖 위키 빌드</span>
+          <span class="hotkey">Ctrl+B</span>
+          <span class="drag-hint">드래그로 이동</span>
+        </div>
+
+        <div class="build-tabs">
+          <span class="build-tab on">전체 빌드 (124)</span>
+          <span class="build-tab">⭐ 즐겨찾기 (3)</span>
+        </div>
+
+        <div class="flex items-center gap-2 p-3 text-xs border-b border-[#1f2638]">
+          <button class="bg-[#181d2c] border border-[#2a3147] px-2.5 py-1.5 rounded text-[#a9b2c9]">🔍 상세검색</button>
+          <select class="bg-[#181d2c] border border-[#2a3147] px-2 py-1.5 rounded text-[#a9b2c9]">
+            <option>인기순</option>
+            <option>최신순</option>
+          </select>
+          <label class="flex items-center gap-1 text-[#8b93ad] ml-auto">
+            <input type="checkbox" checked> 최신버전만
+          </label>
+        </div>
+
+        <div class="p-3 space-y-2 max-h-[560px] overflow-hidden">
+          <!-- 빌드 카드 1 -->
+          <div class="build-card">
+            <div class="flex gap-1.5">
+              <div class="bc-icon">🐺</div>
+              <div class="bc-icon">🗡️</div>
+              <div class="bc-icon">✨</div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="bc-title truncate">늑대 무한대시 번개폭풍 종결 세팅</div>
+              <div class="flex gap-1 my-1">
+                <span class="bc-combo-tag">⚡ 암흑구름 6</span>
+                <span class="bc-combo-tag">🌪️ 바람 4</span>
+              </div>
+              <div class="flex justify-between text-[11px] text-[#8b93ad]">
+                <span>작성자: 꿀잼장인</span>
+                <span class="text-[#ff7d9a]">❤️ 142</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 빌드 카드 2 -->
+          <div class="build-card">
+            <div class="flex gap-1.5">
+              <div class="bc-icon">🐰</div>
+              <div class="bc-icon">🪄</div>
+              <div class="bc-icon">❄️</div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="bc-title truncate">토끼 마법사 무한 프로스트 빙결 빌드</div>
+              <div class="flex gap-1 my-1">
+                <span class="bc-combo-tag">❄️ 서리 5</span>
+                <span class="bc-combo-tag">🎓 학회 3</span>
+              </div>
+              <div class="flex justify-between text-[11px] text-[#8b93ad]">
+                <span>작성자: 토끼겅듀</span>
+                <span class="text-[#ff7d9a]">❤️ 98</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 빌드 카드 3 -->
+          <div class="build-card">
+            <div class="flex gap-1.5">
+              <div class="bc-icon">🦔</div>
+              <div class="bc-icon">🛡️</div>
+              <div class="bc-icon">💥</div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="bc-title truncate">가시 반사 방패병 불사 빌드 (초보추천)</div>
+              <div class="flex gap-1 my-1">
+                <span class="bc-combo-tag">🛡️ 수호 5</span>
+                <span class="bc-combo-tag">🧱 견고 4</span>
+              </div>
+              <div class="flex justify-between text-[11px] text-[#8b93ad]">
+                <span>작성자: 단단한방패</span>
+                <span class="text-[#ff7d9a]">❤️ 76</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-2.5 text-center border-t border-[#232a40] text-xs text-[#8b93ad]">
+          ◀ 이전 1 / 12 다음 ▶
+        </div>
+      </div>
+
+      <!-- ③ 팀원 빌드 패널 (좌하단 404px) -->
+      <div id="ui-team" class="panel">
+        <div class="panel-head">
+          <span class="title">👥 팀원 빌드</span>
+          <span class="hotkey">F1</span>
+          <span class="drag-hint">드래그로 이동</span>
+        </div>
+        <div class="team-tabs">
+          <span class="team-tab on">🐰 토끼마법사 (호스트)</span>
+          <span class="team-tab">🐺 하얀늑대</span>
+        </div>
+        <div class="p-3 text-xs">
+          <div class="grid grid-cols-6 gap-1.5 justify-center py-2">
+            <div class="w-11 h-11 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center">🪄</div>
+            <div class="w-11 h-11 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center">❄️</div>
+            <div class="w-11 h-11 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center">💎</div>
+            <div class="w-11 h-11 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center">📜</div>
+            <div class="w-11 h-11 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center">🥕</div>
+            <div class="w-11 h-11 bg-[#181d2c] border border-[#262e45] rounded flex items-center justify-center">🧪</div>
+          </div>
+          <div class="text-[#8b93ad] text-[11px] text-center mt-1">핵심 콤보: ❄️ 서리 Lv.4, 🎓 학회 Lv.3</div>
+        </div>
+      </div>
+
+      <!-- ④ 설정 패널 (우하단 340px) -->
+      <div id="ui-settings" class="panel">
+        <div class="panel-head">
+          <span class="title">⚙️ 설정</span>
+          <span class="hotkey">Ctrl+,</span>
+          <span class="drag-hint">드래그로 이동</span>
+        </div>
+        <div class="p-2 border-b border-[#1e2536]">
+          <div class="text-[11px] font-bold text-[#8b93ad] px-2 mb-1">📋 정보</div>
+          <div class="settings-row">
+            <span>현재 버전</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-[#1a2744] text-[#59d0ff] border border-[#2c5a75]">v0.3.0</span>
+          </div>
+        </div>
+        <div class="p-2 border-b border-[#1e2536]">
+          <div class="text-[11px] font-bold text-[#8b93ad] px-2 mb-1">🔄 업데이트</div>
+          <div class="settings-row">
+            <span class="text-xs text-[#5fdc94]">최신 버전 사용 중</span>
+            <button class="calc-btn text-xs py-1">확인</button>
+          </div>
+        </div>
+        <div class="p-2">
+          <div class="text-[11px] font-bold text-[#8b93ad] px-2 mb-1">🌐 환경설정</div>
+          <div class="settings-row">
+            <span>언어</span>
+            <span class="text-xs text-[#8fdcff]">한국어 (KO)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ 하단 단축키 안내 바 -->
+      <div id="ui-hotkey-bar" class="hotkey-bar">
+        <span class="hotkey-btn"><b>Ctrl+D</b> ⚡ 최적배치</span>
+        <span class="hotkey-btn"><b>Ctrl+B</b> 📖 빌드</span>
+        <span class="hotkey-btn"><b>F1</b> 👥 팀원</span>
+        <span class="hotkey-btn"><b>Ctrl+,</b> ⚙️ 설정</span>
+        <span class="hotkey-btn">🌐 <b>KO</b></span>
+        <span class="hotkey-btn"><b>Ctrl+H</b> 숨기기</span>
+      </div>
+
+      <!-- ⚠️ 16:9 간섭/충돌 하이라이트 레이어 (기본 OFF, 토글 가능) -->
+      <div id="col-right" class="collision-zone hidden-ui" style="right: 20px; top: 68px; width: 480px; height: 620px;">
+        ⚠️ 빌드 패널과 인게임 인벤토리/미니맵 간섭 영역
+      </div>
+      <div id="col-left" class="collision-zone hidden-ui" style="left: 20px; top: 100px; width: 412px; height: 860px;">
+        ⚠️ 최적배치 + 팀원 패널 수직 적재 시 좌측 시야 완전 차단
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 하단 분석 및 구조 요약 카드 -->
+  <div class="max-w-[1200px] mx-auto mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+    
+    <!-- 카드 1: 현재 좌표 및 치수 -->
+    <div class="bg-[#141824] border border-[#263147] rounded-xl p-4">
+      <h3 class="text-sm font-bold text-[#ffd75e] mb-2 flex items-center gap-1.5">
+        <span>📐 현재 패널 배치 및 픽셀 규격</span>
+      </h3>
+      <ul class="text-xs text-[#a9b2c9] space-y-1.5">
+        <li class="flex justify-between border-b border-[#1f2738] pb-1">
+          <span>⚡ 최적배치:</span>
+          <span class="font-mono text-[#8fdcff]">left: 24px, top: 104px (폭 404px)</span>
+        </li>
+        <li class="flex justify-between border-b border-[#1f2738] pb-1">
+          <span>📖 위키빌드:</span>
+          <span class="font-mono text-[#8fdcff]">right: 24px, top: 72px (폭 470px)</span>
+        </li>
+        <li class="flex justify-between border-b border-[#1f2738] pb-1">
+          <span>👥 팀원빌드:</span>
+          <span class="font-mono text-[#8fdcff]">left: 24px, bottom: 70px (폭 404px)</span>
+        </li>
+        <li class="flex justify-between border-b border-[#1f2738] pb-1">
+          <span>⚙️ 설정:</span>
+          <span class="font-mono text-[#8fdcff]">right: 24px, bottom: 80px (폭 340px)</span>
+        </li>
+        <li class="flex justify-between">
+          <span>⌨️ 단축키바:</span>
+          <span class="font-mono text-[#8fdcff]">bottom: 16px, center (폭 580px)</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 카드 2: 16:9 환경의 주요 문제점 -->
+    <div class="bg-[#141824] border border-[#263147] rounded-xl p-4">
+      <h3 class="text-sm font-bold text-[#ff8a8a] mb-2 flex items-center gap-1.5">
+        <span>⚠️ 16:9 환경에서 발견된 문제점</span>
+      </h3>
+      <ul class="text-xs text-[#cbd5e1] space-y-1.5 list-disc list-inside">
+        <li><b class="text-[#feb2b2]">인게임 가방 간섭:</b> 위키 빌드(우측)가 열려있을 때 인게임 인벤토리(Tab)를 열면 우측 절반이 가려짐.</li>
+        <li><b class="text-[#feb2b2]">좌측 시야 과밀:</b> 최적배치(404px)와 팀원(404px)을 동시에 켜면 화면 좌측 25%가 완전히 덮임.</li>
+        <li><b class="text-[#feb2b2]">해상도 대응 부재:</b> 1080p, 1440p(QHD), 4K에서 글자 크기와 여백이 고정 px라 모니터별 비율 불균형.</li>
+      </ul>
+    </div>
+
+    <!-- 카드 3: 개편 제안 방향 -->
+    <div class="bg-[#141824] border border-[#263147] rounded-xl p-4">
+      <h3 class="text-sm font-bold text-[#5fdc94] mb-2 flex items-center gap-1.5">
+        <span>💡 UX 개편 권장 방향</span>
+      </h3>
+      <ul class="text-xs text-[#cbd5e1] space-y-1.5 list-disc list-inside">
+        <li><b class="text-[#86efac]">가변/독(Dock) 사이드바:</b> 좌/우측 분산 배치가 아닌 통합 사이드 패널 또는 슬림 HUD 모드 지원.</li>
+        <li><b class="text-[#86efac]">스마트 자동 축소:</b> 인게임 인벤토리나 전투 시 패널을 미니 바(Mini-bar)로 접는 기능.</li>
+        <li><b class="text-[#86efac]">반응형 rem/vw 전환:</b> 16:9 해상도(FHD~4K)에 맞춰 모든 패널과 그리드가 자동 비례 스케일링.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <script>
+    // 16:9 스케일러 (1920x1080 -> 뷰포트 크기)
+    const viewport = document.getElementById('monitor-viewport');
+    const screen1080 = document.getElementById('screen-1080p');
+
+    function resizeScreen() {
+      const w = viewport.clientWidth;
+      const scale = w / 1920;
+      screen1080.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', resizeScreen);
+    resizeScreen();
+
+    // 토글 핸들러
+    const optPanel = document.getElementById('ui-optimizer');
+    const buildsPanel = document.getElementById('ui-builds');
+    const teamPanel = document.getElementById('ui-team');
+    const settingsPanel = document.getElementById('ui-settings');
+    const gameInv = document.getElementById('game-inventory');
+    const colRight = document.getElementById('col-right');
+    const colLeft = document.getElementById('col-left');
+
+    function bindToggle(btnId, element, activeClass = 'bg-[#192738]') {
+      const btn = document.getElementById(btnId);
+      btn.addEventListener('click', () => {
+        element.classList.toggle('hidden-ui');
+        const isHidden = element.classList.contains('hidden-ui');
+        if (isHidden) {
+          btn.classList.remove(activeClass);
+          btn.classList.add('bg-[#131722]', 'opacity-60');
+        } else {
+          btn.classList.add(activeClass);
+          btn.classList.remove('bg-[#131722]', 'opacity-60');
+        }
+      });
+    }
+
+    bindToggle('toggle-opt', optPanel);
+    bindToggle('toggle-builds', buildsPanel);
+    bindToggle('toggle-team', teamPanel);
+    bindToggle('toggle-settings', settingsPanel);
+    bindToggle('toggle-game-inv', gameInv, 'bg-[#442b6a]');
+    
+    // 간섭 하이라이트 토글
+    document.getElementById('toggle-collision').addEventListener('click', function() {
+      const isHidden = colRight.classList.contains('hidden-ui');
+      if (isHidden) {
+        colRight.classList.remove('hidden-ui');
+        colLeft.classList.remove('hidden-ui');
+        this.classList.add('ring-2', 'ring-[#f56565]');
+      } else {
+        colRight.classList.add('hidden-ui');
+        colLeft.classList.add('hidden-ui');
+        this.classList.remove('ring-2', 'ring-[#f56565]');
+      }
+    });
+
+    // 전체 토글
+    document.getElementById('toggle-all').addEventListener('click', () => {
+      const anyVisible = !optPanel.classList.contains('hidden-ui') || !buildsPanel.classList.contains('hidden-ui');
+      [optPanel, buildsPanel, teamPanel, settingsPanel].forEach(p => {
+        if (anyVisible) p.classList.add('hidden-ui');
+        else p.classList.remove('hidden-ui');
+      });
+    });
+  </script>
+</body>
+</html>

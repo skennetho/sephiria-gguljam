@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 $steamGameRoot = "C:\Program Files (x86)\Steam\steamapps\common\Sephiria"
 $pluginDir = "$steamGameRoot\BepInEx\plugins\SephiriaTools"
-$distDir = "C:\Users\user\git_default\SephiriaPlugin\dist\sephiria-gguljam-v0.3.0"
+$distDir = "C:\Users\user\git_default\SephiriaPlugin\dist\sephiria-gguljam-v0.4.0"
 if (-not (Test-Path $distDir)) {
     $candidates = Get-ChildItem "C:\Users\user\git_default\SephiriaPlugin\dist" -Directory | Sort-Object LastWriteTime -Descending
     if ($candidates.Count -gt 0) { $distDir = $candidates[0].FullName }

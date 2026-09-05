@@ -133,10 +133,18 @@ function registerHotkeys() {
 // 창 위치 추적도 없앴다. 오버레이는 '테두리 없는 창' 모드를 전제로 하므로
 // 게임 창 = 디스플레이 전체다. 디스플레이 구성이 바뀌면 그때만 다시 맞춘다.
 
-const GAME_GONE_GRACE_MS = 15000;
-
 let sawGame = false;      // 한 번이라도 플러그인에 연결된 적이 있는가
-let goneTimer = null;
+
+// 시작 후 10초 이내에 게임(플러그인) 연결이 없으면 불필요한 백그라운드 상주 방지를 위해 자동 종료
+let initialConnectTimer = setTimeout(() => {
+  if (!sawGame) {
+    log.info('game', '게임 연결 대기 시간(10초) 초과 — 게임이 실행되지 않아 오버레이를 종료합니다');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.hide();
+    }
+    app.quit();
+  }
+}, 10000);
 
 /** 렌더러가 WS 연결 상태가 바뀔 때마다 알려준다 */
 ipcMain.on('ws-state', (_e, connected) => {
@@ -144,19 +152,23 @@ ipcMain.on('ws-state', (_e, connected) => {
 
   if (connected) {
     sawGame = true;
-    if (goneTimer) { clearTimeout(goneTimer); goneTimer = null; }
+    if (initialConnectTimer) {
+      clearTimeout(initialConnectTimer);
+      initialConnectTimer = null;
+    }
     return;
   }
 
-  // 연결이 끊겼다. 잠깐의 끊김(플러그인 재시작 등)일 수 있으니 유예를 둔다.
-  if (!sawGame || goneTimer) return;
-  goneTimer = setTimeout(() => {
-    goneTimer = null;
-    log.info('game', '플러그인 연결이 끊긴 채 유지됨 — 게임이 종료된 것으로 보고 닫습니다');
+  // 게임 실행 중 연결이 끊긴 경우 (게임 종료 등) 즉시 오버레이를 닫는다.
+  if (sawGame) {
+    log.info('game', '플러그인 연결 끊김 (게임 종료) — 오버레이를 즉시 종료합니다');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.hide();
+    }
     // 스테이징된 업데이트가 있으면 게임 종료 직전에 적용
     applyStagedUpdateOnExit();
     app.quit();
-  }, GAME_GONE_GRACE_MS);
+  }
 });
 
 /** 디스플레이 구성이 바뀌면 창 크기를 다시 맞춘다 */

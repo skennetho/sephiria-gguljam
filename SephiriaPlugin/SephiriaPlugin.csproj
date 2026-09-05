@@ -10,7 +10,7 @@
     <RootNamespace>SephiriaTools</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <Description>Sephiria In-Game Overlay &amp; Optimizer Plugin</Description>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
   </PropertyGroup>
 
   <!-- Game install location. Override: dotnet build -c Release -p:GameDir="D:\Games\Sephiria" -->
