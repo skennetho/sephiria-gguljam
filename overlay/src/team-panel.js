@@ -6,7 +6,7 @@
 
 const { esc } = require('./util');
 const gamedata = require('./gamedata');
-const { ASSETS, renderComboBadge, itemById, weaponByName, miracleByName, slugIcon } = gamedata;
+const { ASSETS, renderComboBadge, itemById, weaponByName, weaponDisplayInfo, miracleByName, slugIcon, slugName } = gamedata;
 const i18n = require('./i18n');
 const ws = require('./ws');
 const { renderGridInto } = require('./grid');
@@ -23,13 +23,21 @@ try {
 let lastTeamSig = '';     // 변경 감지용 서명
 
 function init() {
+  const headToggleBtn = document.getElementById('btn-team-view-toggle');
+  if (headToggleBtn) {
+    headToggleBtn.addEventListener('click', () => {
+      setViewMode(viewMode === 'summary' ? 'detail' : 'summary');
+    });
+  }
+  updateHeadToggleBtn();
+
   ws.on('team_update', data => {
     team = (data && (Array.isArray(data.members) ? data.members : (Array.isArray(data) ? data : []))) || [];
     if (teamActive >= team.length) teamActive = 0;
 
     // 변경 서명 체크 (호버 중 불필요한 DOM 재생성 및 툴팁 깜빡임 방지)
     const sig = JSON.stringify(team.filter(Boolean).map(m => [
-      m.name, m.weapon, m.miracle,
+      m.name, m.weapon, m.weaponId, m.miracle,
       (m.combos || []).filter(Boolean).map(c => [c.id || c.name, c.count]),
       ((m.inventory && m.inventory.items) || []).filter(Boolean).map(i => [i.entityID, i.level, i.isActive])
     ]));
@@ -41,8 +49,22 @@ function init() {
 
   i18n.onLanguageChange(() => {
     lastTeamSig = '';
+    updateHeadToggleBtn();
     renderTeam();
   });
+}
+
+function updateHeadToggleBtn() {
+  const headToggleBtn = document.getElementById('btn-team-view-toggle');
+  const panelTeam = document.getElementById('panel-team');
+  if (panelTeam) {
+    panelTeam.classList.toggle('summary-mode', viewMode === 'summary');
+  }
+  if (headToggleBtn) {
+    headToggleBtn.classList.toggle('on', viewMode === 'summary');
+    headToggleBtn.textContent = viewMode === 'summary' ? i18n.t('team.btnSummary') : i18n.t('team.btnDetail');
+    headToggleBtn.title = viewMode === 'summary' ? i18n.t('team.btnSummaryTooltip') : i18n.t('team.btnDetailTooltip');
+  }
 }
 
 function setViewMode(mode) {
@@ -51,44 +73,34 @@ function setViewMode(mode) {
   try {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
   } catch {}
+  updateHeadToggleBtn();
   renderTeam();
 }
 
 function renderTeam() {
+  updateHeadToggleBtn();
   const tabs = document.getElementById('team-tabs');
   const body = document.getElementById('team-body');
 
   if (!team.length) {
-    tabs.innerHTML = '';
-    body.innerHTML = `<div class="empty">${i18n.t('team.empty')}</div>`;
+    if (tabs) tabs.innerHTML = '';
+    if (body) body.innerHTML = `<div class="empty">${i18n.t('team.empty')}</div>`;
     return;
   }
-
-  // 1. 모드 토글 바 (전체 요약 <-> 개별 상세)
-  tabs.innerHTML = '';
-
-  const modeBar = document.createElement('div');
-  modeBar.className = 'team-mode-bar';
-
-  const btnSummary = document.createElement('button');
-  btnSummary.className = 'team-mode-btn' + (viewMode === 'summary' ? ' on' : '');
-  btnSummary.textContent = i18n.t('team.tabSummary');
-  btnSummary.addEventListener('click', () => setViewMode('summary'));
-
-  const btnDetail = document.createElement('button');
-  btnDetail.className = 'team-mode-btn' + (viewMode === 'detail' ? ' on' : '');
-  btnDetail.textContent = i18n.t('team.tabDetail');
-  btnDetail.addEventListener('click', () => setViewMode('detail'));
-
-  modeBar.appendChild(btnSummary);
-  modeBar.appendChild(btnDetail);
-  tabs.appendChild(modeBar);
 
   body.innerHTML = '';
 
   if (viewMode === 'summary') {
+    if (tabs) {
+      tabs.innerHTML = '';
+      tabs.classList.add('hidden');
+    }
     renderSummaryView(body);
   } else {
+    if (tabs) {
+      tabs.innerHTML = '';
+      tabs.classList.remove('hidden');
+    }
     renderDetailView(tabs, body);
   }
 
@@ -113,17 +125,18 @@ function renderSummaryView(body) {
     nameSpan.textContent = m.name || i18n.t('team.memberNum', { num: idx + 1 });
     rowTop.appendChild(nameSpan);
 
-    // 무기 미니 칩 (아이콘 + 이름)
-    if (m.weapon) {
-      const wRec = weaponByName(m.weapon);
-      const wIcon = wRec ? slugIcon('weapons', wRec.value) : null;
+    // 무기 미니 칩 (아이콘 + 이름 + 계열) — 빌드창과 동일한 비주얼 & 툴팁
+    if (m.weapon || m.weaponId) {
+      const wInfo = weaponDisplayInfo(m.weapon, m.weaponId);
       const wChip = document.createElement('span');
-      wChip.className = 'summary-meta-chip weapon';
+      wChip.className = 'bd-icon weapons summary-weapon-chip';
       wChip.dataset.cat = 'weapons';
-      wChip.dataset.name = m.weapon;
-      if (wRec) wChip.dataset.slug = wRec.value;
-      wChip.innerHTML = (wIcon ? `<img src="${wIcon}" onerror="this.remove()">` : '') +
-                        `<span>${esc(m.weapon)}</span>`;
+      if (wInfo.slug) wChip.dataset.slug = wInfo.slug;
+      wChip.dataset.name = wInfo.name;
+
+      const rootHtml = wInfo.rootName ? ` <span class="root">(${esc(wInfo.rootName)})</span>` : '';
+      const iconHtml = wInfo.icon ? `<img src="${wInfo.icon}" onerror="this.remove()">` : '';
+      wChip.innerHTML = `${iconHtml}<em>${esc(wInfo.name)}${rootHtml}</em>`;
       rowTop.appendChild(wChip);
     }
 
@@ -132,12 +145,12 @@ function renderSummaryView(body) {
       const mRec = miracleByName(m.miracle);
       const mIcon = mRec ? slugIcon('miracle', mRec.value) : null;
       const mChip = document.createElement('span');
-      mChip.className = 'summary-meta-chip miracle';
+      mChip.className = 'bd-icon miracle summary-meta-chip miracle';
       mChip.dataset.cat = 'miracle';
       mChip.dataset.name = m.miracle;
       if (mRec) mChip.dataset.slug = mRec.value;
       mChip.innerHTML = (mIcon ? `<img src="${mIcon}" onerror="this.remove()">` : '') +
-                        `<span>${esc(m.miracle)}</span>`;
+                        `<em>${esc(m.miracle)}</em>`;
       rowTop.appendChild(mChip);
     }
 
@@ -267,8 +280,18 @@ function renderDetailView(tabs, body) {
   meta.className = 'team-meta';
   const chips = [];
   if (m.costume) chips.push(`<span class="chip" data-cat="costume" data-name="${esc(m.costume)}" style="cursor:pointer">${i18n.t('team.costume')} <b>${esc(m.costume)}</b></span>`);
-  if (m.weapon) chips.push(`<span class="chip" data-cat="weapons" data-name="${esc(m.weapon)}" style="cursor:pointer">${i18n.t('team.weapon')} <b>${esc(m.weapon)}</b></span>`);
-  if (m.miracle) chips.push(`<span class="chip" data-cat="miracle" data-name="${esc(m.miracle)}" style="cursor:pointer">${i18n.t('team.miracle')} <b>${esc(m.miracle)}</b></span>`);
+  if (m.weapon || m.weaponId) {
+    const wInfo = weaponDisplayInfo(m.weapon, m.weaponId);
+    const rootHtml = wInfo.rootName ? ` <span class="root">(${esc(wInfo.rootName)})</span>` : '';
+    const iconHtml = wInfo.icon ? `<img src="${wInfo.icon}" onerror="this.remove()">` : '';
+    chips.push(`<span class="chip weapon-chip bd-icon weapons" data-cat="weapons" data-slug="${esc(wInfo.slug || '')}" data-name="${esc(wInfo.name)}" style="cursor:pointer">${iconHtml}<span>${i18n.t('team.weapon')} <b>${esc(wInfo.name)}</b>${rootHtml}</span></span>`);
+  }
+  if (m.miracle) {
+    const mRec = miracleByName(m.miracle);
+    const mIcon = mRec ? slugIcon('miracle', mRec.value) : null;
+    const iconHtml = mIcon ? `<img src="${mIcon}" onerror="this.remove()">` : '';
+    chips.push(`<span class="chip miracle-chip bd-icon miracle" data-cat="miracle" data-slug="${esc((mRec && mRec.value) || '')}" data-name="${esc(m.miracle)}" style="cursor:pointer">${iconHtml}<span>${i18n.t('team.miracle')} <b>${esc(m.miracle)}</b></span></span>`);
+  }
   for (const c of (m.combos || [])) {
     if (!c || !c.count || c.count <= 0) continue;
     chips.push(renderComboBadge(c.id || c.name, {

@@ -412,6 +412,7 @@ namespace SephiriaTools
                     {
                         name = GetAvatarDisplayName(avatar),
                         weapon = GetAvatarWeaponName(avatar),
+                        weaponId = GetAvatarWeaponId(avatar),
                         isLocal = false
                     };
 
@@ -458,16 +459,56 @@ namespace SephiriaTools
             return "Teammate";
         }
 
+        private int GetAvatarWeaponId(PlayerAvatar avatar)
+        {
+            try
+            {
+                var wc = avatar.GetComponent<WeaponControllerSimple>();
+                if (wc != null)
+                {
+                    if (wc.currentWeapon != null && wc.currentWeapon.entityId > 0)
+                        return wc.currentWeapon.entityId;
+                    if (wc.weaponSlotIDs != null && wc.weaponSlotIDs.Count > 0)
+                        return wc.weaponSlotIDs[0];
+                }
+            }
+            catch { }
+            return 0;
+        }
+
         private string GetAvatarWeaponName(PlayerAvatar avatar)
         {
             try
             {
                 var wc = avatar.GetComponent<WeaponControllerSimple>();
-                if (wc != null && wc.currentWeapon != null)
+                if (wc != null)
                 {
-                    if (!string.IsNullOrEmpty(wc.currentWeapon.Name))
-                        return wc.currentWeapon.Name;
-                    return wc.currentWeapon.name;
+                    int id = 0;
+                    if (wc.currentWeapon != null && wc.currentWeapon.entityId > 0)
+                        id = wc.currentWeapon.entityId;
+                    else if (wc.weaponSlotIDs != null && wc.weaponSlotIDs.Count > 0)
+                        id = wc.weaponSlotIDs[0];
+
+                    if (id > 0)
+                    {
+                        var entity = WeaponDatabase.FindWeaponById(id);
+                        if (entity != null)
+                        {
+                            if (!string.IsNullOrEmpty(entity.Name))
+                                return entity.Name;
+                            if (!string.IsNullOrEmpty(entity.name))
+                                return entity.name;
+                        }
+                    }
+
+                    if (wc.currentWeapon != null)
+                    {
+                        if (!string.IsNullOrEmpty(wc.currentWeapon.Name))
+                            return wc.currentWeapon.Name;
+                        string rawName = wc.currentWeapon.name;
+                        if (!string.IsNullOrEmpty(rawName))
+                            return rawName.Replace("(Clone)", "").Trim();
+                    }
                 }
             }
             catch { }

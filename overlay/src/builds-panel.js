@@ -108,6 +108,14 @@ function init() {
     buildPage++; loadBuilds();
   }));
 
+  const headCompactBtn = document.getElementById('btn-builds-compact');
+  if (headCompactBtn) {
+    headCompactBtn.addEventListener('click', guard('builds:head-compact', e => {
+      e.stopPropagation();
+      setCompactMode(!compactMode);
+    }));
+  }
+
   setupAdvSearch();
   tooltip.setupArtifactTooltips();
   loadBuilds();
@@ -610,6 +618,8 @@ function renderBuildDetail(b) {
     const panel = document.getElementById('panel-builds');
     if (panel) panel.classList.remove('compact-mode');
     if (view) view.classList.remove('compact-mode');
+    const headBtn = document.getElementById('btn-builds-compact');
+    if (headBtn) headBtn.classList.add('hidden');
     document.getElementById('build-detail-view').classList.add('hidden');
     document.getElementById('build-list-view').classList.remove('hidden');
     renderBuildList();
@@ -670,6 +680,14 @@ function renderBuildDetail(b) {
     }));
   }
 
+  const headBtn = document.getElementById('btn-builds-compact');
+  if (headBtn) {
+    headBtn.classList.remove('hidden');
+    headBtn.classList.toggle('on', compactMode);
+    headBtn.textContent = compactMode ? i18n.t('builds.compactOff') : i18n.t('builds.compactOn');
+    headBtn.title = compactMode ? i18n.t('builds.fullTooltip') : i18n.t('builds.compactTooltip');
+  }
+
   if (compactMode) {
     setCompactMode(true);
   }
@@ -687,6 +705,13 @@ function setCompactMode(active) {
   const i18n = require('./i18n');
   if (panel) panel.classList.toggle('compact-mode', compactMode);
   if (view) view.classList.toggle('compact-mode', compactMode);
+
+  const headBtn = document.getElementById('btn-builds-compact');
+  if (headBtn) {
+    headBtn.classList.toggle('on', compactMode);
+    headBtn.textContent = compactMode ? i18n.t('builds.compactOff') : i18n.t('builds.compactOn');
+    headBtn.title = compactMode ? i18n.t('builds.fullTooltip') : i18n.t('builds.compactTooltip');
+  }
 
   const btn = view ? view.querySelector('.compact-toggle-btn') : null;
   if (btn) {

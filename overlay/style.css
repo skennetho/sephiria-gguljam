@@ -39,6 +39,33 @@ html, body {
   cursor: move;
 }
 .panel-head .title { font-weight: bold; font-size: 15px; color: #eaf0ff; }
+.panel-compact-btn {
+  background: #182333;
+  border: 1px solid #2a4163;
+  color: #8fdcff;
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+.panel-compact-btn:hover {
+  background: #203552;
+  border-color: #3b5f94;
+  color: #c5eeff;
+}
+.panel-compact-btn.on {
+  background: #2d2612;
+  border-color: #6b5522;
+  color: #ffd75e;
+}
 .panel-head .hotkey {
   font-size: 11px; color: #59d0ff;
   border: 1px solid #2c5a75; border-radius: 4px;
@@ -418,12 +445,14 @@ html, body {
   height: 14px;
 }
 
-/* 간소화 모드 숨김 항목 */
+/* 간소화 모드 숨김 항목 - 상단 헤더(목록/복사/슬롯저장 등), 제목줄, 작성자, 스탯 등 완전 제거 */
+.compact-mode .bd-head,
+.compact-mode .bd-title-row,
+.compact-mode .bd-writer,
 .compact-mode .bd-desc,
 .compact-mode .is-desc,
 .compact-mode .stat-row,
 .compact-mode .skewer-row,
-.compact-mode .bd-writer,
 .compact-mode .bd-icon.costume {
   display: none !important;
 }
@@ -445,14 +474,7 @@ html, body {
   opacity: 0.6;
 }
 
-/* 간소화 모드 헤더 및 슬림 스크롤바 */
-.compact-mode .bd-head {
-  gap: 4px;
-}
-.compact-mode .bd-head button {
-  padding: 3px 8px;
-  font-size: 11px;
-}
+/* 간소화 모드 슬림 스크롤바 */
 #panel-builds.compact-mode #build-detail-view::-webkit-scrollbar {
   width: 5px;
 }
@@ -461,40 +483,76 @@ html, body {
   border-radius: 3px;
 }
 
-/* 간소화 모드 상단 무기/기적 슬림화 (가로형 미니 칩) */
+/* 간소화 모드 상단 무기/기적 슬림화 (가로형 미니 칩) & 팀원 요약 무기/기적 칩 일체화 */
 .compact-mode .bd-icons {
   gap: 6px;
   margin-bottom: 8px;
 }
 .compact-mode .bd-icon.weapons,
-.compact-mode .bd-icon.miracle {
+.compact-mode .bd-icon.miracle,
+.summary-weapon-chip,
+.summary-meta-chip.miracle {
+  display: inline-flex;
   flex-direction: row;
+  align-items: center;
   width: auto;
-  min-width: 100px;
-  height: 30px;
+  min-width: 90px;
+  height: 28px;
   background: #141a27;
   border: 1px solid #28334a;
   border-radius: 6px;
-  padding: 3px 8px;
+  padding: 2px 8px;
   gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.compact-mode .bd-icon.weapons:hover,
+.summary-weapon-chip:hover {
+  border-color: #3f557d;
+  background: #192133;
 }
 .compact-mode .bd-icon.weapons img,
-.compact-mode .bd-icon.miracle img {
-  width: 22px;
-  height: 22px;
-  padding: 1px;
+.compact-mode .bd-icon.miracle img,
+.summary-weapon-chip img,
+.summary-meta-chip.miracle img {
+  width: 20px;
+  height: 20px;
+  padding: 0;
   border: none;
   background: transparent;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 .compact-mode .bd-icon.weapons em,
-.compact-mode .bd-icon.miracle em {
+.compact-mode .bd-icon.miracle em,
+.summary-weapon-chip em,
+.summary-meta-chip.miracle em {
+  font-style: normal;
   font-size: 11px;
   color: #dce4f5;
   text-align: left;
+  white-space: nowrap;
+}
+.compact-mode .bd-icon.weapons .root,
+.summary-weapon-chip .root {
+  font-size: 10px;
+  color: #7b8ba8;
+  font-weight: normal;
+  margin-left: 2px;
 }
 .compact-mode .bd-icon.weapons small,
 .compact-mode .bd-icon.miracle small {
   display: none !important;
+}
+.summary-meta-chip.miracle {
+  border-color: #5c4b28;
+}
+.summary-meta-chip.miracle em {
+  color: #ffd75e;
+}
+.summary-meta-chip.miracle:hover {
+  border-color: #8c7138;
+  background: #211c12;
 }
 .compact-mode .item-section {
   margin-bottom: 8px;
@@ -717,6 +775,39 @@ html, body {
   color: #55627a;
   padding: 6px 2px;
 }
+
+/* 팀원 패널 요약 모드에서 상단 탭 숨김 */
+#panel-team.summary-mode .team-tabs,
+#panel-team.summary-mode #team-tabs {
+  display: none !important;
+}
+
+/* 팀원 패널 상세 모드 메타 칩 (무기 및 기적 비주얼) */
+.team-meta .chip.weapon-chip,
+.team-meta .chip.miracle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-direction: row;
+  padding: 3px 8px;
+}
+.team-meta .chip.weapon-chip img,
+.team-meta .chip.miracle-chip img {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.team-meta .chip.weapon-chip .root {
+  font-size: 11px;
+  color: #7b8ba8;
+  font-weight: normal;
+  margin-left: 2px;
+}
+
 
 /* ── 상태 / 단축키 바 ──────────────────────────────── */
 .ws-status {

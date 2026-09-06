@@ -38,6 +38,7 @@ namespace SephiriaTools
     {
         public string name;
         public string weapon;
+        public int weaponId;
         public bool isLocal;
         public List<ComboInfo> combos = new List<ComboInfo>();
         public InventoryData inventory;
@@ -289,6 +290,7 @@ namespace SephiriaTools
             sb.Append('{');
             AppendString(sb, "name", m.name); sb.Append(',');
             AppendString(sb, "weapon", m.weapon); sb.Append(',');
+            AppendInt(sb, "weaponId", m.weaponId); sb.Append(',');
             AppendBool(sb, "isLocal", m.isLocal); sb.Append(',');
             sb.Append("\"combos\":[");
             for (int i = 0; i < m.combos.Count; i++)

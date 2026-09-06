@@ -294,13 +294,75 @@ function weaponRootOf(slug) {
   return cur && cur.tier === 1 ? cur.value : null;
 }
 
-function weaponByName(kor) {
-  const target = String(kor || '').replace(/\s/g, '');
-  if (!target) return null;
+function weaponByName(nameOrId) {
+  if (nameOrId == null) return null;
+  const rawStr = String(nameOrId).trim();
+  if (!rawStr) return null;
+
+  // 1. 숫자 ID 매칭 (예: 1, 10, 20...)
+  const numId = Number(rawStr);
+  if (!Number.isNaN(numId) && numId > 0) {
+    for (const w of Object.values(weaponRecords)) {
+      if (w.id === numId) return w;
+    }
+  }
+
+  // 2. 정확 한글명 또는 영문 슬러그 매칭 (공백 무시)
+  const target = rawStr.replace(/\s/g, '');
   for (const w of Object.values(weaponRecords)) {
     if ((w.label_kor || w.value_kor || '').replace(/\s/g, '') === target) return w;
+    if (w.value === rawStr || w.value === target) return w;
   }
+
+  // 3. Unity GameObject Clone 및 접두사 정리 ("Weapon_Dagger(Clone)" -> "dagger")
+  const cleaned = rawStr
+    .replace(/\(Clone\)/gi, '')
+    .replace(/^Weapon_/i, '')
+    .replace(/_/g, '')
+    .toLowerCase()
+    .trim();
+
+  if (cleaned) {
+    for (const w of Object.values(weaponRecords)) {
+      const vClean = (w.value || '').replace(/_/g, '').toLowerCase();
+      if (vClean === cleaned) return w;
+      const kClean = (w.label_kor || w.value_kor || '').replace(/\s/g, '').toLowerCase();
+      if (kClean === cleaned) return w;
+    }
+    for (const w of Object.values(weaponRecords)) {
+      const vClean = (w.value || '').replace(/_/g, '').toLowerCase();
+      if (vClean.includes(cleaned) || cleaned.includes(vClean)) return w;
+    }
+  }
+
   return null;
+}
+
+/**
+ * 팀원 무기 정보 표시용 헬퍼 (빌드창과 100% 동일한 이름/계열/아이콘 추출)
+ * @param {string|number} nameOrId 무기 이름 또는 ID
+ * @param {number} [weaponId] C#에서 전달된 고유 무기 ID
+ */
+function weaponDisplayInfo(nameOrId, weaponId) {
+  const rec = (weaponId && weaponByName(weaponId)) || weaponByName(nameOrId);
+  if (rec) {
+    const slug = rec.value;
+    const name = rec.label_kor || rec.value_kor || slugName('weapons', slug);
+    const root = weaponRootOf(slug);
+    const rootName = root && root !== slug ? slugName('weapons', root) : null;
+    const icon = slugIcon('weapons', slug);
+    return { slug, name, root, rootName, icon, rec };
+  }
+  // 찾지 못한 경우 (텍스트 정제 후 기본 무기 아이콘 폴백)
+  const rawName = String(nameOrId || '').replace(/\(Clone\)/gi, '').replace(/^Weapon_/i, '').trim();
+  return {
+    slug: null,
+    name: rawName || '무기',
+    root: null,
+    rootName: null,
+    icon: null,
+    rec: null
+  };
 }
 
 function costumeByName(kor) {
@@ -440,7 +502,7 @@ module.exports = {
   COMBO_KOREAN_NAMES, comboInfo, comboName, comboIcon, renderComboBadge,
   WIKI_COMBO_KEY, COMBO_TO_WIKI, comboKeyFromWikiSlug,
   slugName, slugIcon, slugCategories,
-  weaponsByTier, weaponRootOf, weaponByName, costumeByName, miracleByName, weaponRecords,
+  weaponsByTier, weaponRootOf, weaponByName, weaponDisplayInfo, costumeByName, miracleByName, weaponRecords,
   skewerName, skewerIcon,
   entityInfo, artifactInfo,
   RARITY_RANK, RARITY_LABELS, RARITY_COLORS, rarityName,
